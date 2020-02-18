@@ -1,2 +1,4 @@
 .vagrant
 *.log
+venv
+__pycache__
