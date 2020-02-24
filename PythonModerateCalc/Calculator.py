@@ -7,7 +7,7 @@ class Calculator:
 	@classmethod
 	def add(cls, num):
 		cls.answer += num
-		return cls.answer
+		return round(cls.answer,6)
 
 	@classmethod
 	def subtract(cls, num):
@@ -30,12 +30,12 @@ class Calculator:
 	@classmethod
 	def get_answer(cls):
 		return answer
-	"""
+	
 	@classmethod
 	def clear(cls):
 		answer = 0
 		return answer
-
+	"""
 	@staticmethod
 	def add(num1, num2):
 		return num1 + num2
@@ -49,7 +49,7 @@ class Calculator:
 		return num1 * num2
 
 	@staticmethod
-	def divide(num1, num2):
+	def dividegit@github.com:MattToegel/IS601.git(num1, num2):
 		return num1 / num2
 	"""
 
