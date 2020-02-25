@@ -1,5 +1,6 @@
 
 def test_calc_muliply():
 	from Calculator import Calculator
-	#c = Calculator()
+	
+	Calculator.reset()
 	assert Calculator.multiply(2) == 0
