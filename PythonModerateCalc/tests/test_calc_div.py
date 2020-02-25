@@ -1,5 +1,6 @@
 
 def test_calc_divide():
 	from Calculator import Calculator
-	c = Calculator()
-	assert c.divide(2,2) == 1
+	#c = Calculator()
+	Calculator.add(5)
+	assert Calculator.divide(5) == 1
