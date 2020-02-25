@@ -32,9 +32,12 @@ class Calculator:
 		return answer
 	
 	@classmethod
+	def reset(cls):
+	    cls.clear()	
+	@classmethod
 	def clear(cls):
-		answer = 0
-		return answer
+		cls.answer = 0
+		return cls.answer
 	"""
 	@staticmethod
 	def add(num1, num2):
