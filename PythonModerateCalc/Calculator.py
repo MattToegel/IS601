@@ -1,63 +1,47 @@
 class Calculator:
-	answer = 0
-    
-	def __init__(self):
-		pass
+    answer = 0
 
-	@classmethod
-	def add(cls, num):
-		cls.answer += num
-		return round(cls.answer,6)
+    def __init__(self):
+        pass
 
-	@classmethod
-	def subtract(cls, num):
-		cls.answer -= num
-		return cls.answer
+    @classmethod
+    def add(cls, num):
+        cls.answer += num
+        return round(cls.answer,6)
 
-	@classmethod
-	def multiply(cls, num):
-		cls.answer *= num
-		return cls.answer
+    @classmethod
+    def subtract(cls, num):
+        cls.answer -= num
+        return cls.answer
 
-	@classmethod
-	def divide(cls, num):
-		try:
-			cls.answer /= num
-			return cls.answer
-		except ZeroDivisionError:
-			print("divide by zero")
+    @classmethod
+    def multiply(cls, num):
+        cls.answer *= num
+        return cls.answer
 
-	@classmethod
-	def get_answer(cls):
-		return answer
-	
-	@classmethod
-	def reset(cls):
-	    cls.clear()	
-	@classmethod
-	def clear(cls):
-		cls.answer = 0
-		return cls.answer
-	"""
-	@staticmethod
-	def add(num1, num2):
-		return num1 + num2
+    @classmethod
+    def divide(cls, num):
+        try:
+            cls.answer /= num
+            return cls.answer
+        except ZeroDivisionError:
+            print("divide by zero")
 
-	@staticmethod
-	def subtract(num1, num2):
-		return num1 - num2
+    @classmethod
+    def get_answer(cls):
+        return cls.answer
 
-	@staticmethod
-	def multiply(num1, num2):
-		return num1 * num2
+    @classmethod
+    def reset(cls):
+        cls.clear()
 
-	@staticmethod
-	def dividegit@github.com:MattToegel/IS601.git(num1, num2):
-		return num1 / num2
-	"""
+    @classmethod
+    def clear(cls):
+        cls.answer = 0
+        return cls.answer
+
 
 if __name__ == "__main__":
-    #c = Calculator()
     choice = ""
     while choice != "quit":
         print("Select operation.")
@@ -68,7 +52,7 @@ if __name__ == "__main__":
         print("5. Quit")
         choice = input("Enter choice:")
         if choice == "5" or choice == "quit":
-           break
+            break
         num = float(input("Enter number:"))
         if choice == "1":
             print(Calculator.answer, "+", num, "=", Calculator.add(num))

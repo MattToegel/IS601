@@ -1,4 +1,4 @@
-class Calculator:
+class CalculatorStatic:
     answer = 0
 
     def __init__(self):
