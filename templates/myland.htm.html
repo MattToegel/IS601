@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% for land in my_land %}
+    {%  if loop.index % 5 == 0 %}
+        <div class="columns">
+    {% endif %}
+
+    <div class="column">{{land.name}}</div>
+
+    {%  if loop.index % 5 == 4 %}
+        </div>
+    {% endif %}
+    <div>Sample</div>
+    <div class="columns">
+        <div class="column">Land 1</div>
+        <div class="column">Land 2</div>
+        <div class="column">Land 3</div>
+        <div class="column">Land 4</div>
+        <div class="column">Land 5</div>
+    </div>
+    <div class="columns">
+        <div class="column">Land 6</div>
+        <div class="column">Land 7</div>
+        <div class="column">Land 8</div>
+        <div class="column">Land 9</div>
+        <div class="column">Land 10</div>
+    </div>
+    <div>End sample</div>
+{% endfor %}
+{% endblock %}
