@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="title">
+  Welcome, {{ name }}!
+</h1>
+<h5>Economics</h5>
+<div>
+    <div>Land</div><div>{{ num_lots }}</div>
+    <div>Workers</div><div>{{ num_workers }}</div>
+    <div>Coins</div><div>{{ coins }}</div>
+    <div>Wood</div>
+    <div>
+    {%  for wood in wood_types %}
+        <div>{{ wood.type }}</div><div>{{ wood.count}}</div>
+    {%  endfor %}
+    </div>
+    <div>Ore</div>
+    <div>
+        {%  for ore in ore_types %}
+        <div>{{ore.type}}</div><div>{{ore.count}}</div>
+        {%  endfor %}
+    </div>
+    <div>Ingots</div>
+    <div>
+        {%  for ignot in ingot_types %}
+        <div>{{ingot.type}}</div><div>{{ingot.count}}</div>
+        {%  endfor %}
+    </div>
+</div>
+
+{% endblock %}
