@@ -1,18 +1,17 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash
+from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, logout_user, login_required
-from .models import User
-from . import db
-
-auth = Blueprint('auth', __name__)
 
 
-@auth.route('/login')
+auth_bp = Blueprint('auth', __name__, template_folder='templates')
+
+
+@auth_bp.route('/login')
 def login():
     return render_template('login.html')
 
 
-@auth.route('/login', methods=['POST'])
+@auth_bp.route('/login', methods=['POST'])
 def login_post():
     # login code goes here
     email = request.form.get('email')
@@ -29,15 +28,15 @@ def login_post():
 
     # if the above check passes, then we know the user has the right credentials
     login_user(user, remember=remember)
-    return redirect(url_for('main.profile'))
+    return redirect(url_for('core.profile'))
 
 
-@auth.route('/signup')
+@auth_bp.route('/signup')
 def signup():
     return render_template('signup.html')
 
 
-@auth.route('/signup', methods=['POST'])
+@auth_bp.route('/signup', methods=['POST'])
 def signup_post():
     # code to validate and add user to database goes here
     email = request.form.get('email')
@@ -53,15 +52,26 @@ def signup_post():
 
     # create new user with the form data. Hash the password so plaintext version isn't saved.
     new_user = User(email=email, name=name, password=generate_password_hash(password, method='sha256'))
-
+    from server import db
     # add the new user to the database
     db.session.add(new_user)
     db.session.commit()
     return redirect(url_for('auth.login'))
 
 
-@auth.route('/logout')
+@auth_bp.route('/logout')
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('main.index'))
+    return redirect(url_for('core.index'))
+
+
+@auth_bp.route('/user/<string:name>')
+def get_user(name):
+    print(name)
+    user = User.query.filter_by(name=name).first()
+    print(user.name)
+    us = UserSchema()
+    return jsonify(user=us.dump(user)), 200
+
+from auth.models import User, UserSchema
