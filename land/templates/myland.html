@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if my_land | length == 0 %}
+    <div>You don't have any land available</div>
+{%  endif %}
+<div class="container">
+{% for land in my_land %}
+    <div class="column">{{land.id}}</div>
+{% endfor %}
+</div>
+{% endblock %}
