@@ -5,6 +5,23 @@ from flask_login import login_user, logout_user, login_required
 
 auth_bp = Blueprint('auth', __name__, template_folder='templates')
 
+_admins = ('matt@test.com',)
+
+
+@auth_bp.before_app_first_request
+def create_user():
+    from app import  db
+    from auth.models import Permission
+    print("init db, setting up admins")
+    db.create_all()
+    users = User.query.filter(User.email.in_(_admins)).all()
+    for user in users:
+        user.permission = Permission.ADMIN
+        if user.get_coins() == 0:
+            user.inventory.coins = 100
+        # user.active = True
+    db.session.commit()
+
 
 @auth_bp.route('/login')
 def login():
@@ -43,8 +60,8 @@ def signup_post():
     name = request.form.get('name')
     password = request.form.get('password')
 
-    user = User.query.filter_by(
-        email=email).first()  # if this returns a user, then the email already exists in database
+    user = User.query.filter_by(email=email).first()
+    # if this returns a user, then the email already exists in database
 
     if user:  # if a user is found, we want to redirect back to signup page so user can try again
         flash('Email address already exists')
@@ -52,7 +69,7 @@ def signup_post():
 
     # create new user with the form data. Hash the password so plaintext version isn't saved.
     new_user = User(email=email, name=name, password=generate_password_hash(password, method='sha256'))
-    from server import db
+    from app import db
     # add the new user to the database
     db.session.add(new_user)
     db.session.commit()
@@ -71,7 +88,7 @@ def get_user(name):
     print(name)
     user = User.query.filter_by(name=name).first()
     print(user.name)
-    us = UserSchema()
-    return jsonify(user=us.dump(user)), 200
 
-from auth.models import User, UserSchema
+    return jsonify(user=user.__dict__), 200
+
+from auth.models import User

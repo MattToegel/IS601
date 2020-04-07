@@ -2,7 +2,8 @@ import enum
 from marshmallow.fields import Str
 from marshmallow_sqlalchemy.fields import Nested
 
-from server import db, ma
+from app import db, ma
+
 
 
 class ResourceType(enum.Enum):
@@ -31,17 +32,11 @@ class ResourceNode(db.Model):
     sub_type = db.Column(db.Enum(OreType))
     available = db.Column(db.Integer)
 
+    def is_ore(self):
+        return self.type == ResourceType.ore
 
-class ResourceNodeSchema(ma.SQLAlchemySchema):
-    class Meta:
-        model = ResourceNode
-        sqla_session = db.session
-
-    id = ma.auto_field()
-    land_id = ma.auto_field()
-    type = Str()
-    sub_type = Str()
-    available = ma.auto_field()
+    def __repr__(self):
+        return self.type.name + '-' + self.sub_type.name + '[' + str(self.available) + ']'
 
 
 class InventoryToResource(db.Model):
@@ -51,30 +46,9 @@ class InventoryToResource(db.Model):
     inventory_id = db.Column(db.Integer, db.ForeignKey('inventory.id'))
 
 
-class InventoryToResourceSchema(ma.SQLAlchemySchema):
-    class Meta:
-        model = InventoryToResource
-        sqla_session = db.session
-
-    id = ma.auto_field()
-    type = ma.auto_field()
-    quantity = ma.auto_field()
-
-
 class Inventory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user = db.relationship('auth.models.User')
     coins = db.Column(db.Integer, default=0)
-
-
-class InventorySchema(ma.SQLAlchemySchema):
-    class Meta:
-        model = Inventory
-        sqla_session = db.session
-
-    id = ma.auto_field()
-    user_id = ma.auto_field()
-    coins = ma.auto_field()
-    resource = Nested(InventoryToResourceSchema)
-
-
+    resources = db.relationship('InventoryToResource', cascade="all, delete-orphan")
