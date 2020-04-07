@@ -10,8 +10,9 @@ _admins = ('matt@test.com',)
 
 @auth_bp.before_app_first_request
 def create_user():
-    from app import  db
+    from app import db
     from auth.models import Permission
+    from auth.models import User
     print("init db, setting up admins")
     db.create_all()
     users = User.query.filter(User.email.in_(_admins)).all()
@@ -91,4 +92,3 @@ def get_user(name):
 
     return jsonify(user=user.__dict__), 200
 
-from auth.models import User

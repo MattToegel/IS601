@@ -73,3 +73,7 @@ def search_lot_for_resource(land_id):
         flash("Your land still has resources, you can't search for more yet")
     return redirect(url_for('land.show_my_land'))
 
+@land_bp.route('/sell/<int:land_id>')
+def sell(land_id):
+
+    return redirect(url_for('land.show_my_land'))
