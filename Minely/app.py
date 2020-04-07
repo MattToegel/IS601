@@ -42,6 +42,7 @@ def admin_only(f):
 
 # db.create_all(app=create_app())
 # blueprint for auth routes in our app
+
 from auth.auth import auth_bp
 app.register_blueprint(auth_bp)
 
@@ -56,6 +57,11 @@ from resources.resources import resources_bp
 app.register_blueprint(resources_bp, url_prefix='/resource')
 
 
+
 if __name__ == "__main__":
     # app.run(ssl_context=('cert.pem', 'key.pem'))
+
     app.run(debug=True)
+
+from resources.models import *
+from land.models import *

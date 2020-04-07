@@ -14,6 +14,10 @@ def get_wood():
     pass
 
 
+@resources_bp.route('/gather/<int:resource_id>')
+def gather(resource_id):
+    pass
+
 def acquire_new_resource():
     resource = ResourceNode()
     seed()
