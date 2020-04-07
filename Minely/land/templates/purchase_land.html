@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+<h3>Would you like to purchase another lot of land?</h3>
+<h5>Your balance is: {{ balance }}</h5>
+<form action="" method="post" novalidate>
+    {{ form.hidden_tag() }}
+    {{ form.cost.label }}
+    {{ form.cost }}
+    {{ form.submit }}
+</form>
+</div>
+{% endblock %}

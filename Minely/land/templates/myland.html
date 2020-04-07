@@ -4,9 +4,27 @@
 {% if my_land | length == 0 %}
     <div>You don't have any land available</div>
 {%  endif %}
-<div class="container">
-{% for land in my_land %}
-    <div class="column">{{land.id}}</div>
+
+{% for land_row in my_land|batch(6 ) %}
+    <div class="row">
+    {% for land in land_row %}
+            <div class="card bg-warning col-xl-2 m-1" style="height:100px; max-width: 150px">
+                {{land.id}}
+                {% for res in land.resources %}
+                    {% if res.is_ore() %}
+                        {% set class = 'bg-secondary' %}
+                    {% else %}
+                        {% set class = 'bg-success' %}
+                    {% endif %}
+                    <div class="{{ class }} card-body p-1">
+                        {{ res }}
+                    </div>
+                {%  endfor %}
+                {% if land.resources|count == 0 %}
+                    <a href="{{ url_for('land.search_lot_for_resource', land_id=land.id) }}">Search</a>
+                {% endif %}
+            </div>
+    {% endfor %}
+    </div>
 {% endfor %}
-</div>
 {% endblock %}
