@@ -1,16 +1,19 @@
 from random import seed, randint
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint
 
-from resources.models import ResourceNode, ResourceType, OreType, Inventory, \
-    InventoryToResource
-from app import db
+from resources.models import ResourceNode, ResourceType, OreType
 
 resources_bp = Blueprint('resources', __name__, template_folder='templates')
 
 
 @resources_bp.route('/get/wood')
 def get_wood():
+    pass
+
+
+@resources_bp.route('/gather/<int:resource_id>')
+def gather(resource_id):
     pass
 
 
