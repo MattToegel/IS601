@@ -1,12 +1,11 @@
-from flask import Blueprint, jsonify, render_template, flash, request, url_for, redirect
+from flask import Blueprint, jsonify, render_template, flash, url_for, redirect
 from flask_login import current_user, login_required
 
 from core.forms import PurchaseForm
 from core.models import Purchase, PurchaseType
 from land.models import Land
-from app import db, admin_only
 from resources.resources import acquire_new_resource
-
+from app import db
 land_bp = Blueprint('land', __name__, template_folder='templates')
 
 
@@ -29,7 +28,8 @@ def buy_land():
         else:
             flash("Sorry you can't afford any more land right now")
     else:
-        form.cost.data = current_user.get_land_cost()
+        pass
+    form.cost.data = current_user.get_land_cost()
     return render_template('purchase_land.html', form=form, balance=balance), 200
 
 
@@ -73,3 +73,8 @@ def search_lot_for_resource(land_id):
         flash("Your land still has resources, you can't search for more yet")
     return redirect(url_for('land.show_my_land'))
 
+
+@land_bp.route('/sell/<int:land_id>')
+def sell(land_id):
+
+    return redirect(url_for('land.show_my_land'))
