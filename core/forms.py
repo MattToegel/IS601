@@ -1,4 +1,3 @@
-
 from flask_wtf import FlaskForm
 from wtforms import IntegerField, SubmitField, HiddenField, validators
 from wtforms.validators import InputRequired
@@ -19,6 +18,7 @@ class ModelForm(BaseModelForm):
 class PurchaseForm(ModelForm):
     class Meta:
         model = Purchase
+
     id = HiddenField('id', [validators.optional()])
     cost = IntegerField('Cost', [InputRequired()], render_kw={'class': 'form-control', 'readonly': 'readonly'})
     submit = SubmitField('Purchase', render_kw={'class': 'form-control btn btn-primary'})
