@@ -1,9 +1,6 @@
 import enum
-from marshmallow.fields import Str
-from marshmallow_sqlalchemy.fields import Nested
 
 from app import db
-
 
 
 class ResourceType(enum.Enum):
@@ -52,3 +49,7 @@ class Inventory(db.Model):
     user = db.relationship('auth.models.User')
     coins = db.Column(db.Integer, default=0)
     resources = db.relationship('InventoryToResource', cascade="all, delete-orphan")
+
+    def update_coins(self, change):
+        self.coins += change
+        db.session.commit()

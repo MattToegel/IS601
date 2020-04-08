@@ -5,24 +5,14 @@
     <h3 class="title">Login</h3>
     <div class="box">
         <form method="POST" action="/login">
-            <div class="field">
-                <div class="control">
-                    <input class="input is-large" type="email" name="email" placeholder="Your Email" autofocus="">
-                </div>
-            </div>
-
-            <div class="field">
-                <div class="control">
-                    <input class="input is-large" type="password" name="password" placeholder="Your Password">
-                </div>
-            </div>
-            <div class="field">
-                <label class="checkbox">
-                    <input type="checkbox">
-                    Remember me
-                </label>
-            </div>
-            <button class="button is-block is-info is-large is-fullwidth">Login</button>
+            {{ form.hidden_tag() }}
+            {{ form.email.label }}
+            {{ form.email }}
+            {{ form.password.label }}
+            {{ form.password }}
+            {{ form.remember_me.label }}
+            {{ form.remember_me }}
+            {{ form.submit }}
         </form>
     </div>
 </div>
