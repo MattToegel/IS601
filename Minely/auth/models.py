@@ -29,11 +29,13 @@ class User(UserMixin, db.Model):
             inv.user_id = self.id
             db.session.add(inv)
             db.session.commit()
+        else:
+            print('inventory exists')
         return self.inventory.coins
 
     def make_purchase(self, cost):
         if self.inventory is not None:
-            self.inventory.coins -= cost
+            self.inventory.update_coins(-cost)
             db.session.commit()
 
     def get_land_cost(self):

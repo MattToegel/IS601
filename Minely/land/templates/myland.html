@@ -16,13 +16,22 @@
                     {% else %}
                         {% set class = 'bg-success' %}
                     {% endif %}
-                    <div class="{{ class }} card-body p-1">
-                        {{ res }}
+                    <div class="{{ class }} card-body p-1 d-flex align-items-center flex-column">
+                        <div class="row">
+                            {% if res.sub_type.name != 'none' %}
+                                {{ res.sub_type.name }}
+                            {% endif %}
+                            {{ res.type.name }}
+                        </div>
+                        <div class="row">
+                            <a class="btn btn-dark" href="{{ url_for('resources.gather', resource_id=res.id )}}">Gather</a>
+                        </div>
                     </div>
                 {%  endfor %}
                 {% if land.resources|count == 0 %}
                     <a href="{{ url_for('land.search_lot_for_resource', land_id=land.id) }}">Search</a>
                 {% endif %}
+                <a class="btn btn-dark" href="{{ url_for('land.sell', land_id=land.id) }}">Sell ({{ land.sell_price() }}</a>
             </div>
     {% endfor %}
     </div>
