@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, flash, redirect, url_for
 from flask_login import login_required, current_user
 
-from workers.models import Worker
+from workers.models import Worker, Promotion
+
 workers_bp = Blueprint('workers', __name__, template_folder='templates')
 
 
@@ -11,6 +12,20 @@ def pick_to_gather(resource_id):
     return render_template("workers.html", resource_id=resource_id, workers=workers)
 
 
+@workers_bp.route('/fire/<int:worker_id>')
+@login_required
+def fire(worker_id):
+    worker = Worker.query.get(int(worker_id))
+    if worker is not None:
+        if worker.user_id == current_user.id:
+            flash("You fired " + worker.name)
+        else:
+            flash("You can't fire a worker that isn't part of your crew.")
+    else:
+        flash("Couldn't find particular worker")
+    return redirect(url_for('workers.my_workers'))
+
+
 @workers_bp.route('/hire')
 @login_required
 def hire_random():
@@ -18,6 +33,28 @@ def hire_random():
     worker = Worker()
     worker.generate(current_user.id)
     flash('Congrats you hired ' + worker.name)
+    return redirect(url_for('workers.my_workers'))
+
+
+@workers_bp.route('/promote/<int:worker_id>')
+@login_required
+def promote_worker(worker_id):
+    worker = Worker.query.get(int(worker_id))
+    if worker is not None:
+        print('attempting promote')
+        promo_status = worker.promote()
+        if promo_status is False:
+            flash("Sorry, you can't afford to promote " . worker.name)
+        elif promo_status == Promotion.NONE:
+            flash(worker.name + " is already at maximum skills.")
+        elif promo_status == Promotion.INCREASED_SKILL:
+            flash("Congrats " + worker.name + " increased their skill")
+        elif promo_status == Promotion.INCREASED_EFFICIENCY:
+            flash("Congrats " + worker.name + " increased their efficiency")
+        elif promo_status == Promotion.MAXED_SKILL:
+            flash("Congrats " + worker.name + " maxed their skill")
+        elif promo_status == Promotion.MAXED_EFFICIENCY:
+            flash("Congrats " + worker.name + " maxed their efficiency")
     return redirect(url_for('workers.my_workers'))
 
 
