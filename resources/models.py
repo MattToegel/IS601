@@ -7,6 +7,12 @@ class ResourceType(enum.Enum):
     wood = 1
     ore = 2
 
+    def __str__(self):
+        return self.name  # value string
+
+    def __html__(self):
+        return self.value  # label string
+
 
 class OreType(enum.Enum):
     none = 0
@@ -14,11 +20,23 @@ class OreType(enum.Enum):
     iron = 2
     coal = 3
 
+    def __str__(self):
+        return self.name  # value string
+
+    def __html__(self):
+        return self.value  # label string
+
 
 class IngotType(enum.Enum):
     copper = 1
     iron = 2
     steel = 3
+
+    def __str__(self):
+        return self.name  # value string
+
+    def __html__(self):
+        return self.value  # label string
 
 
 # resource node can only belong to one land
