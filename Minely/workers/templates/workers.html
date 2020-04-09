@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+.female{
+    background-color: pink;
+}
+.male{
+    background-color: lightblue;
+}
+</style>
+{% if workers | length == 0 %}
+    <div>You don't have any workers</div>
+{%  endif %}
+
+{% for worker_row in workers|batch(6 ) %}
+    <div class="row">
+    {% for worker in worker_row %}
+            <div class="card col-xl-2 m-1 bg-light" style="height:10rem; max-width: 150px">
+                {{worker.id}}
+                <h5 class="{{ worker.gender.name | lower }} text-center">{{ worker.name }}</h5>
+                <div class="card-body p-0">
+                <div class="">
+                    <div>Health: {{ worker.health.name }}</div>
+                </div>
+                <div class="">
+                    <div class="progress" style="height:1.25rem">
+                      <div class="progress-bar bg-success" role="progressbar"
+                           style="width: {{ worker.skill * 100 }}%" aria-valuenow="{{ worker.skill }}"
+                           aria-valuemin="0" aria-valuemax="1.0">Skill</div>
+                    </div>
+                </div>
+                <div class="">
+                    <div class="progress" style="height:1.25rem">
+                      <div class="progress-bar bg-info" role="progressbar"
+                           style="width: {{ worker.efficiency * 100 }}%" aria-valuenow="{{ worker.efficiency }}"
+                           aria-valuemin="0" aria-valuemax="1.0">Efficiency</div>
+                    </div>
+                </div>
+                <div class="">
+                    <div class="progress" style="height:1.25rem">
+                      <div class="progress-bar bg-warning" role="progressbar"
+                           style="width: {{ worker.stamina }}%" aria-valuenow="{{ worker.stamina }}"
+                           aria-valuemin="0" aria-valuemax="100">Stamina</div>
+                    </div>
+                </div>
+                </div>
+            </div>
+    {% endfor %}
+    </div>
+{% endfor %}
+{% endblock %}

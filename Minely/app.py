@@ -12,6 +12,7 @@ csrf = CSRFProtect()
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
 
+
 def admin_only(f):
     @functools.wraps(f)
     def wrap(*args, **kwargs):
@@ -50,8 +51,10 @@ def register_blueprints(app):
     from land.models import Land
     from auth.models import Permission, User
     from core.models import Purchase, PurchaseType
-
+    from workers.models import Worker
     from resources.models import ResourceNode, InventoryToResource, Inventory, OreType, ResourceType, IngotType
+    from auth.models import Permission, User
+
     @login_manager.user_loader
     def load_user(user_id):
         # since the user_id is just the primary key of our user table, use it in the query for the user
@@ -60,16 +63,22 @@ def register_blueprints(app):
     from core.core import core_bp
     from land.land import land_bp
     from resources.resources import resources_bp
+    from workers.workers import workers_bp
     app.register_blueprint(auth_bp)
     # blueprint for non-auth parts of app
     app.register_blueprint(core_bp)
     app.register_blueprint(land_bp, url_prefix='/land')
     app.register_blueprint(resources_bp, url_prefix='/resource')
+    app.register_blueprint(workers_bp, url_prefix='/workers')
 
 
 def setup_database(app):
     with app.app_context():
-
+        from land.models import Land
+        from auth.models import Permission, User
+        from core.models import Purchase, PurchaseType
+        from workers.models import Worker
+        from resources.models import ResourceNode, InventoryToResource, Inventory, OreType, ResourceType, IngotType
         db.create_all()
         _admins = ('matt@test.com',)
         print("init db, setting up admins")
