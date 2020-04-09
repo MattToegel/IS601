@@ -32,6 +32,14 @@ class Health(enum.Enum):
         return self.value  # label string
 
 
+class Promotion(enum.Enum):
+    NONE = 0
+    INCREASED_SKILL = 1
+    MAXED_SKILL = 2
+    INCREASED_EFFICIENCY = 3
+    MAXED_EFFICIENCY = 4
+
+
 class Worker(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(30))
@@ -51,36 +59,55 @@ class Worker(db.Model):
     promote_cost = db.Column(db.Integer, default=0)
     promote_base = db.Column(db.Integer, default=0)
 
+    def get_promote_cost(self):
+        if self.promote_cost == 0 or self.promote_cost is None:
+            if self.promote_base == 0 or self.promote_base is None:
+                self.promote_base = int(random.uniform(5, 50))
+            self.promote_cost = self.promote_base
+            db.session.commit()
+        return int(self.promote_cost)
+
     def __determine_promotion(self):
         choices = []
         if self.skill < 1.0:
             choices.append('skill')
         if self.efficiency < 1.0:
             choices.append('ef')
-        choice = random.choices(choices)
-        if choice == 'skill':
-            self.skill += 0.1
-            if self.skill > 1.0:
-                self.skill = 1.0
-        elif choice == 'ef':
-            self.efficiency += 0.1
-            if self.efficiency > 1.0:
-                self.efficiency = 1.0
+        if len(choices) > 0:
+            choice = random.choices(choices)[0]
+            if choice == 'skill':
+                self.skill += 0.1
+                if self.skill > 1.0:
+                    self.skill = 1.0
+                    return Promotion.MAXED_SKILL
+                else:
+                    return Promotion.INCREASED_SKILL
+            elif choice == 'ef':
+                self.efficiency += 0.1
+                if self.efficiency > 1.0:
+                    self.efficiency = 1.0
+                    return Promotion.MAXED_EFFICIENCY
+                else:
+                    return Promotion.INCREASED_EFFICIENCY
+        return Promotion.NONE
 
     def promote(self, free=False):
         if (self.user.get_coins() >= self.promote_cost) or free:
             # do promote
-            self.__determine_promotion()
-            cost = self.promote_cost
-            if self.promote_cost == 0:
-                self.promote_cost = self.promote_base
-            # raise the price
-            self.promote_cost = self.promote_cost * self.promote_cost
-            # deduct the cached cost
-            if not free:
-                self.user.inventory.update_coins(-cost)
-            db.session.commit()
-            return True
+            promo = self.__determine_promotion()
+            if promo is not Promotion.NONE:
+                # cache cost
+                cost = self.get_promote_cost()
+                # raise the price
+                self.promote_cost = self.promote_cost * self.promote_cost
+                # deduct the cached cost
+                if not free:
+                    self.user.inventory.update_coins(-cost)
+                db.session.commit()
+                # succeeded in promote
+            # failed to promote
+            return promo
+        # user can't afford
         return False
 
     def generate(self, user_id):
@@ -93,7 +120,7 @@ class Worker(db.Model):
             self.gender = Gender.FEMALE
             self.name = names.get_first_name(gender='female')
         self.user_id = user_id
-        self.promote_base = random.uniform(5, 50)
+        self.promote_base = int(random.uniform(5, 50))
         print('Saved to user: ' + str(user_id))
         db.session.add(self)
         db.session.commit()
