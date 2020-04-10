@@ -1,0 +1,9 @@
+
+.vagrant
+*.log
+venv
+.pytest_cache
+__pycache__
+.idea
+*.sqlite
+*.db
