@@ -8,6 +8,7 @@ from app import db
 class Permission(enum.Enum):
     ADMIN = 1
     USER = 2
+    NONE = 10 # can be used to disable users
 
 
 class User(UserMixin, db.Model):
@@ -15,7 +16,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(100))
     name = db.Column(db.String(64))
-    permission = db.Column(db.Enum(Permission), default=Permission.USER)
+    permission = db.Column(db.Enum(Permission, create_constraint=False), default=Permission.USER)
     # last_cost = db.Column(db.Integer, default=0)
 
     land = db.relationship('Land', cascade="all, delete-orphan")
@@ -44,3 +45,6 @@ class User(UserMixin, db.Model):
 
     def is_admin(self):
         return self.permission == Permission.ADMIN
+
+    def is_none(self):
+        return self.permission == Permission.NONE
