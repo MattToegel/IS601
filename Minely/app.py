@@ -1,10 +1,13 @@
 import functools
+import secrets
+import string
 
 from flask import Flask, flash, redirect, url_for
 from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
+from werkzeug.security import generate_password_hash
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -81,8 +84,24 @@ def setup_database(app):
         from resources.models import ResourceNode, InventoryToResource, Inventory, OreType, ResourceType, IngotType
         db.create_all()
         _admins = ('matt@test.com',)
-        print("init db, setting up admins")
+        print("init db, setting up users/admins")
         from auth.models import User, Permission
+        user = User.query.filter_by(name="System").first()
+        if user is None:
+            print('Creating system user')
+            res = ''.join(secrets.choice(string.ascii_uppercase + string.digits)
+                          for i in range(20))
+            user = User(email="minelysystem@ethereallab.app", name="System",
+                        password=generate_password_hash(
+                            res
+                            , method='sha256'),
+                        permission=Permission.NONE)
+            db.session.add(user)
+            db.session.commit()
+
+            print('Created system user')
+        else:
+            print('System user already exists')
         users = User.query.filter(User.email.in_(_admins)).all()
         for user in users:
             print('updating user')

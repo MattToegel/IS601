@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template, flash, redirect, url_for
 from flask_login import login_required, current_user
+from sqlalchemy import or_
 
+from app import admin_only
 from workers.models import Worker, Promotion
 
 workers_bp = Blueprint('workers', __name__, template_folder='templates')
@@ -12,12 +14,28 @@ def pick_to_gather(resource_id):
     return render_template("workers.html", resource_id=resource_id, workers=workers)
 
 
+@workers_bp.route('/fired')
+@login_required
+@admin_only
+def get_fired_workers():
+    from auth.models import User
+    # find out system user if available
+    sysuser = User.query.filter_by(name="System").first()
+    sysuserid = -1
+    if sysuser is not None:
+        sysuserid = sysuser.id
+    # find workers owned by our system user or user 1 (if system user wasn't found when worker was fired)
+    workers = Worker.query.filter(or_(Worker.user_id==1, Worker.user_id==sysuserid)).all()
+    return render_template("workers.html", workers=workers)
+
+
 @workers_bp.route('/fire/<int:worker_id>')
 @login_required
 def fire(worker_id):
     worker = Worker.query.get(int(worker_id))
     if worker is not None:
         if worker.user_id == current_user.id:
+            worker.fire()
             flash("You fired " + worker.name)
         else:
             flash("You can't fire a worker that isn't part of your crew.")

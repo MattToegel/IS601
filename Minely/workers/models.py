@@ -125,6 +125,18 @@ class Worker(db.Model):
         db.session.add(self)
         db.session.commit()
 
+    def fire(self):
+        from auth.models import User
+        user = User.query.filter_by(name="System").first()
+        if user is not None:
+            print('Worker set to System user')
+            self.user_id = user.id
+        else:
+            print('Worker set to user 1')
+            self.user_id = 1  # set to first user, better be an admin
+
+        db.session.commit()
+
     def can_gather(self):
         if datetime.utcnow() >= self.next_action:
             return True
