@@ -142,7 +142,7 @@ class Worker(db.Model):
 
     def offer_transfer(self):
         # auctioned workers have a ref to previous user so they get commission
-        user_id = self._get_sys_user_id()
+        user_id = self._get_sys_user_id
         previous = self.user_id
         self.user_id = user_id
         self.previous_user_id = previous
