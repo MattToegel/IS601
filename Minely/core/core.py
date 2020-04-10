@@ -4,7 +4,7 @@ from flask_login import login_required, current_user
 core_bp = Blueprint('core', __name__, template_folder='templates')
 
 
-class CachedStaticProperty:
+class CachedStaticProperty:  # https://stackoverflow.com/questions/39498891/computed-static-property-in-python
     """Works like @property and @staticmethod combined"""
 
     def __init__(self, func):
