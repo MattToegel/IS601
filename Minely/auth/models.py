@@ -1,13 +1,16 @@
 import enum
 
 from flask_login import UserMixin
+from werkzeug.utils import cached_property
 
 from app import db
+from core.core import CachedStaticProperty
 
 
 class Permission(enum.Enum):
     ADMIN = 1
     USER = 2
+    NONE = 10 # can be used to disable users
 
 
 class User(UserMixin, db.Model):
@@ -15,11 +18,12 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(100))
     name = db.Column(db.String(64))
-    permission = db.Column(db.Enum(Permission), default=Permission.USER)
+    permission = db.Column(db.Enum(Permission, create_constraint=False), default=Permission.USER)
     # last_cost = db.Column(db.Integer, default=0)
 
     land = db.relationship('Land', cascade="all, delete-orphan")
     inventory = db.relationship("Inventory", uselist=False, back_populates="user", cascade="all, delete-orphan")
+    workers = db.relationship('Worker')
 
     def get_coins(self):
         if self.inventory is None:
@@ -42,5 +46,31 @@ class User(UserMixin, db.Model):
         c = len(self.land)
         return (c*c) * 10 # TODO setup base value increment
 
+    def get_hire_cost(self):
+        c = len(self.workers)
+        if c == 0:
+            return 50
+        cost = 50
+        for worker in self.workers:
+            cost += worker.promote_base
+        return cost
+
     def is_admin(self):
         return self.permission == Permission.ADMIN
+
+    def is_none(self):
+        return self.permission == Permission.NONE
+
+
+    @CachedStaticProperty
+    def get_sys_user_id():  # ignore IDE red squiggle, decorator makes it valid
+        user_id = 1
+        try:
+            print('sys user lookup')
+            user = User.query.filter_by(name="System").first()
+            if user is not None:
+                user_id = user.id
+        except:
+            pass
+        print('Sys user: ' + str(user_id))
+        return user_id

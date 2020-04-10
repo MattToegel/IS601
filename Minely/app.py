@@ -1,16 +1,20 @@
 import functools
+import secrets
+import string
 
 from flask import Flask, flash, redirect, url_for
 from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
+from werkzeug.security import generate_password_hash
 
 db = SQLAlchemy()
 migrate = Migrate()
 csrf = CSRFProtect()
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
+
 
 def admin_only(f):
     @functools.wraps(f)
@@ -50,8 +54,10 @@ def register_blueprints(app):
     from land.models import Land
     from auth.models import Permission, User
     from core.models import Purchase, PurchaseType
-
+    from workers.models import Worker
     from resources.models import ResourceNode, InventoryToResource, Inventory, OreType, ResourceType, IngotType
+    from auth.models import Permission, User
+
     @login_manager.user_loader
     def load_user(user_id):
         # since the user_id is just the primary key of our user table, use it in the query for the user
@@ -60,20 +66,42 @@ def register_blueprints(app):
     from core.core import core_bp
     from land.land import land_bp
     from resources.resources import resources_bp
+    from workers.workers import workers_bp
     app.register_blueprint(auth_bp)
     # blueprint for non-auth parts of app
     app.register_blueprint(core_bp)
     app.register_blueprint(land_bp, url_prefix='/land')
     app.register_blueprint(resources_bp, url_prefix='/resource')
+    app.register_blueprint(workers_bp, url_prefix='/workers')
 
 
 def setup_database(app):
     with app.app_context():
-
+        from land.models import Land
+        from auth.models import Permission, User
+        from core.models import Purchase, PurchaseType
+        from workers.models import Worker
+        from resources.models import ResourceNode, InventoryToResource, Inventory, OreType, ResourceType, IngotType
         db.create_all()
         _admins = ('matt@test.com',)
-        print("init db, setting up admins")
+        print("init db, setting up users/admins")
         from auth.models import User, Permission
+        user = User.query.filter_by(name="System").first()
+        if user is None:
+            print('Creating system user')
+            res = ''.join(secrets.choice(string.ascii_uppercase + string.digits)
+                          for i in range(20))
+            user = User(email="minelysystem@ethereallab.app", name="System",
+                        password=generate_password_hash(
+                            res
+                            , method='sha256'),
+                        permission=Permission.NONE)
+            db.session.add(user)
+            db.session.commit()
+
+            print('Created system user')
+        else:
+            print('System user already exists ' + str(user.id))
         users = User.query.filter(User.email.in_(_admins)).all()
         for user in users:
             print('updating user')

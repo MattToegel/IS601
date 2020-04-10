@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+.female{
+    background-color: pink;
+}
+.male{
+    background-color: lightblue;
+}
+</style>
+{% if workers | length == 0 %}
+    <div>No workers available.</div>
+{%  else %}
+
+{% for worker_row in workers|batch(6 ) %}
+    <div class="row">
+    {% for worker in worker_row %}
+            <div class="card col-xl-2 m-1 bg-light p-0" style="height:12rem; max-width: 150px">
+                <div class="row bg-light no-gutters" style="width:100%">
+                    <div class="col-11 pl-1 text-left">#{{worker.id}}</div>
+                    <div class="col-1 justify-content-end pr-1">
+                        <div class="dropdown text-right">
+                            <a type="button" class="" id="dropdownMenu2" data-toggle="dropdown"
+                                 aria-haspopup="false" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></a>
+                             <div class="text-center p-1 dropdown-menu dropdown-primary">
+                                <a class="btn btn-success btn-sm w-100" href="/workers/promote/{{ worker.id }}">
+                                    Promote ({{ worker.get_promote_cost() }})
+                                </a>
+                                <button class="btn btn-danger btn-sm w-100" data-toggle="modal"
+                                        data-url="{{ url_for('workers.fire', worker_id=worker.id) }}"
+                                        data-target="#exampleModal">
+                                    Fire
+                                </button>
+                                <a class="btn btn-secondary btn-sm w-100" href="">
+                                    Offer Transfer
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <h5 class="{{ worker.gender.name | lower }} text-center p-0 m-0">{{ worker.name }}</h5>
+                    </div>
+                </div>
+
+                <div class="card-body p-1">
+                    <div class="p-1">
+                        <div><b>Health:</b> {{ worker.health.name }}</div>
+                    </div>
+                    <div class="p-1">
+                        <div class="progress" style="height:1.25rem">
+                          <div class="progress-bar bg-success" role="progressbar"
+                               style="width: {{ worker.skill * 100 }}%" aria-valuenow="{{ worker.skill }}"
+                               aria-valuemin="0" aria-valuemax="1.0">Skill</div>
+                        </div>
+                    </div>
+                    <div class="p-1">
+                        <div class="progress" style="height:1.25rem">
+                          <div class="progress-bar bg-info" role="progressbar"
+                               style="width: {{ worker.efficiency * 100 }}%" aria-valuenow="{{ worker.efficiency }}"
+                               aria-valuemin="0" aria-valuemax="1.0">Efficiency</div>
+                        </div>
+                    </div>
+                    <div class="p-1">
+                        <div class="progress" style="height:1.25rem">
+                          <div class="progress-bar bg-warning" role="progressbar"
+                               style="width: {{ worker.stamina }}%" aria-valuenow="{{ worker.stamina }}"
+                               aria-valuemin="0" aria-valuemax="100">Stamina</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    {% endfor %}
+    </div>
+{% endfor %}
+
+    <nav aria-label="Page navigation">
+      <ul class="pagination justify-content-center">
+      {% if prev_url %}
+        <li class="page-item"><a class="page-link" href="{{ prev_url }}">Previous</a></li>
+        <li class="page-item"><a class="page-link" href="{{ prev_url }}">{{ current_page - 1 }}</a></li>
+      {% endif %}
+      {% if current_page %}
+        <li class="page-item active"><a class="page-link" href="#">{{ current_page }}</a></li>
+      {% endif %}
+      {% if next_url %}
+        <li class="page-item"><a class="page-link" href="{{ next_url }}">{{ current_page + 1 }}</a></li>
+        <li class="page-item"><a class="page-link" href="{{ next_url }}">Next</a></li>
+      {% endif %}
+      </ul>
+    </nav>
+{% endif %}
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Fire Worker</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"> <span aria-hidden="true">&times;</span> </button>
+      </div>
+      <div class="modal-body"> Are you sure you want to fire this worker? This can't be undone and you don't get anything out of it. </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">NO</button>
+        <a href="#delete" id="delete" class="btn btn-primary">YES</a> </div>
+    </div>
+  </div>
+</div>
+<script>
+$('#exampleModal').on('show.bs.modal', function (event) {
+  var button = $(event.relatedTarget) // Button that triggered the modal
+  var url = button.data('url') // Extract info from data-* attributes
+  // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+  // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+  var modal = $(this)
+  modal.find('.modal-footer a').attr('href', url)
+})
+</script>
+{% endblock %}
