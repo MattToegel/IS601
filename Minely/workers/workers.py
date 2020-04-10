@@ -62,27 +62,30 @@ def fire(worker_id):
 @login_required
 def hire_specific(worker_id):
     worker = Worker.query.get(int(worker_id))
-    user_id = User.get_sys_user_id
+    sys_user_id = User.get_sys_user_id
     # make sure it's currently owned by the system user
-    if worker is not None and worker.user_id == user_id:
+    if worker is not None and worker.user_id == sys_user_id:
         cost = worker.get_promote_cost()
         balance = current_user.get_coins()
         if balance >= cost:
             # cache previous owner
-            previous = worker.previous_user_id
+            prev_user_id = worker.previous_user_id
             # make current owner previous owner
             worker.previous_user_id = worker.user_id
             # assign to current user
             worker.user_id = current_user.id
             # make purchase (created db object and commits if successful
             current_user.make_purchase(cost, PurchaseType.WORKER_LFG)
-            if previous != user_id:
+            if prev_user_id != sys_user_id:
                 reward = int(cost * 0.5)
                 # find previous user to give commission
-                rewardee = User.query.get(int(previous))
+                rewardee = User.query.get(int(prev_user_id))
                 if rewardee is not None:
                     rewardee.receive_coins(reward)
-            flash("Congratulations, you hired " + worker.name)
+                    # TODO add notification?
+            db.session.commit()  # shouldn't be needed since make_purchase commits, but just to be safe
+            flash('Congrats you hired ' + worker.name + " for " + str(cost) + " coins!")
+    # assume unavailable if worker is none or not owned by sys user
     flash("Sorry, that worker is no longer available")
     return redirect(url_for('workers.looking_for_work'))
 
@@ -97,16 +100,11 @@ def hire_random():
     balance = current_user.get_coins()
     if form.validate_on_submit():
         if cost <= balance:
-            _purchase = Purchase()
-            _purchase.user_id = current_user.id
-            _purchase.cost = cost
-            _purchase.purchase_type = PurchaseType.WORKER
-
             worker = Worker()
             worker.generate(current_user.id)
-            flash('Congrats you hired ' + worker.name)
-            current_user.make_purchase(cost)
+            current_user.make_purchase(cost, PurchaseType.WORKER)
             db.session.commit()
+            flash('Congrats you hired ' + worker.name + " for " + str(cost) + " coins!")
             return redirect(url_for('workers.hire_random'))
         else:
             flash("Sorry you can't afford to hire any more workers")

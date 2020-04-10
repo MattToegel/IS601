@@ -106,7 +106,7 @@ def setup_database(app):
         for user in users:
             print('updating user')
             user.permission = Permission.ADMIN
-            if user.get_coins() < 1000:
+            if user.get_coins() < 10000:
                 user.inventory.update_coins(10000)
                 print('updating coins')
             # user.active = True

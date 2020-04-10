@@ -26,9 +26,11 @@ class User(UserMixin, db.Model):
     inventory = db.relationship("Inventory", uselist=False, back_populates="user", cascade="all, delete-orphan")
     workers = db.relationship('Worker')
 
-    def receive_coins(self, coins):
+    def receive_coins(self, coins, auto_commit=False):
         if self.inventory is not None:
             self.inventory.update_coins(coins)
+            if auto_commit:
+                db.session.commit()
 
     def get_coins(self):
         if self.inventory is None:
@@ -52,11 +54,11 @@ class User(UserMixin, db.Model):
             self.inventory.update_coins(-cost)
             db.session.commit()
 
-    def make_purchase(self, cost):
+    """def make_purchase(self, cost):
         if self.inventory is not None:
             self.inventory.update_coins(-cost)
             db.session.commit()
-
+    """
     def get_land_cost(self):
         c = len(self.land)
         return (c*c) * 10 # TODO setup base value increment
