@@ -18,12 +18,12 @@ def buy_land():
     form = PurchaseForm()
     if form.validate_on_submit():
         if cost <= balance:
-            _purchase = Purchase()
+            """_purchase = Purchase()
             _purchase.user_id = current_user.id
             _purchase.cost = cost
-            _purchase.purchase_type = PurchaseType.LAND
+            _purchase.purchase_type = PurchaseType.LAND"""
             land = give_land_to_user(current_user.id)
-            current_user.make_purchase(cost)
+            current_user.make_purchase(cost, PurchaseType.LAND)
             db.session.commit()
             flash("Congratulations! You got another lot")
             return redirect(url_for('land.buy_land')), 302

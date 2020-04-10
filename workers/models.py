@@ -104,7 +104,9 @@ class Worker(db.Model):
                 # cache cost
                 cost = self.get_promote_cost()
                 # raise the price
-                self.promote_cost = self.promote_cost * self.promote_cost
+                self.promote_cost = self.promote_base * (self.skill+self.efficiency)
+                # self.promote_cost += self.promote_cost * 2
+                # self.promote_cost = int((self.promote_cost * self.promote_cost) *.5)
                 # deduct the cached cost
                 if not free:
                     self.user.inventory.update_coins(-cost)

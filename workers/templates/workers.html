@@ -73,7 +73,10 @@
                         </div>
                     </div>
                     {% if lfg %}
-
+                        <a type="button" class="btn btn-success btn-sm"
+                           href="{{ url_for('workers.hire_specific', worker_id = worker.id) }}">
+                            Hire ({{ worker.get_promote_cost() }})
+                        </a>
                     {% endif %}
                 </div>
             </div>
