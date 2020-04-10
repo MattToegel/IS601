@@ -165,10 +165,11 @@ class Worker(db.Model):
         db.session.commit()
 
     def did_gather(self):
-        self.temp_uses += 1
-        self.lifetime_uses += 1
-        self.next_action = datetime.utcnow() + timedelta(minutes=(self.cooldown*self.temp_uses))
-        db.session.commit()
+        if self.can_gather():
+            self.temp_uses += 1
+            self.lifetime_uses += 1
+            self.next_action = datetime.utcnow() + timedelta(minutes=(self.cooldown*self.temp_uses))
+            db.session.commit()
 
     def get_mod(self):
         ef = self.get_efficiency()
