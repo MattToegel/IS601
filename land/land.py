@@ -12,10 +12,11 @@ land_bp = Blueprint('land', __name__, template_folder='templates')
 @land_bp.route('/buy', methods=['GET', 'POST'])
 @login_required
 def buy_land():
-    form = PurchaseForm()
+    # we'll get balance/cost for both GET/POST (not gonna trust data from UI)
     balance = current_user.get_coins()
+    cost = current_user.get_land_cost()
+    form = PurchaseForm()
     if form.validate_on_submit():
-        cost = current_user.get_land_cost()
         if cost <= balance:
             _purchase = Purchase()
             _purchase.user_id = current_user.id
@@ -24,13 +25,11 @@ def buy_land():
             land = give_land_to_user(current_user.id)
             current_user.make_purchase(cost)
             db.session.commit()
-            balance = current_user.get_coins()
-            flash("Congradulations! You got another lot")
+            flash("Congratulations! You got another lot")
+            return redirect(url_for('land.buy_land')), 302
         else:
             flash("Sorry you can't afford any more land right now")
-    else:
-        pass
-    form.cost.data = current_user.get_land_cost()
+    form.cost.data = cost
     return render_template('purchase_land.html', form=form, balance=balance), 200
 
 
