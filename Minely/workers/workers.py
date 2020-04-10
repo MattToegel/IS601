@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from sqlalchemy import and_
 
 from app import admin_only, db
+from auth.models import User
 from core.forms import PurchaseForm
 from core.models import Purchase, PurchaseType
 from workers.models import Worker, Promotion
@@ -26,7 +27,8 @@ def looking_for_work(page=1):
         if workers.has_next else None
     prev_url = url_for('workers.looking_for_work', page=workers.prev_num) \
         if workers.has_prev else None
-    return render_template("workers.html", workers=workers.items, prev_url=prev_url, next_url=next_url, current_page=page)
+    return render_template("workers.html", workers=workers.items, prev_url=prev_url,
+                           next_url=next_url, current_page=page, lfg=True)
 
 
 @workers_bp.route('/fired')
@@ -54,6 +56,35 @@ def fire(worker_id):
     else:
         flash("Couldn't find particular worker")
     return redirect(url_for('workers.my_workers'))
+
+
+@workers_bp.route('/hire/<int:worker_id>')
+@login_required
+def hire_specific(worker_id):
+    worker = Worker.query.get(int(worker_id))
+    user_id = User.get_sys_user_id
+    # make sure it's currently owned by the system user
+    if worker is not None and worker.user_id == user_id:
+        cost = worker.get_promote_cost()
+        balance = current_user.get_coins()
+        if balance >= cost:
+            # cache previous owner
+            previous = worker.previous_user_id
+            # make current owner previous owner
+            worker.previous_user_id = worker.user_id
+            # assign to current user
+            worker.user_id = current_user.id
+            # make purchase (created db object and commits if successful
+            current_user.make_purchase(cost, PurchaseType.WORKER_LFG)
+            if previous != user_id:
+                reward = int(cost * 0.5)
+                # find previous user to give commission
+                rewardee = User.query.get(int(previous))
+                if rewardee is not None:
+                    rewardee.receive_coins(reward)
+            flash("Congratulations, you hired " + worker.name)
+    flash("Sorry, that worker is no longer available")
+    return redirect(url_for('workers.looking_for_work'))
 
 
 @workers_bp.route('/hire', methods=['GET', 'POST'])
@@ -93,7 +124,7 @@ def promote_worker(worker_id):
         print('attempting promote')
         promo_status = worker.promote()
         if promo_status is False:
-            flash("Sorry, you can't afford to promote " . worker.name)
+            flash("Sorry, you can't afford to promote " + worker.name)
         elif promo_status == Promotion.NONE:
             flash(worker.name + " is already at maximum skills.")
         elif promo_status == Promotion.INCREASED_SKILL:

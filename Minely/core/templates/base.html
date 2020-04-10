@@ -30,20 +30,36 @@
                                 Profile
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a href="{{ url_for('land.show_my_land') }}" class="nav-link">
-                                My Land
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="landDropdown"
+                               role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                              Land
                             </a>
+                            <div class="dropdown-menu" aria-labelledby="landDropdown">
+                                <a class="dropdown-item" href="{{ url_for('land.show_my_land') }}" class="nav-link">
+                                    My Land
+                                </a>
+                                <a class="dropdown-item" href="{{ url_for('land.buy_land') }}" class="nav-link">
+                                    Purchase
+                                </a>
+                            </div>
                         </li>
-                        <li class="nav-item">
-                            <a href="{{ url_for('land.buy_land') }}" class="nav-link">
-                                Purchase
+                         <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="landDropdown"
+                               role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                              Workers
                             </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ url_for('workers.hire_random') }}" class="nav-link">
-                                Hire
-                            </a>
+                            <div class="dropdown-menu" aria-labelledby="landDropdown">
+                                <a class="dropdown-item" href="{{ url_for('workers.my_workers') }}" class="nav-link">
+                                    My Workers
+                                </a>
+                                <a class="dropdown-item" href="{{ url_for('workers.hire_random') }}" class="nav-link">
+                                    Hire
+                                </a>
+                                <a class="dropdown-item" href="{{ url_for('workers.looking_for_work') }}" class="nav-link">
+                                    Looking For Work
+                                </a>
+                            </div>
                         </li>
                     {% endif %}
                     {% if not current_user.is_authenticated %}
