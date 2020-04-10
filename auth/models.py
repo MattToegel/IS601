@@ -51,10 +51,12 @@ class User(UserMixin, db.Model):
     def is_none(self):
         return self.permission == Permission.NONE
 
+
     @CachedStaticProperty
-    def get_sys_user_id():
+    def get_sys_user_id():  # ignore IDE red squiggle, decorator makes it valid
         user_id = 1
         try:
+            print('sys user lookup')
             user = User.query.filter_by(name="System").first()
             if user is not None:
                 user_id = user.id
