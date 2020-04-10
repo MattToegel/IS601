@@ -126,12 +126,10 @@ class Worker(db.Model):
             self.name = names.get_first_name(gender='female')
         self.user_id = user_id
         self.promote_base = int(random.uniform(5, 50))
-        self.previous_user_id =  User.get_sys_user_id
+        self.previous_user_id = User.get_sys_user_id
         print('Saved to user: ' + str(user_id))
         db.session.add(self)
         db.session.commit()
-
-
 
     def offer_transfer(self):
         # auctioned workers have a ref to previous user so they get commission

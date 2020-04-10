@@ -24,6 +24,7 @@ def buy_land():
             land = give_land_to_user(current_user.id)
             current_user.make_purchase(cost)
             db.session.commit()
+            balance = current_user.get_coins()
             flash("Congradulations! You got another lot")
         else:
             flash("Sorry you can't afford any more land right now")

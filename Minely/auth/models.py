@@ -23,6 +23,7 @@ class User(UserMixin, db.Model):
 
     land = db.relationship('Land', cascade="all, delete-orphan")
     inventory = db.relationship("Inventory", uselist=False, back_populates="user", cascade="all, delete-orphan")
+    workers = db.relationship('Worker')
 
     def get_coins(self):
         if self.inventory is None:
@@ -44,6 +45,15 @@ class User(UserMixin, db.Model):
     def get_land_cost(self):
         c = len(self.land)
         return (c*c) * 10 # TODO setup base value increment
+
+    def get_hire_cost(self):
+        c = len(self.workers)
+        if c == 0:
+            return 50
+        cost = 50
+        for worker in self.workers:
+            cost += worker.promote_base
+        return cost
 
     def is_admin(self):
         return self.permission == Permission.ADMIN
