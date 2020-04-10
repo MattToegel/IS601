@@ -6,6 +6,7 @@ import names
 from werkzeug.utils import cached_property
 
 from app import db
+from auth.models import User
 
 
 class Gender(enum.Enum):
@@ -125,24 +126,16 @@ class Worker(db.Model):
             self.name = names.get_first_name(gender='female')
         self.user_id = user_id
         self.promote_base = int(random.uniform(5, 50))
-        self.previous_user_id = self.__get_sys_user_id
+        self.previous_user_id =  User.get_sys_user_id
         print('Saved to user: ' + str(user_id))
         db.session.add(self)
         db.session.commit()
 
-    @cached_property
-    def __get_sys_user_id(self):
-        from auth.models import User
-        user = User.query.filter_by(name="System").first()
-        user_id = 1
-        if user is not None:
-            user_id = user.id
-        print('Sys user: ' + str(user_id))
-        return user_id
+
 
     def offer_transfer(self):
         # auctioned workers have a ref to previous user so they get commission
-        user_id = self.__get_sys_user_id
+        user_id = User.get_sys_user_id
         previous = self.user_id
         self.user_id = user_id
         self.previous_user_id = previous
@@ -150,7 +143,7 @@ class Worker(db.Model):
 
     def fire(self):
         # for fired workers set previous id to System so previous owner doesn't get credit
-        user_id = self.__get_sys_user_id
+        user_id = User.get_sys_user_id
         self.user_id = user_id
         self.previous_user_id = user_id
         db.session.commit()
