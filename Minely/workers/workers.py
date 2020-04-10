@@ -56,7 +56,7 @@ def fire(worker_id):
     return redirect(url_for('workers.my_workers'))
 
 
-@workers_bp.route('/hire', methods=['GET','POST'])
+@workers_bp.route('/hire', methods=['GET', 'POST'])
 @login_required
 def hire_random():
     # TODO add a cost
