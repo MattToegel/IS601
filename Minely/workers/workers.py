@@ -19,12 +19,12 @@ def pick_to_gather(resource_id):
 def looking_for_work(page=1):
     from auth.models import User
     user_id = User.get_sys_user_id
-    workers = Worker.query.filter_by(user_id=user_id).paginate(page, 24, False)
+    workers = Worker.query.filter_by(user_id=user_id).paginate(page, 12, False)
     next_url = url_for('workers.looking_for_work', page=workers.next_num) \
         if workers.has_next else None
     prev_url = url_for('workers.looking_for_work', page=workers.prev_num) \
         if workers.has_prev else None
-    return render_template("workers.html", workers=workers.items, prev_url=prev_url, next_url=next_url)
+    return render_template("workers.html", workers=workers.items, prev_url=prev_url, next_url=next_url, current_page=page)
 
 
 @workers_bp.route('/fired')

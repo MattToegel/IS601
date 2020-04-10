@@ -40,6 +40,11 @@
                                 Purchase
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('workers.hire_random') }}" class="nav-link">
+                                Hire
+                            </a>
+                        </li>
                     {% endif %}
                     {% if not current_user.is_authenticated %}
                         <li class="nav-item">
@@ -63,17 +68,17 @@
                 </ul>
             </nav>
         </div>
-        <div class="hero-body">
+        <div class="text-center">
             {% with messages = get_flashed_messages() %}
                 {% if messages %}
-                    <div class="notification is-danger">
+                    <div class="notification alert alert-dark">
                         {{ messages[0] }}
                     </div>
                 {% endif %}
         {% endwith %}
         </div>
-        <div class="hero-body">
-            <div class="container has-text-centered">
+        <div class="">
+            <div class="container text-center">
                {% block content %}
                {% endblock %}
             </div>
