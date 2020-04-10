@@ -97,15 +97,15 @@ def hire_random():
     balance = current_user.get_coins()
     if form.validate_on_submit():
         if cost <= balance:
-            _purchase = Purchase()
+            """_purchase = Purchase()
             _purchase.user_id = current_user.id
             _purchase.cost = cost
-            _purchase.purchase_type = PurchaseType.WORKER
+            _purchase.purchase_type = PurchaseType.WORKER"""
 
             worker = Worker()
             worker.generate(current_user.id)
             flash('Congrats you hired ' + worker.name)
-            current_user.make_purchase(cost)
+            current_user.make_purchase(cost, PurchaseType.WORKER)
             db.session.commit()
             return redirect(url_for('workers.hire_random'))
         else:
