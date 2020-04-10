@@ -125,13 +125,13 @@ class Worker(db.Model):
             self.name = names.get_first_name(gender='female')
         self.user_id = user_id
         self.promote_base = int(random.uniform(5, 50))
-        self.previous_user_id = self._get_sys_user_id
+        self.previous_user_id = self.__get_sys_user_id
         print('Saved to user: ' + str(user_id))
         db.session.add(self)
         db.session.commit()
 
     @cached_property
-    def _get_sys_user_id(self):
+    def __get_sys_user_id(self):
         from auth.models import User
         user = User.query.filter_by(name="System").first()
         user_id = 1
@@ -142,7 +142,7 @@ class Worker(db.Model):
 
     def offer_transfer(self):
         # auctioned workers have a ref to previous user so they get commission
-        user_id = self._get_sys_user_id
+        user_id = self.__get_sys_user_id
         previous = self.user_id
         self.user_id = user_id
         self.previous_user_id = previous
@@ -150,7 +150,7 @@ class Worker(db.Model):
 
     def fire(self):
         # for fired workers set previous id to System so previous owner doesn't get credit
-        user_id = self._get_sys_user_id
+        user_id = self.__get_sys_user_id
         self.user_id = user_id
         self.previous_user_id = user_id
         db.session.commit()
