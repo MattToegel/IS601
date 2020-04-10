@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, flash, redirect, url_for
 from flask_login import login_required, current_user
-from sqlalchemy import or_
+from sqlalchemy import and_
 
 from app import admin_only
 from workers.models import Worker, Promotion
@@ -19,13 +19,10 @@ def pick_to_gather(resource_id):
 @admin_only
 def get_fired_workers():
     from auth.models import User
-    # find out system user if available
-    sysuser = User.query.filter_by(name="System").first()
-    sysuserid = -1
-    if sysuser is not None:
-        sysuserid = sysuser.id
-    # find workers owned by our system user or user 1 (if system user wasn't found when worker was fired)
-    workers = Worker.query.filter(or_(Worker.user_id==1, Worker.user_id==sysuserid)).all()
+    user_id = User.get_sys_user_id
+    print('worker sys id ')
+    print(user_id)
+    workers = Worker.query.filter(and_(Worker.user_id==user_id, Worker.previous_user_id==user_id)).all()
     return render_template("workers.html", workers=workers)
 
 

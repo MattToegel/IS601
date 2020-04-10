@@ -101,7 +101,7 @@ def setup_database(app):
 
             print('Created system user')
         else:
-            print('System user already exists')
+            print('System user already exists ' + str(user.id))
         users = User.query.filter(User.email.in_(_admins)).all()
         for user in users:
             print('updating user')

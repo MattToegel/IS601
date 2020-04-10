@@ -4,6 +4,7 @@ from flask_login import UserMixin
 from werkzeug.utils import cached_property
 
 from app import db
+from core.core import CachedStaticProperty
 
 
 class Permission(enum.Enum):
@@ -50,12 +51,14 @@ class User(UserMixin, db.Model):
     def is_none(self):
         return self.permission == Permission.NONE
 
-    @staticmethod
-    @cached_property
+    @CachedStaticProperty
     def get_sys_user_id():
-        user = User.query.filter_by(name="System").first()
         user_id = 1
-        if user is not None:
-            user_id = user.id
+        try:
+            user = User.query.filter_by(name="System").first()
+            if user is not None:
+                user_id = user.id
+        except:
+            pass
         print('Sys user: ' + str(user_id))
         return user_id
