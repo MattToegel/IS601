@@ -83,6 +83,7 @@ def hire_random():
     else:
         pass
     form.cost.data = cost
+
     return render_template('hire_worker.html', form=form, balance=balance), 200
 
 
