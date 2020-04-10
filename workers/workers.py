@@ -2,7 +2,9 @@ from flask import Blueprint, render_template, flash, redirect, url_for
 from flask_login import login_required, current_user
 from sqlalchemy import and_
 
-from app import admin_only
+from app import admin_only, db
+from core.forms import PurchaseForm
+from core.models import Purchase, PurchaseType
 from workers.models import Worker, Promotion
 
 workers_bp = Blueprint('workers', __name__, template_folder='templates')
@@ -54,14 +56,34 @@ def fire(worker_id):
     return redirect(url_for('workers.my_workers'))
 
 
-@workers_bp.route('/hire')
+@workers_bp.route('/hire', methods=['GET','POST'])
 @login_required
 def hire_random():
     # TODO add a cost
-    worker = Worker()
-    worker.generate(current_user.id)
-    flash('Congrats you hired ' + worker.name)
-    return redirect(url_for('workers.my_workers'))
+    cost = current_user.get_hire_cost()
+    print('cost ' + str(cost))
+    form = PurchaseForm()
+    balance = current_user.get_coins()
+    if form.validate_on_submit():
+        if cost <= balance:
+            _purchase = Purchase()
+            _purchase.user_id = current_user.id
+            _purchase.cost = cost
+            _purchase.purchase_type = PurchaseType.WORKER
+
+            worker = Worker()
+            worker.generate(current_user.id)
+            flash('Congrats you hired ' + worker.name)
+            current_user.make_purchase(cost)
+            db.session.commit()
+            # balance = current_user.get_coins()
+            return redirect(url_for('workers.my_workers'))
+        else:
+            flash("Sorry you can't afford to hire any more workers")
+    else:
+        pass
+    form.cost.data = cost
+    return render_template('hire_worker.html', form=form, balance=balance), 200
 
 
 @workers_bp.route('/promote/<int:worker_id>')
