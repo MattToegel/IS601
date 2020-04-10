@@ -60,8 +60,8 @@ def fire(worker_id):
 @login_required
 def hire_random():
     # TODO add a cost
+    # we'll get balance/cost for both GET/POST (not gonna trust data from UI)
     cost = current_user.get_hire_cost()
-    print('cost ' + str(cost))
     form = PurchaseForm()
     balance = current_user.get_coins()
     if form.validate_on_submit():
@@ -76,14 +76,12 @@ def hire_random():
             flash('Congrats you hired ' + worker.name)
             current_user.make_purchase(cost)
             db.session.commit()
-            # balance = current_user.get_coins()
-            return redirect(url_for('workers.my_workers'))
+            return redirect(url_for('workers.hire_random'))
         else:
             flash("Sorry you can't afford to hire any more workers")
-    else:
-        pass
-    form.cost.data = cost
 
+    form.cost.data = cost
+    form.submit.label.text = "Hire"
     return render_template('hire_worker.html', form=form, balance=balance), 200
 
 
