@@ -7,6 +7,7 @@ from app import db
 class PurchaseType(enum.Enum):
     LAND = 1
     WORKER = 2
+    WORKER_LFG = 3
 
     def __str__(self):
         return self.name  # value string
