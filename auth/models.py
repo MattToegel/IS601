@@ -5,6 +5,7 @@ from werkzeug.utils import cached_property
 
 from app import db
 from core.core import CachedStaticProperty
+from core.models import Purchase
 
 
 class Permission(enum.Enum):
@@ -25,6 +26,10 @@ class User(UserMixin, db.Model):
     inventory = db.relationship("Inventory", uselist=False, back_populates="user", cascade="all, delete-orphan")
     workers = db.relationship('Worker')
 
+    def receive_coins(self, coins):
+        if self.inventory is not None:
+            self.inventory.update_coins(coins)
+
     def get_coins(self):
         if self.inventory is None:
             print('created user inventory for user_id ' + str(self.id))
@@ -36,6 +41,16 @@ class User(UserMixin, db.Model):
         else:
             print('inventory exists')
         return self.inventory.coins
+
+    def make_purchase(self, cost, pt):
+        if self.inventory is not None:
+            purchase = Purchase()
+            purchase.user_id = self.id
+            purchase.cost = cost
+            purchase.purchase_type = pt
+            db.session.add(purchase)
+            self.inventory.update_coins(-cost)
+            db.session.commit()
 
     def make_purchase(self, cost):
         if self.inventory is not None:
