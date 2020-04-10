@@ -56,6 +56,8 @@ class Worker(db.Model):
     stamina = db.Column(db.SMALLINT, default=100)  # 0 - 100, made better with food
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     user = db.relationship('User')
+    previous_user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    previous_user = db.relationship('User')
     promote_cost = db.Column(db.Integer, default=0)
     promote_base = db.Column(db.Integer, default=0)
 
@@ -125,16 +127,27 @@ class Worker(db.Model):
         db.session.add(self)
         db.session.commit()
 
-    def fire(self):
+    def _get_sys_user_id(self):
         from auth.models import User
         user = User.query.filter_by(name="System").first()
-        if user is not None:
-            print('Worker set to System user')
-            self.user_id = user.id
+        if user is None:
+            return 1
         else:
-            print('Worker set to user 1')
-            self.user_id = 1  # set to first user, better be an admin
+            return user.id
 
+    def offer_transfer(self):
+        # auctioned workers have a ref to previous user so they get commission
+        user_id = self._get_sys_user_id()
+        previous = self.user_id
+        self.user_id = user_id
+        self.previous_user_id = previous
+        db.session.commit()
+
+    def fire(self):
+        # for fired workers set previous id to System so previous owner doesn't get credit
+        user_id = self._get_sys_user_id()
+        self.user_id = user_id
+        self.previous_user_id = user_id
         db.session.commit()
 
     def can_gather(self):
