@@ -42,7 +42,9 @@ class User(UserMixin, db.Model):
             db.session.commit()
         else:
             print('inventory exists')
-        return self.inventory.coins
+        if self.inventory.coins is None:
+            return 0
+        return int(self.inventory.coins)
 
     def make_purchase(self, cost, pt):
         if self.inventory is not None:

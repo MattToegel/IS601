@@ -32,10 +32,17 @@ def pick_to_gather(resource_id, worker_id=-1):
                 # trigger cooldown
                 worker.did_gather()
                 # what did we get?
-                n = harvest(resource_id, worker)
+                result = harvest(resource_id, worker)
+                n = result[1]
+                res = result[0]
+                if res is None:
+                    msg = "resources"
+                else:
+                    msg = res.get_name()
                 db.session.commit()
                 if n > 0:
-                    flash(worker.name + " gathered " + str(n) + " resources")
+                    current_user.inventory.update_inventory(res.get_name(), n)
+                    flash(worker.name + " gathered " + str(n) + " " + msg)
                 else:
                     flash(worker.name + " failed to gather any resources")
             else:
@@ -164,7 +171,7 @@ def promote_worker(worker_id):
     return redirect(url_for('workers.my_workers'))
 
 
-@workers_bp.route('/crew')
+@workers_bp.route('/')
 @login_required
 def my_workers():
     print('current user: ' + str(current_user.id))
