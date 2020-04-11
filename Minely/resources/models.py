@@ -6,6 +6,7 @@ from app import db
 class ResourceType(enum.Enum):
     wood = 1
     ore = 2
+    ingot = 3
 
     def __str__(self):
         return self.name  # value string
@@ -84,6 +85,16 @@ class InventoryToResource(db.Model):
     type = db.Column(db.String(20))
     quantity = db.Column(db.Integer, default=0)
     inventory_id = db.Column(db.Integer, db.ForeignKey('inventory.id'))
+    resource_type = db.Column(db.Enum(ResourceType, create_constraint=False))
+
+    def set_type_by_string(self, item_name):
+        self.type = item_name
+        if 'ore' in item_name:
+            self.resource_type = ResourceType.ore
+        elif 'ingot' in item_name:
+            self.resource_type = ResourceType.ingot
+        elif 'wood' in item_name:
+            self.resource_type = ResourceType.wood
 
 
 class Inventory(db.Model):
@@ -104,12 +115,16 @@ class Inventory(db.Model):
             res = self.resources.filter_by(type=item_name).first()
             if res is None:
                 res = InventoryToResource()
-                res.type = item_name
+                res.set_type_by_string(item_name)
+
                 res.quantity = 0
                 res.inventory_id = self.id
                 db.session.add(res)
                 print('created new resource entry')
             res.quantity += quantity
+            # legacy conversion for addition of enum type
+            if res.resource_type is None:
+                res.set_type_by_string(item_name)
             if res.quantity < 0:
                 res.quantity = 0
             db.session.commit()
