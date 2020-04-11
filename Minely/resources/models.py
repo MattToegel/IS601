@@ -60,7 +60,7 @@ class ResourceNode(db.Model):
         return self.type == ResourceType.ore
 
     def harvest(self, worker):
-        n = worker.calc_gather()
+        n = worker.calc_gather(type)
         if n > 0:
             self.available -= n
             if self.available <= 0:

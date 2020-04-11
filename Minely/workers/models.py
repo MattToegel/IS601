@@ -7,7 +7,14 @@ from werkzeug.utils import cached_property
 
 from app import db
 from auth.models import User
+from resources.models import ResourceType
 
+
+"""class GatherType(enum.Enum):
+    WOOD = 1  # woodcutter
+    ORE = 2  # miner
+    INGOT = 3  # smelter
+"""
 
 class Gender(enum.Enum):
     MALE = 1
@@ -48,6 +55,9 @@ class Worker(db.Model):
     name = db.Column(db.String(30))
     skill = db.Column(db.Float)
     efficiency = db.Column(db.Float)
+    proficiency_wood = db.Column(db.Float, default=0.05)
+    proficiency_ore = db.Column(db.Float, default=0.05)
+    proficiency_ingot = db.Column(db.Float, default=0.05)
     created = db.Column(db.DateTime, default=datetime.utcnow())
     modified = db.Column(db.DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
     next_action = db.Column(db.DateTime, default=datetime.utcnow())
@@ -129,6 +139,10 @@ class Worker(db.Model):
         self.user_id = user_id
         self.promote_base = int(random.uniform(5, 50))
         self.previous_user_id = User.get_sys_user_id
+        # random proficiencies
+        self.proficiency_wood = random.uniform(0.0, 1.0)
+        self.proficiency_ore = random.uniform(0.0, 1.0)
+        self.proficiency_ingot = random.uniform(0.0, 1.0)
         print('Saved to user: ' + str(user_id))
         db.session.add(self)
         db.session.commit()
@@ -164,7 +178,7 @@ class Worker(db.Model):
             self.next_action = datetime.utcnow() + timedelta(minutes=(self.cooldown*self.temp_uses))
             db.session.commit()
 
-    def calc_gather(self):
+    def calc_gather(self, resource_type):
         ef = self.__get_efficiency()
         r = random.uniform(0.0, 1.0)
         n = 1
@@ -192,6 +206,24 @@ class Worker(db.Model):
             n += 1
         if n < 0:
             n = 0
+        # legacy init proficiency if none
+        if self.proficiency_wood is None:
+            self.proficiency_wood = random.uniform(0.0, 1.0)
+            db.session.commit()
+        if self.proficiency_ore is None:
+            self.proficiency_ore = random.uniform(0.0, 1.0)
+            db.session.commit()
+        if self.proficiency_ingot is None:
+            self.proficiency_ingot = random.uniform(0.0, 1.0)
+            db.session.commit()
+        # factor in proficiency
+        if resource_type == ResourceType.wood:
+            n = int(n * self.proficiency_wood)
+        elif resource_type == ResourceType.ore:
+            n = int(n * self.proficiency_ore)
+        elif resource_type == ResourceType.ingot:
+            n = int(n * self.proficiency_ingot)
+
         return n  # ef * self.skill
 
     def __get_efficiency(self):
