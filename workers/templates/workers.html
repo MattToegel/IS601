@@ -16,7 +16,7 @@
 {% for worker_row in workers|batch(6 ) %}
     <div class="row">
     {% for worker in worker_row %}
-            <div class="card col-xl-2 m-1 bg-light p-0" style="height:14rem; max-width: 150px">
+            <div class="card col-xl-2 m-1 bg-light p-0" style="height:16rem; max-width: 150px">
                 {% if not lfg %}
                 <div class="row bg-light no-gutters" style="width:100%">
                     <div class="col-11 pl-1 text-left">#{{worker.id}}</div>
@@ -48,31 +48,58 @@
                 </div>
 
                 <div class="card-body p-1">
-                    <div class="p-1">
-                        <div><b>Health:</b> {{ worker.health.name }}</div>
+                    <div class="p-0">
+                        <div class="p-0"><b>Health:</b> {{ worker.health.name }}</div>
                     </div>
                     <div class="p-1">
-                        <div class="progress" style="height:1.25rem">
-                          <div class="progress-bar bg-success" role="progressbar"
+                        <div class="progress bg-secondary justify-content-center" style="height:1rem">
+                            <div class="progress-bar bg-success" role="progressbar"
                                style="width: {{ worker.skill * 100 }}%" aria-valuenow="{{ worker.skill }}"
-                               aria-valuemin="0" aria-valuemax="1.0">Skill</div>
+                               aria-valuemin="0" aria-valuemax="1.0"></div>
+                            <div class="justify-content-center d-flex position-absolute w-100 text-light">General Skill</div>
                         </div>
                     </div>
                     <div class="p-1">
-                        <div class="progress" style="height:1.25rem">
-                          <div class="progress-bar bg-info" role="progressbar"
+                        <div class="progress bg-secondary justify-content-center" style="height:1rem">
+                            <div class="progress-bar bg-info" role="progressbar"
                                style="width: {{ worker.efficiency * 100 }}%" aria-valuenow="{{ worker.efficiency }}"
-                               aria-valuemin="0" aria-valuemax="1.0">Efficiency</div>
+                               aria-valuemin="0" aria-valuemax="1.0"></div>
+                            <div class="justify-content-center d-flex position-absolute w-100 text-light">Efficiency</div>
                         </div>
                     </div>
                     <div class="p-1">
-                        <div class="progress" style="height:1.25rem">
-                          <div class="progress-bar bg-warning" role="progressbar"
-                               style="width: {{ worker.stamina }}%" aria-valuenow="{{ worker.stamina }}"
-                               aria-valuemin="0" aria-valuemax="100">Stamina</div>
+                        <div class="progress bg-secondary justify-content-center" style="height:1rem">
+                            <div class="progress-bar" role="progressbar"
+                               style="background-color: darkgreen; width: {{ (worker.proficiency_wood|default(0, True)) * 100 }}%" aria-valuenow="{{ worker.proficiency_wood }}"
+                               aria-valuemin="0" aria-valuemax="1.0"></div>
+                            <div class="justify-content-center d-flex position-absolute w-100 text-light">Wood Proficiency</div>
                         </div>
                     </div>
-                    <div>
+                    <div class="p-1">
+                        <div class="progress bg-secondary justify-content-center" style="height:1rem">
+                            <div class="progress-bar" role="progressbar"
+                               style="background-color: chocolate; width: {{ (worker.proficiency_ore|default(0, true)) * 100 }}%" aria-valuenow="{{ worker.proficiency_ore }}"
+                               aria-valuemin="0" aria-valuemax="1.0"></div>
+                            <div class="justify-content-center d-flex position-absolute w-100 text-light">Mining Proficiency</div>
+                        </div>
+                    </div>
+                    <div class="p-1">
+                        <div class="progress bg-secondary justify-content-center" style="height:1rem">
+                            <div class="progress-bar" role="progressbar"
+                               style="background-color: #212121; width: {{ (worker.proficiency_ingot|default(0, True)) * 100 }}%" aria-valuenow="{{ worker.proficiency_ingot }}"
+                               aria-valuemin="0" aria-valuemax="1.0"></div>
+                            <div class="justify-content-center d-flex position-absolute w-100 text-light">Smelting Proficiency</div>
+                        </div>
+                    </div>
+                    <div class="p-1">
+                        <div class="progress bg-secondary justify-content-center" style="height:1rem">
+                            <div class="progress-bar bg-warning" role="progressbar"
+                               style="width: {{ worker.stamina }}%" aria-valuenow="{{ worker.stamina }}"
+                               aria-valuemin="0" aria-valuemax="100"></div>
+                            <div class="justify-content-center d-flex position-absolute w-100 text-light">Stamina</div>
+                        </div>
+                    </div>
+                    <div class="p-0">
                     {% if worker.can_gather() %}
                         {% if gather %}
                             <a type="button" class="btn btn-success btn-sm" href="
