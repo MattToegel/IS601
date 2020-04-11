@@ -164,12 +164,38 @@ class Worker(db.Model):
             self.next_action = datetime.utcnow() + timedelta(minutes=(self.cooldown*self.temp_uses))
             db.session.commit()
 
-    def get_mod(self):
-        ef = self.get_efficiency()
-        return ef * self.skill
+    def calc_gather(self):
+        ef = self.__get_efficiency()
+        r = random.uniform(0.0, 1.0)
+        n = 1
+        # see if we get a bonus item
+        if r <= self.skill:
+            n = 2
+        # check if we get any efficiency bonus
+        r = random.uniform(0.0, 1.0)
+        if r <= ef:
+            n *= 2
+        else:
+            # severe penalty of being unhealthy
+            if ef < .25:
+                n = 0
+            # penalty of being unhealthy
+            elif ef < .5:
+                n -= 1
+            # chance of penalty for not being in good health
+            elif ef < .75:
+                r = random.randint(0, 1)
+                if r == 0:
+                    n -= 1
+        # max ef and skill reward a bonus
+        if ef >= 1.0 and self.skill >= 1.0:
+            n += 1
+        if n < 0:
+            n = 0
+        return n  # ef * self.skill
 
     def __get_efficiency(self):
-        if self.health < Health.Sick:
+        if self.health.value < Health.Sick.value:
             return 0
         if self.health == Health.Sick:
             return self.efficiency - (self.efficiency * .75)
