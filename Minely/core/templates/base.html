@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Minely</title>
+    <title>Minely - {{ title }}</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
@@ -17,10 +17,9 @@
 
 <body>
     <section class="container-fluid">
-
-        <div class="hero-head">
+        <div class="mw-100">
             <nav class="navbar navbar-expand-lg navbar-light bg-light">
-                <ul class="navbar-nav">
+                <ul class="navbar-nav mr-auto">
                     <li class="nav-item">
                         <a href="{{ url_for('core.index') }}" class="nav-link">
                             Home
@@ -30,6 +29,11 @@
                         <li class="nav-item">
                             <a href="{{ url_for('core.profile') }}" class="nav-link">
                                 Profile
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('resources.my_inventory') }}" class="nav-link">
+                                My Inventory
                             </a>
                         </li>
                         <li class="nav-item dropdown">
@@ -82,10 +86,17 @@
                                 Logout
                             </a>
                         </li>
+
+
                     {% endif %}
                 </ul>
+                {% if current_user.is_authenticated %}
+                    <span class="navbar-text text-right pr-5 bg-light"><b>Balance</b>: {{ current_user.get_coins() }}</span>
+                {% endif %}
             </nav>
         </div>
+        <h5>{{ title }}</h5>
+
         <div class="text-center">
             {% with messages = get_flashed_messages() %}
                 {% if messages %}

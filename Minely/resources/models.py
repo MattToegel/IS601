@@ -69,6 +69,12 @@ class ResourceNode(db.Model):
             db.session.commit()
         return n
 
+    def get_name(self):
+        if self.is_ore():
+            return self.sub_type.name.lower() + " ore"
+        else:
+            return "wood"
+
     def __repr__(self):
         return self.type.name + '-' + self.sub_type.name  # + '[' + str(self.available) + ']'
 
@@ -85,8 +91,28 @@ class Inventory(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     user = db.relationship('auth.models.User')
     coins = db.Column(db.Integer, default=0)
-    resources = db.relationship('InventoryToResource', cascade="all, delete-orphan")
+    resources = db.relationship('InventoryToResource', cascade="all, delete-orphan", lazy='dynamic')
 
     def update_coins(self, change):
-        self.coins += change
+        self.coins = int( self.coins + change)
         db.session.commit()
+
+    def update_inventory(self, item_name, quantity):
+        if item_name is None:
+            print("Invalid inventory item")
+        else:
+            res = self.resources.filter_by(type=item_name).first()
+            if res is None:
+                res = InventoryToResource()
+                res.type = item_name
+                res.quantity = 0
+                res.inventory_id = self.id
+                db.session.add(res)
+                print('created new resource entry')
+            res.quantity += quantity
+            if res.quantity < 0:
+                res.quantity = 0
+            db.session.commit()
+
+
+

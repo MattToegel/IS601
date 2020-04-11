@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <style>
+.copper {
+    background-color: #ff6f00
+}
+.iron{
+    background-color:#616161;
+}
+.coal{
+    background-color: #212121;
+}
+</style>
+{% if inventory.resources.all() | length == 0 %}
+    <div>You don't have any resources</div>
+{%  endif %}
+
+{% for res_row in inventory.resources.all()|batch(6 ) %}
+    <div class="row">
+    {% for res in res_row %}
+            <div class="card col-xl-2 m-1" style="height:4rem; max-width: 150px">
+                <h5 class="card-title">{{res.type}}</h5>
+                <p class="card-text">{{ res.quantity }}</p>
+            </div>
+    {% endfor %}
+    </div>
+{% endfor %}
+<div class="modal fade" id="sellLandModal" tabindex="-1" role="dialog" aria-labelledby="sellLandModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="sellLandModalLabel">Sell Land</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"> <span aria-hidden="true">&times;</span> </button>
+      </div>
+      <div class="modal-body"> Are you sure you want to sell this lot? This can't be undone. </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">NO</button>
+        <a href="#delete" id="delete" class="btn btn-primary">YES</a> </div>
+    </div>
+  </div>
+</div>
+<script>
+$('#sellLandModal').on('show.bs.modal', function (event) {
+  var button = $(event.relatedTarget) // Button that triggered the modal
+  var url = button.data('url') // Extract info from data-* attributes
+  // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+  // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+  var modal = $(this)
+  modal.find('.modal-footer a').attr('href', url)
+})
+</script>
+{% endblock %}
