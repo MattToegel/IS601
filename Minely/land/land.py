@@ -57,7 +57,7 @@ def purchase():
     return {}, 403
 
 
-@land_bp.route('/lots')
+@land_bp.route('/')
 @login_required
 def show_my_land():
     myland = Land.query.filter_by(user_id=current_user.id).all()
@@ -105,9 +105,9 @@ def sell(land_id):
             land.user.receive_coins(value)
             db.session.delete(land)
             db.session.commit()
-            flash("Successfully sold lot for " + str(value) + " coins")
+            flash("Successfully sold land for " + str(value) + " coins")
         else:
-            flash("Can't sell a lot that doesn't belong to you.")
+            flash("Can't sell land that doesn't belong to you.")
     else:
         flash("Couldn't find the particular lot you're trying to sell.")
     return redirect(url_for('land.show_my_land'))

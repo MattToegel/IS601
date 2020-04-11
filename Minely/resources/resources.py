@@ -1,6 +1,7 @@
 from random import seed, randint
 
-from flask import Blueprint
+from flask import Blueprint, render_template
+from flask_login import login_required, current_user
 
 from resources.models import ResourceNode, ResourceType, OreType
 
@@ -26,4 +27,12 @@ def harvest(resource_id, worker):
     n = 0
     if resource.available > 0:
         n = resource.harvest(worker)
-    return n
+    # updated to return resource too
+    return [resource, n]
+
+
+@resources_bp.route('/inventory')
+@login_required
+def my_inventory():
+    inventory = current_user.inventory
+    return render_template("inventory.html", inventory=inventory, title="My Inventory")
