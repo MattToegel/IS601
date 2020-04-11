@@ -172,11 +172,15 @@ def promote_worker(worker_id):
 
 
 @workers_bp.route('/')
+@workers_bp.route('/<int:page>')
 @login_required
-def my_workers():
-    print('current user: ' + str(current_user.id))
-    workers = Worker.query.filter_by(user_id=current_user.id).all()
-    print('results: ' + str(len(workers)))
-    return render_template("workers.html", workers=workers)
+def my_workers(page=1):
+    workers = Worker.query.filter_by(user_id=current_user.id).paginate(page, 12, False)
+    next_url = url_for('workers.my_workers', page=workers.next_num) \
+        if workers.has_next else None
+    prev_url = url_for('workers.my_workers', page=workers.prev_num) \
+        if workers.has_prev else None
+    return render_template("workers.html", workers=workers.items, prev_url=prev_url,
+                           next_url=next_url, current_page=page)
 
 
