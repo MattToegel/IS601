@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import Blueprint, render_template, flash, redirect, url_for
 from flask_login import login_required, current_user
 from sqlalchemy import and_
@@ -6,15 +8,41 @@ from app import admin_only, db
 from auth.models import User
 from core.forms import PurchaseForm
 from core.models import Purchase, PurchaseType
+from resources.resources import harvest
 from workers.models import Worker, Promotion
 
 workers_bp = Blueprint('workers', __name__, template_folder='templates')
 
 
 @workers_bp.route('/gather/<int:resource_id>')
-def pick_to_gather(resource_id):
-    workers = Worker.query.filter_by(user_id=current_user.id).order_by(Worker.health.desc(), Worker.next_action.asc()).all()
-    return render_template("workers.html", resource_id=resource_id, workers=workers)
+@workers_bp.route('/gather/<int:resource_id>/<int:worker_id>')
+@login_required
+def pick_to_gather(resource_id, worker_id=-1):
+    if worker_id == -1:
+        workers = Worker.query.filter(Worker.next_action <= datetime.utcnow())\
+            .order_by(Worker.health, Worker.efficiency, Worker.skill).all()
+        print(resource_id)
+        return render_template("workers.html", workers=workers, gather=resource_id)
+    else:
+        worker = Worker.query.get(int(worker_id))
+        if worker is not None:
+            # good idea to check here in case someone memorizes the API endpoint
+            # since it's just based on UI whether or not a worker can gather
+            if worker.can_gather():
+                # trigger cooldown
+                worker.did_gather()
+                # what did we get?
+                n = harvest(resource_id, worker)
+                db.session.commit()
+                if n > 0:
+                    flash(worker.name + " gathered " + str(n) + " resources")
+                else:
+                    flash(worker.name + " failed to gather any resources")
+            else:
+                flash(worker.name + " is unable to gather any resources at this time.")
+        else:
+            flash("Worker wasn't found")
+        return redirect(url_for('land.show_my_land'))
 
 
 @workers_bp.route('/lfw/<int:page>')
@@ -143,3 +171,5 @@ def my_workers():
     workers = Worker.query.filter_by(user_id=current_user.id).all()
     print('results: ' + str(len(workers)))
     return render_template("workers.html", workers=workers)
+
+

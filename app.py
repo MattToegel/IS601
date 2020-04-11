@@ -5,6 +5,7 @@ import string
 from flask import Flask, flash, redirect, url_for
 from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
+from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
 from werkzeug.security import generate_password_hash
@@ -14,6 +15,7 @@ migrate = Migrate()
 csrf = CSRFProtect()
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
+moment = Moment()
 
 
 def admin_only(f):
@@ -47,6 +49,7 @@ def register_extensions(app):
     migrate.init_app(app, db)
     csrf.init_app(app)
     login_manager.init_app(app)
+    moment.init_app(app)
 
 
 def register_blueprints(app):

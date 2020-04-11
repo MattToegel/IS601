@@ -1,3 +1,5 @@
+import random
+
 from flask import Blueprint, jsonify, render_template, flash, url_for, redirect
 from flask_login import current_user, login_required
 
@@ -23,6 +25,7 @@ def buy_land():
             _purchase.cost = cost
             _purchase.purchase_type = PurchaseType.LAND"""
             land = give_land_to_user(current_user.id)
+            land.purchase_price = cost
             current_user.make_purchase(cost, PurchaseType.LAND)
             db.session.commit()
             flash("Congratulations! You got another lot")
@@ -36,6 +39,7 @@ def buy_land():
 def give_land_to_user(user_id, commit=False):
     land = Land()
     land.user_id = user_id
+    land.density = random.uniform(0.05, 1.0)
     db.session.add(land)
     land.resources.append(acquire_new_resource())
     if commit:
@@ -65,16 +69,45 @@ def show_my_land():
 def search_lot_for_resource(land_id):
     land = Land.query.get(int(land_id))
     if land and len(land.resources) == 0:
-        resource = acquire_new_resource()
-        land.resources.append(resource)
-        db.session.commit()
-        flash("Yay you found " + ('Ore' if resource.is_ore() else 'Wood'))
+        if land.can_search():
+            land.did_search()
+            db.session.commit()
+            r = random.uniform(0.0, 1.0)
+            if land.density is None:
+                # should be temporary as it's calc'ed on new land
+                land.density = random.uniform(0.05, 1)
+            if r <= land.density:
+                resource = acquire_new_resource()
+                land.resources.append(resource)
+
+                db.session.commit()
+                if resource.is_ore():
+                    str = resource.sub_type.name + ' Ore'
+                else:
+                    str = 'Wood'
+                flash("You found " + str)
+            else:
+                flash("Your search didn't find any resources, better luck next time.")
+        else:
+            flash("You still need to wait before you can search this lot again.")
     else:
         flash("Your land still has resources, you can't search for more yet")
     return redirect(url_for('land.show_my_land'))
 
 
 @land_bp.route('/sell/<int:land_id>')
+@login_required
 def sell(land_id):
-
+    land = Land.query.get(int(land_id))
+    if land is not None:
+        if land.user_id == current_user.id:
+            value = land.sell_price()
+            land.user.receive_coins(value)
+            db.session.delete(land)
+            db.session.commit()
+            flash("Successfully sold lot for " + str(value) + " coins")
+        else:
+            flash("Can't sell a lot that doesn't belong to you.")
+    else:
+        flash("Couldn't find the particular lot you're trying to sell.")
     return redirect(url_for('land.show_my_land'))
