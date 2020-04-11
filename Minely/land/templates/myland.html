@@ -46,7 +46,10 @@
                             </div>
                         </div>
                         <div class="row">
-                            <a class="btn btn-dark mt-1" href="{{ url_for('workers.pick_to_gather', resource_id=res.id )}}">Gather</a>
+                            <a class="btn btn-dark mt-1"
+                               href="{{ url_for('workers.pick_to_gather', resource_id=res.id )}}">
+                                Gather
+                            </a>
                         </div>
                         <div class="row w-100">
                             <div class="progress w-100 mt-2">
@@ -65,12 +68,12 @@
                     {% if land.can_search() %}
                         <a class="btn btn-primary btn-sm mt-1"
                            href="{{ url_for('land.search_lot_for_resource', land_id=land.id) }}">
-                            Search
+                            Survey ({{ land.survey_price() }})
                         </a>
                     {% else %}
                         <a class="btn btn-primary btn-sm mt-1 disabled"
                            href="#">
-                            Search again {{ moment(timestamp=land.next_action).fromNow() }}
+                            Survey again {{ moment(timestamp=land.next_action).fromNow() }}
                         </a>
                     {% endif %}
                 {% endif %}

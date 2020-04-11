@@ -70,24 +70,32 @@ def search_lot_for_resource(land_id):
     land = Land.query.get(int(land_id))
     if land and len(land.resources) == 0:
         if land.can_search():
-            land.did_search()
-            db.session.commit()
-            r = random.uniform(0.0, 1.0)
-            if land.density is None:
-                # should be temporary as it's calc'ed on new land
-                land.density = random.uniform(0.05, 1)
-            if r <= land.density:
-                resource = acquire_new_resource()
-                land.resources.append(resource)
+            balance = current_user.get_coins()
+            cost = land.survey_price()
+            if balance >= cost:
+                current_user.make_purchase(cost, PurchaseType.LAND_SURVEY)
 
+                flash("Deducted {cost} from your balance".format(cost=cost))
+                land.did_search()
                 db.session.commit()
-                if resource.is_ore():
-                    str = resource.sub_type.name + ' Ore'
+                r = random.uniform(0.0, 1.0)
+                if land.density is None:
+                    # should be temporary as it's calc'ed on new land
+                    land.density = random.uniform(0.05, 1)
+                if r <= land.density:
+                    resource = acquire_new_resource()
+                    land.resources.append(resource)
+
+                    db.session.commit()
+                    if resource.is_ore():
+                        str = resource.sub_type.name + ' Ore'
+                    else:
+                        str = 'Wood'
+                    flash("You found " + str)
                 else:
-                    str = 'Wood'
-                flash("You found " + str)
+                    flash("Your search didn't find any resources, better luck next time.")
             else:
-                flash("Your search didn't find any resources, better luck next time.")
+                flash("You can't afford to survey this land lot")
         else:
             flash("You still need to wait before you can search this lot again.")
     else:

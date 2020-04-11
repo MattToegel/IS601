@@ -12,12 +12,12 @@
 - [x] Starting price will be x “coins” and will be multiplied by 1.5? for each future land lot
     - Followed a bit different algorithm (To Be Updated)
 - [x] Land lot will get a random set of resource producers
-    - [ ] Trees
+    - [x] Trees
         - [x] Various types to produce different qualities of wood
     - [x] Mineral Deposits
         - [x] Various types to produce different ore
     - [x] Resource producers deplete after x material has been gathered
-    - [ ] User can spend “coin” to survey the land lot of another random resource
+    - [x] User can spend “coin” to survey the land lot of another random resource
 - [x] User will be able to hire workers
 - [x] Workers can work any job type
 - [x] Workers will have potentially unique stats
@@ -47,7 +47,7 @@
     - [ ] Implement actual trading system so resources can be part of the deal
 - [ ] User will be able to trade resources
 - [ ] Trades will have a “coin” fee when listing regardless of successful trade/sale
-- [ ]Trades can be any of the following
+- [ ] Trades can be any of the following
     - [ ] resources to coins
     - [ ] coins to resources
     - [ ] resources to resources
