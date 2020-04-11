@@ -1,6 +1,9 @@
 from flask import Blueprint, render_template
 from flask_login import login_required, current_user
 
+
+from resources.models import ResourceType
+
 core_bp = Blueprint('core', __name__, template_folder='templates')
 
 
@@ -22,6 +25,23 @@ def index():
 
 
 @core_bp.route('/profile')
+@core_bp.route('/profile/<int:user_id>')
 @login_required
-def profile():
-    return render_template('profile.html', name=current_user.name)
+def profile(user_id=-1):
+    if user_id == -1:
+        user = current_user
+    else:
+        from auth.models import User
+        user = User.query.get(int(user_id))
+    if user is None:
+        pass
+    else:
+        from resources.models import InventoryToResource
+        lots = len(user.land)
+        workers = len(user.workers)
+        wood = user.inventory.resources.filter(InventoryToResource.resource_type==ResourceType.wood).all()
+        print(wood)
+        ore = user.inventory.resources.filter(InventoryToResource.resource_type==ResourceType.ore).all()
+        ingot = user.inventory.resources.filter(InventoryToResource.resource_type==ResourceType.ingot).all()
+    return render_template('profile.html', name=user.name,coins=user.get_coins(), num_lots=lots, num_workers=workers,
+                           wood_types=wood, ore_types=ore, ingot_types=ingot)
