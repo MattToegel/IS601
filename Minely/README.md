@@ -20,9 +20,9 @@
     - [ ] User can spend “coin” to survey the land lot of another random resource
 - [x] User will be able to hire workers
 - [x] Workers can work any job type
-- [ ] Workers will have potentially unique stats
-    - [x] Name
-    - [x] Sprite? Just using basis css
+- [x] Workers will have potentially unique stats
+    - [x] Name [thanks to names](https://pypi.org/project/names/)
+    - [x] Sprite? Just using basis css (I'm not an artist `````¯\_(ツ)_/¯````` )
     - [x] Cooldown time
     - [x] Efficiency (# of items from “gathering” activity)
         - mix of skill and efficiency
