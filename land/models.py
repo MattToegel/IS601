@@ -15,6 +15,9 @@ class Land(db.Model):
     next_action = db.Column(db.DateTime, default=datetime.utcnow())
     density = db.Column(db.Float, default=.1)
 
+    def survey_price(self):
+        return int(((self.lifetime_uses + 1) * (self.purchase_price * .15)))
+
     def sell_price(self):
         return int(self.purchase_price * .75)
 
