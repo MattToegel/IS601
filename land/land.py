@@ -74,24 +74,22 @@ def search_lot_for_resource(land_id):
             cost = land.survey_price()
             if balance >= cost:
                 current_user.make_purchase(cost, PurchaseType.LAND_SURVEY)
-
-                flash("Deducted {cost} from your balance".format(cost=cost))
                 land.did_search()
                 db.session.commit()
                 r = random.uniform(0.0, 1.0)
+                flash("Deducted {cost} from your balance".format(cost=cost))
                 if land.density is None:
                     # should be temporary as it's calc'ed on new land
                     land.density = random.uniform(0.05, 1)
                 if r <= land.density:
                     resource = acquire_new_resource()
                     land.resources.append(resource)
-
                     db.session.commit()
                     if resource.is_ore():
-                        str = resource.sub_type.name + ' Ore'
+                        res = resource.sub_type.name + ' Ore'
                     else:
-                        str = 'Wood'
-                    flash("You found " + str)
+                        res = 'Wood'
+                    flash("You found " + res)
                 else:
                     flash("Your search didn't find any resources, better luck next time.")
             else:

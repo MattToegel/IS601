@@ -101,7 +101,11 @@
             {% with messages = get_flashed_messages() %}
                 {% if messages %}
                     <div class="notification alert alert-dark">
-                        {{ messages[0] }}
+                        {% for message in messages %}
+                            <div class="row">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
                     </div>
                 {% endif %}
         {% endwith %}
