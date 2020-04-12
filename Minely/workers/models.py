@@ -58,6 +58,10 @@ class Worker(db.Model):
     proficiency_wood = db.Column(db.Float, default=0.05)
     proficiency_ore = db.Column(db.Float, default=0.05)
     proficiency_ingot = db.Column(db.Float, default=0.05)
+    prof_wood_next_level = db.Column(db.SMALLINT, default=0)
+    prof_ore_next_level = db.Column(db.SMALLINT, default=0)
+    prof_ingot_next_level = db.Column(db.SMALLINT, default=0)
+    learning_speed = db.Column(db.SMALLINT, default=5)
     created = db.Column(db.DateTime, default=datetime.utcnow())
     modified = db.Column(db.DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
     next_action = db.Column(db.DateTime, default=datetime.utcnow())
@@ -143,6 +147,8 @@ class Worker(db.Model):
         self.proficiency_wood = random.uniform(0.0, 1.0)
         self.proficiency_ore = random.uniform(0.0, 1.0)
         self.proficiency_ingot = random.uniform(0.0, 1.0)
+        # determine learning speed (smaller is better)
+        self.learning_speed = random.randint(50, 1000)
         print('Saved to user: ' + str(user_id))
         db.session.add(self)
         db.session.commit()
@@ -223,8 +229,40 @@ class Worker(db.Model):
             n = int(n * self.proficiency_ore)
         elif resource_type == ResourceType.ingot:
             n = int(n * self.proficiency_ingot)
-
+        # see if worker increases their proficiency
+        self.__check_proficiency_increase(resource_type, n)
         return n  # ef * self.skill
+
+    def __check_proficiency_increase(self, resource_type, amount_gathered):
+        # legacy for miners that don't have a value
+        if self.learning_speed is None:
+            # determine learning speed (smaller is better)
+            self.learning_speed = random.randint(50, 1000)
+        if self.prof_ingot_next_level is None:
+            self.prof_ingot_next_level = self.learning_speed
+        if self.prof_ore_next_level is None:
+            self.prof_ore_next_level = self.learning_speed
+        if self.prof_wood_next_level is None:
+            self.prof_wood_next_level = self.learning_speed
+        # end legacy stuff
+        # based on resource deduct from our learning requirement
+
+        # to see if worker increases their proficiency, then reset the learning requirement
+        if resource_type == ResourceType.wood:
+            self.prof_wood_next_level -= amount_gathered
+            if self.prof_wood_next_level <= 0:
+                self.proficiency_wood += 0.01
+                self.prof_wood_next_level = self.learning_speed
+        elif resource_type == ResourceType.ore:
+            self.prof_ore_next_level -= amount_gathered
+            if self.prof_ore_next_level <= 0:
+                self.proficiency_ore += 0.01
+                self.prof_ore_next_level = self.learning_speed
+        elif resource_type == ResourceType.ingot:
+            self.prof_ingot_next_level -= amount_gathered
+            if self.prof_ingot_next_level <= 0:
+                self.proficiency_ingot += 0.01
+                self.prof_ingot_next_level = self.learning_speed
 
     def __get_efficiency(self):
         if self.health.value < Health.Sick.value:
