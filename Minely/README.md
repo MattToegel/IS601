@@ -27,11 +27,13 @@
     - [x] Efficiency (# of items from “gathering” activity)
         - mix of skill and efficiency
     - [x] Health
+    - [x] (added) learning rate to determine how quickly to gain proficiency
+    - [x] (added) proficiency for each job type that increases with use
 - [ ] There will be 3 job types
     - [x] Woodcutter
-        - [x]Cuts trees (just gathers resource, no special distinction)
+        - [x] Cuts trees (just gathers resource, no special distinction)
     - [x] Miner
-        - [x]Mines ore (just gathers resource, no special distinction)
+        - [x] Mines ore (just gathers resource, no special distinction)
     - [ ] Smelter
         - [ ] Smelts ore to Ingots
 - [ ] User will be able to use resources to build tools
