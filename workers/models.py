@@ -184,14 +184,15 @@ class Worker(db.Model):
             self.next_action = datetime.utcnow() + timedelta(minutes=(self.cooldown*self.temp_uses))
             db.session.commit()
 
-    def calc_gather(self, resource_type):
-        ef = self.__get_efficiency()
+    def __calc_skill(self):
         r = random.uniform(0.0, 1.0)
         n = 1
-        # see if we get a bonus item
         if r <= self.skill:
             n = 2
-        # check if we get any efficiency bonus
+        return n
+
+    @staticmethod
+    def __calc_with_efficiency(ef, n):
         r = random.uniform(0.0, 1.0)
         if r <= ef:
             n *= 2
@@ -207,11 +208,28 @@ class Worker(db.Model):
                 r = random.randint(0, 1)
                 if r == 0:
                     n -= 1
-        # max ef and skill reward a bonus
-        if ef >= 1.0 and self.skill >= 1.0:
+        return n
+
+    @staticmethod
+    def __calc_bonus(ef, skill, n):
+        if ef >= 1.0 and skill >= 1.0:
             n += 1
+        return n
+
+    def calc_gather(self, resource_type):
+        ef = self.__get_efficiency()
+        # see if we get a bonus item
+        n = self.__calc_skill()
+        # check if we get any efficiency bonus
+        n = self.__calc_with_efficiency(ef, n)
+        # max ef and skill reward a bonus
+        n = self.__calc_bonus(ef, self.skill, n)
+
         if n < 0:
             n = 0
+            # don't bother calculating further
+            return n
+        # passed skill/ef check, calc extra and reward worker
         # legacy init proficiency if none
         if self.proficiency_wood is None:
             self.proficiency_wood = random.uniform(0.0, 1.0)
@@ -229,6 +247,10 @@ class Worker(db.Model):
             n = int(n * self.proficiency_ore)
         elif resource_type == ResourceType.ingot:
             n = int(n * self.proficiency_ingot)
+        # give at least 1 resource since worker passed the skill check before the proficiency
+        # assume even the worst ability can get 1 resource
+        if n < 1:
+            n = 1
         # see if worker increases their proficiency
         self.__check_proficiency_increase(resource_type, n)
         return n  # ef * self.skill
