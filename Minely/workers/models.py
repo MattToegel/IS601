@@ -7,7 +7,14 @@ from werkzeug.utils import cached_property
 
 from app import db
 from auth.models import User
+from resources.models import ResourceType
 
+
+"""class GatherType(enum.Enum):
+    WOOD = 1  # woodcutter
+    ORE = 2  # miner
+    INGOT = 3  # smelter
+"""
 
 class Gender(enum.Enum):
     MALE = 1
@@ -48,6 +55,13 @@ class Worker(db.Model):
     name = db.Column(db.String(30))
     skill = db.Column(db.Float)
     efficiency = db.Column(db.Float)
+    proficiency_wood = db.Column(db.Float, default=0.05)
+    proficiency_ore = db.Column(db.Float, default=0.05)
+    proficiency_ingot = db.Column(db.Float, default=0.05)
+    prof_wood_next_level = db.Column(db.SMALLINT, default=0)
+    prof_ore_next_level = db.Column(db.SMALLINT, default=0)
+    prof_ingot_next_level = db.Column(db.SMALLINT, default=0)
+    learning_speed = db.Column(db.SMALLINT, default=5)
     created = db.Column(db.DateTime, default=datetime.utcnow())
     modified = db.Column(db.DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
     next_action = db.Column(db.DateTime, default=datetime.utcnow())
@@ -129,6 +143,12 @@ class Worker(db.Model):
         self.user_id = user_id
         self.promote_base = int(random.uniform(5, 50))
         self.previous_user_id = User.get_sys_user_id
+        # random proficiencies
+        self.proficiency_wood = random.uniform(0.0, 1.0)
+        self.proficiency_ore = random.uniform(0.0, 1.0)
+        self.proficiency_ingot = random.uniform(0.0, 1.0)
+        # determine learning speed (smaller is better)
+        self.learning_speed = random.randint(50, 1000)
         print('Saved to user: ' + str(user_id))
         db.session.add(self)
         db.session.commit()
@@ -164,14 +184,15 @@ class Worker(db.Model):
             self.next_action = datetime.utcnow() + timedelta(minutes=(self.cooldown*self.temp_uses))
             db.session.commit()
 
-    def calc_gather(self):
-        ef = self.__get_efficiency()
+    def __calc_skill(self):
         r = random.uniform(0.0, 1.0)
         n = 1
-        # see if we get a bonus item
         if r <= self.skill:
             n = 2
-        # check if we get any efficiency bonus
+        return n
+
+    @staticmethod
+    def __calc_with_efficiency(ef, n):
         r = random.uniform(0.0, 1.0)
         if r <= ef:
             n *= 2
@@ -187,12 +208,83 @@ class Worker(db.Model):
                 r = random.randint(0, 1)
                 if r == 0:
                     n -= 1
-        # max ef and skill reward a bonus
-        if ef >= 1.0 and self.skill >= 1.0:
+        return n
+
+    @staticmethod
+    def __calc_bonus(ef, skill, n):
+        if ef >= 1.0 and skill >= 1.0:
             n += 1
+        return n
+
+    def calc_gather(self, resource_type):
+        ef = self.__get_efficiency()
+        # see if we get a bonus item
+        n = self.__calc_skill()
+        # check if we get any efficiency bonus
+        n = self.__calc_with_efficiency(ef, n)
+        # max ef and skill reward a bonus
+        n = self.__calc_bonus(ef, self.skill, n)
+
         if n < 0:
             n = 0
+            # don't bother calculating further
+            return n
+        # passed skill/ef check, calc extra and reward worker
+        # legacy init proficiency if none
+        if self.proficiency_wood is None:
+            self.proficiency_wood = random.uniform(0.0, 1.0)
+            db.session.commit()
+        if self.proficiency_ore is None:
+            self.proficiency_ore = random.uniform(0.0, 1.0)
+            db.session.commit()
+        if self.proficiency_ingot is None:
+            self.proficiency_ingot = random.uniform(0.0, 1.0)
+            db.session.commit()
+        # factor in proficiency
+        if resource_type == ResourceType.wood:
+            n = int(n * self.proficiency_wood)
+        elif resource_type == ResourceType.ore:
+            n = int(n * self.proficiency_ore)
+        elif resource_type == ResourceType.ingot:
+            n = int(n * self.proficiency_ingot)
+        # give at least 1 resource since worker passed the skill check before the proficiency
+        # assume even the worst ability can get 1 resource
+        if n < 1:
+            n = 1
+        # see if worker increases their proficiency
+        self.__check_proficiency_increase(resource_type, n)
         return n  # ef * self.skill
+
+    def __check_proficiency_increase(self, resource_type, amount_gathered):
+        # legacy for miners that don't have a value
+        if self.learning_speed is None:
+            # determine learning speed (smaller is better)
+            self.learning_speed = random.randint(50, 1000)
+        if self.prof_ingot_next_level is None:
+            self.prof_ingot_next_level = self.learning_speed
+        if self.prof_ore_next_level is None:
+            self.prof_ore_next_level = self.learning_speed
+        if self.prof_wood_next_level is None:
+            self.prof_wood_next_level = self.learning_speed
+        # end legacy stuff
+        # based on resource deduct from our learning requirement
+
+        # to see if worker increases their proficiency, then reset the learning requirement
+        if resource_type == ResourceType.wood:
+            self.prof_wood_next_level -= amount_gathered
+            if self.prof_wood_next_level <= 0:
+                self.proficiency_wood += 0.01
+                self.prof_wood_next_level = self.learning_speed
+        elif resource_type == ResourceType.ore:
+            self.prof_ore_next_level -= amount_gathered
+            if self.prof_ore_next_level <= 0:
+                self.proficiency_ore += 0.01
+                self.prof_ore_next_level = self.learning_speed
+        elif resource_type == ResourceType.ingot:
+            self.prof_ingot_next_level -= amount_gathered
+            if self.prof_ingot_next_level <= 0:
+                self.proficiency_ingot += 0.01
+                self.prof_ingot_next_level = self.learning_speed
 
     def __get_efficiency(self):
         if self.health.value < Health.Sick.value:
