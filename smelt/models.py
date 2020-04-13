@@ -28,12 +28,8 @@ class Smelter(db.Model):
 
     def __update_fuel_quantity(self, fuel_type, quantity):
         # try remove from user inventory
-        if fuel_type == 'wood':
-            if not self.inventory.remove_inventory('wood', quantity):
-                return SmelterError.NOT_ENOUGH_RESOURCES
-        elif fuel_type == 'coal':
-            if not self.inventory.remove_inventory('coal ore', quantity):
-                return SmelterError.NOT_ENOUGH_RESOURCES
+        if not self.inventory.remove_inventory(fuel_type, quantity):
+            return SmelterError.NOT_ENOUGH_RESOURCES
         if self.fuel_quantity is None or self.fuel_quantity < 0:
             self.fuel_quantity = 0
         # see if we need to swap fuel types
@@ -45,10 +41,8 @@ class Smelter(db.Model):
             return SmelterError.OK
         else:
             if self.fuel_quantity > 0:
-                if self.fuel_type == 'wood':
-                    self.inventory.update_inventory('wood', self.fuel_quantity)
-                else:
-                    self.inventory.update_inventory('coal ore', self.fuel_quantity)
+                if self.fuel_type == Resource.wood or self.fuel_type == Resource.coal_ore:
+                    self.inventory.update_inventory(fuel_type, self.fuel_quantity)
             self.fuel_quantity = quantity
             db.session.commit()
             return SmelterError.OK
@@ -73,10 +67,10 @@ class Smelter(db.Model):
             return SmelterError.BEYOND_CAPACITY
         if quantity <= 0:
             return SmelterError.NOT_ENOUGH_RESOURCES
-        if 'coal' in fuel_type:
-            return self.__update_fuel_quantity('coal', quantity)
-        elif 'wood' in fuel_type:
-            return self.__update_fuel_quantity('wood', quantity)
+        if fuel_type == Resource.coal_ore:
+            return self.__update_fuel_quantity(Resource.coal_ore, quantity)
+        elif fuel_type == Resource.wood:
+            return self.__update_fuel_quantity(Resource.wood, quantity)
 
     def add_secondary_resource(self, ore_type, quantity):
         if quantity <= 0:
@@ -89,7 +83,7 @@ class Smelter(db.Model):
         if self.secondary_ore_type == ore_type:
             if self.secondary_ore_quantity + quantity > 50:
                 return SmelterError.BEYOND_CAPACITY
-            if self.inventory.remove_inventory(ore_type + ' ore', quantity):
+            if self.inventory.remove_inventory(ore_type, quantity):
                 self.secondary_ore_quantity += quantity
                 db.session.commit()  # TODO commit quantity update
                 return SmelterError.OK
@@ -109,7 +103,7 @@ class Smelter(db.Model):
             if self.primary_ore_quantity + quantity > 50:
                 return SmelterError.BEYOND_CAPACITY
             # TODO make sure name concat is matching what's in the DB
-            if self.inventory.remove_inventory(ore_type.name + ' ore', quantity):
+            if self.inventory.remove_inventory(ore_type, quantity):
                 # Will be True if resource was remove, False if not
                 self.primary_ore_quantity += quantity
                 db.session.commit()  # TODO commit quantity update
@@ -119,13 +113,13 @@ class Smelter(db.Model):
         else:
             # swap resource
             if self.primary_ore_quantity > 0:
-                if self.inventory.remove_inventory(ore_type.name + 'ore', quantity):
+                if self.inventory.remove_inventory(ore_type, quantity):
                     # cache remainder
                     q = self.primary_ore_quantity
                     # update with new quantity
                     self.primary_ore_quantity = quantity
                     # return to player
-                    self.inventory.update_inventory(self.primary_ore_type.name + ' ore', q)
+                    self.inventory.update_inventory(self.primary_ore_type, q)
                     # swap the ore type
                     self.primary_ore_type = ore_type
                     db.session.commit()  # TODO commit swap/quantity
@@ -134,7 +128,7 @@ class Smelter(db.Model):
                     return SmelterError.NOT_ENOUGH_RESOURCES
             else:
                 # reset the ore details if we're 0 or less, shouldn't happen but being safe
-                self.primary_ore_type = Resource.none
+                self.primary_ore_type = ore_type
                 self.primary_ore_quantity = 0
                 db.session.commit()  # TODO save reset
                 # run it through the function again now that we cleared up the ore type
