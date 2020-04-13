@@ -33,12 +33,20 @@ def profile(user_id=-1):
     if user is None:
         pass
     else:
-        from resources.models import InventoryToResource
+        from resources.models import InventoryToResource, Resource
         lots = len(user.land)
         workers = len(user.workers)
-        wood = user.inventory.resources.filter('wood' in InventoryToResource.type.name).all()
-        print(wood)
-        ore = user.inventory.resources.filter('ore' in InventoryToResource.type.name).all()
-        ingot = user.inventory.resources.filter('ingot' in InventoryToResource.type.name).all()
+        wood = user.inventory.resources.filter(InventoryToResource.type.in_((
+            Resource.wood,)
+        )).all()
+        ore = user.inventory.resources.filter(InventoryToResource.type.in_((
+            Resource.copper_ore,
+            Resource.iron_ore)
+        )).all()
+        ingot = user.inventory.resources.filter(InventoryToResource.type.in_((
+            Resource.copper_ingot,
+            Resource.iron_ingot,
+            Resource.steel_ingot)
+        )).all()
     return render_template('profile.html', name=user.name,coins=user.get_coins(), num_lots=lots, num_workers=workers,
                            wood_types=wood, ore_types=ore, ingot_types=ingot)
