@@ -1,9 +1,6 @@
 from flask import Blueprint, render_template
 from flask_login import login_required, current_user
 
-
-from resources.models import ResourceType
-
 core_bp = Blueprint('core', __name__, template_folder='templates')
 
 
@@ -36,12 +33,20 @@ def profile(user_id=-1):
     if user is None:
         pass
     else:
-        from resources.models import InventoryToResource
+        from resources.models import InventoryToResource, Resource
         lots = len(user.land)
         workers = len(user.workers)
-        wood = user.inventory.resources.filter(InventoryToResource.resource_type==ResourceType.wood).all()
-        print(wood)
-        ore = user.inventory.resources.filter(InventoryToResource.resource_type==ResourceType.ore).all()
-        ingot = user.inventory.resources.filter(InventoryToResource.resource_type==ResourceType.ingot).all()
+        wood = user.inventory.resources.filter(InventoryToResource.type.in_((
+            Resource.wood,)
+        )).all()
+        ore = user.inventory.resources.filter(InventoryToResource.type.in_((
+            Resource.copper_ore,
+            Resource.iron_ore)
+        )).all()
+        ingot = user.inventory.resources.filter(InventoryToResource.type.in_((
+            Resource.copper_ingot,
+            Resource.iron_ingot,
+            Resource.steel_ingot)
+        )).all()
     return render_template('profile.html', name=user.name,coins=user.get_coins(), num_lots=lots, num_workers=workers,
                            wood_types=wood, ore_types=ore, ingot_types=ingot)
