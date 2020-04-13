@@ -36,10 +36,10 @@ class Resource(enum.Enum):
         return False
 
     def __str__(self):
-        return self.value  # value string
+        return str(self.value)  # value string
 
     def __html__(self):
-        return self.name  # label string
+        return self.get_name()  # label string
 
     def get_name(self):
         return self.name.replace('_', ' ')

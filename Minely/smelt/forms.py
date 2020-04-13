@@ -2,6 +2,8 @@ from markupsafe import escape
 from flask_wtf import FlaskForm
 from wtforms import SelectField, IntegerField, SubmitField, validators
 
+from resources.models import Resource
+
 
 def coerce_for_enum(enum):
     def coerce(name):
@@ -22,4 +24,7 @@ class SmelterForm(FlaskForm):
     submit = SubmitField('Add', render_kw={'class': 'form-control btn btn-primary'})
 
     def set_options(self, choices):
-        self.options.choices = choices
+        self.options.choices = [(str(v), escape(v)) for v in choices]
+        for v, _ in self.options.choices:
+            print(v)
+

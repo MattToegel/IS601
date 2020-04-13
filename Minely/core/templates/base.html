@@ -62,11 +62,11 @@
                             </div>
                         </li>
                          <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="landDropdown"
+                            <a class="nav-link dropdown-toggle" href="#" id="workerDropdown"
                                role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                               Workers
                             </a>
-                            <div class="dropdown-menu" aria-labelledby="landDropdown">
+                            <div class="dropdown-menu" aria-labelledby="workerDropdown">
                                 <a class="dropdown-item" href="{{ url_for('workers.my_workers') }}" class="nav-link">
                                     My Workers
                                 </a>
@@ -75,6 +75,20 @@
                                 </a>
                                 <a class="dropdown-item" href="{{ url_for('workers.looking_for_work') }}" class="nav-link">
                                     Looking For Work
+                                </a>
+                            </div>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="smelterDropdown"
+                               role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                              Smelting
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="smelterDropdown">
+                                <a class="dropdown-item" href="{{ url_for('smelt.my_smelters') }}" class="nav-link">
+                                    My Smelters
+                                </a>
+                                <a class="dropdown-item" href="{{ url_for('smelt.buy') }}" class="nav-link">
+                                    Purchase
                                 </a>
                             </div>
                         </li>

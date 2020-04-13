@@ -4,6 +4,7 @@ from flask_login import login_required, current_user
 from app import db
 from core.forms import PurchaseForm
 from core.models import PurchaseType
+from resources.models import Resource
 from smelt.forms import SmelterForm
 from smelt.models import Smelter
 
@@ -46,13 +47,17 @@ def add_to_smelter(smelter_id, slot):
     # available = current_user.inventory.get_quantity()
     form = SmelterForm()
     if slot == 'primary':
-        form.set_options((('copper', 'copper'), ('iron', 'iron')))
+        form.set_options((Resource.copper_ore, Resource.iron_ore))
+        # form.set_options((('copper', 'copper'), ('iron', 'iron')))
     elif slot == 'secondary':
-        form.set_options((('coal', 'coal'),))
+        form.set_options((Resource.copper_ore,))
+        # form.set_options((('coal', 'coal'),))
     elif slot == 'fuel':
-        form.set_options((('coal', 'coal'), ('wood', 'wood')))
+        form.set_options((Resource.wood, Resource.coal_ore))
+        # form.set_options((('coal', 'coal'), ('wood', 'wood')))
     if form.validate_on_submit():
         res = form.options.data
+        print(res)
         # TODO finish setup
         try:
             q = int(form.quantity.data)
@@ -60,14 +65,18 @@ def add_to_smelter(smelter_id, slot):
                 flash("Invalid quantity")
             smelter = Smelter.query.get(int(smelter_id))
             if smelter is not None:
+                res = Resource(res)
                 if slot == 'primary':
-                    smelter.add_primary_resource(res, q)
+                    resp = smelter.add_primary_resource(res, q)
                 elif slot == 'secondary':
-                    pass
+                    resp = smelter.add_secondary_resource(res, q)
                 elif slot == 'fuel':
-                    pass
+                    resp = smelter.add_fuel(res, q)
+                flash(resp)
         except ValueError:
             pass
+    else:
+        print(form.errors)
 
     # messy setup of form due to enum mixing (OreType and ResourceType)
 
