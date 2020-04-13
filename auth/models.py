@@ -68,7 +68,9 @@ class User(UserMixin, db.Model):
     def get_hire_cost(self):
         c = len(self.workers)
         if c == 0:
-            return 50
+            # TODO will be exploitable if we don't cache the generated worker
+            # TODO user would be able to fire/offer transfer and rehire
+            return 0
         cost = 50
         for worker in self.workers:
             cost += worker.promote_base

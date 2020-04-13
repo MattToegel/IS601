@@ -17,7 +17,17 @@ def acquire_new_resource():
     for r in Resource:
         if r.is_harvestable():
             res.append(r)
-    resource.type = res[randint(1, len(res))]
+
+    max = len(res)
+    print("Max: " + str(max))
+    # TODO land is exploitable because
+    # TODO user can sell for free and reacquire if they don't like the resource type
+    # TODO fix logic as sometimes(?) resource becomes none
+    new_resource = res[randint(1, max)-1]
+    print(new_resource)
+    if new_resource == Resource.none:
+        new_resource = Resource.wood  # temp make it default to wood
+    resource.type = new_resource
     return resource
 
 

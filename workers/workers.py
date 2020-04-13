@@ -19,7 +19,7 @@ workers_bp = Blueprint('workers', __name__, template_folder='templates')
 @login_required
 def pick_to_gather(resource_id, worker_id=-1):
     if worker_id == -1:
-        workers = Worker.query.filter(Worker.next_action <= datetime.utcnow())\
+        workers = Worker.query.filter_by(user_id=current_user.id).filter(Worker.next_action <= datetime.utcnow())\
             .order_by(Worker.health, Worker.efficiency, Worker.skill).all()
         print(resource_id)
         return render_template("workers.html", workers=workers, gather=resource_id)

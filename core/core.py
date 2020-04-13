@@ -36,6 +36,9 @@ def profile(user_id=-1):
         from resources.models import InventoryToResource, Resource
         lots = len(user.land)
         workers = len(user.workers)
+        if user.inventory is None:
+            # should init inventory :)
+            user.get_coins()
         wood = user.inventory.resources.filter(InventoryToResource.type.in_((
             Resource.wood,)
         )).all()
