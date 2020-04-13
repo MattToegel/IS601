@@ -1,17 +1,6 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <style>
-.copper {
-    background-color: #ff6f00
-}
-.iron{
-    background-color:#616161;
-}
-.coal{
-    background-color: #212121;
-}
-</style>
 {% if my_land | length == 0 %}
     <div>You don't have any land available</div>
 {%  endif %}
