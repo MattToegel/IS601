@@ -91,7 +91,7 @@ def setup_database(app):
         db.create_all()
         _admins = ('matt@test.com',)
         print("init db, setting up users/admins")
-        from auth.models import User, Permission
+
         user = User.query.filter_by(name="System").first()
         if user is None:
             print('Creating system user')

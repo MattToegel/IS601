@@ -110,7 +110,7 @@
                         Ready
                         {% endif %}
                     {% else %}
-                        Ready {{ moment(timestamp=worker.next_action).fromNow() }}
+                        Ready {{ moment(timestamp=worker.next_action).fromNow(refresh=True) }}
                     {% endif %}
                     </div>
                     {% if lfg %}
