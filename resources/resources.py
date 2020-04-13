@@ -17,7 +17,7 @@ def acquire_new_resource():
     for r in Resource:
         if r.is_harvestable():
             res.append(r)
-    resource.type = res[randint(1, 2)]
+    resource.type = res[randint(1, len(res))]
     return resource
 
 
