@@ -139,7 +139,7 @@ def hire_random():
             worker.generate(current_user.id)
             current_user.make_purchase(cost, PurchaseType.WORKER)
             db.session.commit()
-            flash('Congrats you hired ' + worker.name + " for " + str(cost) + " coins!")
+            flash("Congrats you hired " + worker.name + " for " + str(cost) + " coins!")
             return redirect(url_for('workers.hire_random'))
         else:
             flash("Sorry you can't afford to hire any more workers")

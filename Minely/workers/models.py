@@ -60,7 +60,7 @@ class Worker(db.Model):
     proficiency_ingot = db.Column(db.Float, default=0.05)
     prof_wood_next_level = db.Column(db.SMALLINT, default=0)
     prof_ore_next_level = db.Column(db.SMALLINT, default=0)
-    prof_ingot_next_level = db.Column(db.SMALLINT, default=0)
+    prof_ingot_next_level = db.Column(db.SMALLINT, default=0)  # smelting
     learning_speed = db.Column(db.SMALLINT, default=5)
     created = db.Column(db.DateTime, default=datetime.utcnow())
     modified = db.Column(db.DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
@@ -77,6 +77,9 @@ class Worker(db.Model):
 
     promote_cost = db.Column(db.Integer, default=0)
     promote_base = db.Column(db.Integer, default=0)
+
+    assigned_to_smelter = db.Column(db.Integer, default=0)
+    smelter = db.relationship('Smelter')
 
     def get_promote_cost(self):
         if self.promote_cost == 0 or self.promote_cost is None:
@@ -169,6 +172,13 @@ class Worker(db.Model):
         db.session.commit()
 
     def can_gather(self):
+        if self.assigned_to_smelter is not None:
+            if self.assigned_to_smelter > 0:
+                if self.smelter is not None:
+                    if not self.smelter.unassign(self):
+                        # if unassign is True that means we're still working so we can't
+                        # do two jobs at once, sorry
+                        return False
         if datetime.utcnow() >= self.next_action:
             return True
         return False
@@ -307,3 +317,7 @@ class Worker(db.Model):
     def use_stamina(self, decrement=5):
         self.stamina -= decrement
         db.session.commit()
+
+    def remove_from_smelter(self):
+        self.assigned_to_smelter = 0
+        self.smelter = None

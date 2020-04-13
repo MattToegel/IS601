@@ -59,6 +59,7 @@ def register_blueprints(app):
     from core.models import Purchase, PurchaseType
     from workers.models import Worker
     from resources.models import ResourceNode, InventoryToResource, Inventory, OreType, ResourceType, IngotType
+    from smelt.models import Smelter
     from auth.models import Permission, User
 
     @login_manager.user_loader
@@ -70,12 +71,14 @@ def register_blueprints(app):
     from land.land import land_bp
     from resources.resources import resources_bp
     from workers.workers import workers_bp
+    from smelt.smelt import smelters_bp
     app.register_blueprint(auth_bp)
     # blueprint for non-auth parts of app
     app.register_blueprint(core_bp)
     app.register_blueprint(land_bp, url_prefix='/land')
     app.register_blueprint(resources_bp, url_prefix='/resource')
     app.register_blueprint(workers_bp, url_prefix='/workers')
+    app.register_blueprint(smelters_bp, url_prefix='/smelt')
 
 
 def setup_database(app):
