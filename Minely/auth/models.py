@@ -1,7 +1,6 @@
 import enum
 
 from flask_login import UserMixin
-from werkzeug.utils import cached_property
 
 from app import db
 from core.core import CachedStaticProperty
@@ -25,6 +24,7 @@ class User(UserMixin, db.Model):
     land = db.relationship('Land', cascade="all, delete-orphan")
     inventory = db.relationship("Inventory", uselist=False, back_populates="user", cascade="all, delete-orphan")
     workers = db.relationship('Worker')
+
 
     def receive_coins(self, coins, auto_commit=False):
         if self.inventory is not None:
