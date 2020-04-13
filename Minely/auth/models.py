@@ -41,7 +41,7 @@ class User(UserMixin, db.Model):
             db.session.add(inv)
             db.session.commit()
         else:
-            print('inventory exists')
+            pass
         if self.inventory.coins is None:
             return 0
         return int(self.inventory.coins)
@@ -73,6 +73,13 @@ class User(UserMixin, db.Model):
         for worker in self.workers:
             cost += worker.promote_base
         return cost
+
+    def get_smelter_cost(self):
+        c = len(self.inventory.smelters.all())
+        if c == 0:
+            return 500
+        cost = 500
+        return int(cost * c)
 
     def is_admin(self):
         return self.permission == Permission.ADMIN
