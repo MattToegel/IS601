@@ -7,7 +7,7 @@ from werkzeug.utils import cached_property
 
 from app import db
 from auth.models import User
-from resources.models import ResourceType
+from resources.models import Resource
 
 
 """class GatherType(enum.Enum):
@@ -226,7 +226,7 @@ class Worker(db.Model):
             n += 1
         return n
 
-    def calc_gather(self, resource_type):
+    def calc_gather(self, resource):
         ef = self.__get_efficiency()
         # see if we get a bonus item
         n = self.__calc_skill()
@@ -251,21 +251,21 @@ class Worker(db.Model):
             self.proficiency_ingot = random.uniform(0.0, 1.0)
             db.session.commit()
         # factor in proficiency
-        if resource_type == ResourceType.wood:
+        if resource.is_wood():
             n = int(n * self.proficiency_wood)
-        elif resource_type == ResourceType.ore:
+        elif resource.is_ore():
             n = int(n * self.proficiency_ore)
-        elif resource_type == ResourceType.ingot:
+        elif resource.is_ingot():
             n = int(n * self.proficiency_ingot)
         # give at least 1 resource since worker passed the skill check before the proficiency
         # assume even the worst ability can get 1 resource
         if n < 1:
             n = 1
         # see if worker increases their proficiency
-        self.__check_proficiency_increase(resource_type, n)
+        self.__check_proficiency_increase(resource, n)
         return n  # ef * self.skill
 
-    def __check_proficiency_increase(self, resource_type, amount_gathered):
+    def __check_proficiency_increase(self, resource, amount_gathered):
         # legacy for miners that don't have a value
         if self.learning_speed is None:
             # determine learning speed (smaller is better)
@@ -280,17 +280,17 @@ class Worker(db.Model):
         # based on resource deduct from our learning requirement
 
         # to see if worker increases their proficiency, then reset the learning requirement
-        if resource_type == ResourceType.wood:
+        if resource.is_wood():
             self.prof_wood_next_level -= amount_gathered
             if self.prof_wood_next_level <= 0:
                 self.proficiency_wood += 0.01
                 self.prof_wood_next_level = self.learning_speed
-        elif resource_type == ResourceType.ore:
+        elif resource.is_ore():
             self.prof_ore_next_level -= amount_gathered
             if self.prof_ore_next_level <= 0:
                 self.proficiency_ore += 0.01
                 self.prof_ore_next_level = self.learning_speed
-        elif resource_type == ResourceType.ingot:
+        elif resource.is_ingot():
             self.prof_ingot_next_level -= amount_gathered
             if self.prof_ingot_next_level <= 0:
                 self.proficiency_ingot += 0.01

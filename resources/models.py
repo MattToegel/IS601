@@ -3,49 +3,55 @@ import enum
 from app import db
 
 
-class ResourceType(enum.Enum):
-    wood = 1
-    ore = 2
-    ingot = 3
-
-    def __str__(self):
-        return self.name  # value string
-
-    def __html__(self):
-        return self.value  # label string
-
-
-class OreType(enum.Enum):
+class Resource(enum.Enum):
     none = 0
-    copper = 1
-    iron = 2
-    coal = 3
+    wood = 1
+    # ore
+    copper_ore = 50
+    iron_ore = 51
+
+    # ingot
+    copper_ingot = 100
+    iron_ingot = 101
+    steel_ingot = 102
+
+    def is_wood(self):
+        if 1 >= self.value < 50:
+            return True
+        return False
+
+    def is_ore(self):
+        if 50 <= self.value < 100:
+            return True
+        return False
+
+    def is_ingot(self):
+        if 100 <= self.value < 200:
+            return True
+        return False
+
+    def is_harvestable(self):
+        if self.is_wood() or self.is_ore():
+            return True
+        return False
 
     def __str__(self):
-        return str(self.value)  # value string
+        return self.value  # value string
 
     def __html__(self):
         return self.name  # label string
 
+    def get_name(self):
+        return self.name.replace('_', ' ')
 
-class IngotType(enum.Enum):
-    copper = 1
-    iron = 2
-    steel = 3
 
-    def __str__(self):
-        return self.name  # value string
-
-    def __html__(self):
-        return self.value  # label string
 
 
 # resource node can only belong to one land
 class ResourceNode(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     land_id = db.Column(db.Integer, db.ForeignKey('land.id'))
-    type = db.Column(db.Enum(ResourceType, create_constraint=False))
-    sub_type = db.Column(db.Enum(OreType, create_constraint=False))
+    type = db.Column(db.Enum(Resource, create_constraint=False))
     available = db.Column(db.Integer)
     maximum = db.Column(db.Integer)
 
@@ -57,7 +63,7 @@ class ResourceNode(db.Model):
         return 0
 
     def is_ore(self):
-        return self.type == ResourceType.ore
+        return 'ore' in self.type.name
 
     def harvest(self, worker):
         n = worker.calc_gather(self.type)
@@ -71,32 +77,20 @@ class ResourceNode(db.Model):
         return n
 
     def get_name(self):
-        if self.is_ore():
-            return self.sub_type.name.lower() + " ore"
-        else:
-            return "wood"
+        return self.type.name.replace('_', ' ')
 
     def __repr__(self):
-        return self.type.name + '-' + self.sub_type.name  # + '[' + str(self.available) + ']'
+        return self.type.name
 
 
 class InventoryToResource(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    type = db.Column(db.String(20))
+    type = db.Column(db.Enum(Resource, create_constraint=False))
     quantity = db.Column(db.Integer, default=0)
     inventory_id = db.Column(db.Integer, db.ForeignKey('inventory.id'))
-    resource_type = db.Column(db.Enum(ResourceType, create_constraint=False))
 
-    def set_type_by_string(self, item_name):
-        self.type = item_name
-        if 'ore' in item_name:
-            self.resource_type = ResourceType.ore
-        elif 'ingot' in item_name:
-            self.resource_type = ResourceType.ingot
-        elif 'wood' in item_name:
-            self.resource_type = ResourceType.wood
-        else:
-            print ('unhandled resource type: ' + item_name)
+    def name(self):
+        return self.type.get_name()
 
 
 class Inventory(db.Model):
@@ -107,9 +101,13 @@ class Inventory(db.Model):
     resources = db.relationship('InventoryToResource', cascade="all, delete-orphan", lazy='dynamic')
     smelters = db.relationship('Smelter', cascade="all, delete-orphan", lazy='dynamic')
 
-    def get_quantity(self, item_name):
-        res = self.resources.filter_by(type=item_name).first()
-        if res is None:
+    def reset_resources(self):
+        self.resources.delete()
+        db.session.commit()
+
+    def get_quantity(self, resource):
+        res = self.resources.filter_by(type=resource).first()
+        if res is None or res.quantity is None:
             return 0
         return res.quantity
 
@@ -117,13 +115,13 @@ class Inventory(db.Model):
         self.coins = int( self.coins + change)
         db.session.commit()
 
-    def remove_inventory(self, item_name, quantity):
+    def remove_inventory(self, resource, quantity):
         """pass a positive number to remove"""
         if quantity < 0:
             # quantity is negative and will alter our math
             return False
-        res = self.resources.filter_by(type=item_name).first()
-        if res is None:
+        res = self.resources.filter_by(type=resource).first()
+        if res is None or res.quantity is None:
             # Player doesn't have this item
             return False
         if res.quantity < quantity:
@@ -133,23 +131,20 @@ class Inventory(db.Model):
         db.session.commit()
         return True
 
-    def update_inventory(self, item_name, quantity):
-        if item_name is None:
+    def update_inventory(self, resource, quantity):
+        if resource is None:
             print("Invalid inventory item")
         else:
-            res = self.resources.filter_by(type=item_name).first()
+            res = self.resources.filter_by(type=resource).first()
             if res is None:
                 res = InventoryToResource()
-                res.set_type_by_string(item_name)
-
+                res.type = resource
                 res.quantity = 0
                 res.inventory_id = self.id
                 db.session.add(res)
                 print('created new resource entry')
             res.quantity += quantity
             # legacy conversion for addition of enum type
-            if res.resource_type is None:
-                res.set_type_by_string(item_name)
             if res.quantity < 0:
                 res.quantity = 0
             db.session.commit()

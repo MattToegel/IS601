@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, render_template, flash, url_for, redirect
 from flask_login import current_user, login_required
 
 from core.forms import PurchaseForm
-from core.models import Purchase, PurchaseType
+from core.models import PurchaseType
 from land.models import Land
 from resources.resources import acquire_new_resource
 from app import db

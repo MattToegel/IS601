@@ -3,7 +3,7 @@ from random import seed, randint
 from flask import Blueprint, render_template
 from flask_login import login_required, current_user
 
-from resources.models import ResourceNode, ResourceType, OreType
+from resources.models import ResourceNode, Resource
 
 resources_bp = Blueprint('resources', __name__, template_folder='templates')
 
@@ -13,12 +13,11 @@ def acquire_new_resource():
     seed()
     resource.available = randint(10, 50)
     resource.maximum = resource.available
-    resource.type = ResourceType(randint(1, 2))
-    if resource.type == ResourceType.ore:
-        resource.sub_type = OreType(randint(1, 3))
-    else:
-        resource.sub_type = OreType.none
-    # resource.land_id = land_id
+    res = []
+    for r in Resource:
+        if r.is_harvestable():
+            res.append(r)
+    resource.type = res[randint(1, 2)]
     return resource
 
 

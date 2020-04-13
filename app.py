@@ -58,7 +58,7 @@ def register_blueprints(app):
     from auth.models import Permission, User
     from core.models import Purchase, PurchaseType
     from workers.models import Worker
-    from resources.models import ResourceNode, InventoryToResource, Inventory, OreType, ResourceType, IngotType
+    from resources.models import ResourceNode, InventoryToResource, Inventory, Resource
     from smelt.models import Smelter
     from auth.models import Permission, User
 
@@ -87,7 +87,7 @@ def setup_database(app):
         from auth.models import Permission, User
         from core.models import Purchase, PurchaseType
         from workers.models import Worker
-        from resources.models import ResourceNode, InventoryToResource, Inventory, OreType, ResourceType, IngotType
+        from resources.models import ResourceNode, InventoryToResource, Inventory, Resource
         db.create_all()
         _admins = ('matt@test.com',)
         print("init db, setting up users/admins")
@@ -112,8 +112,10 @@ def setup_database(app):
         for user in users:
             print('updating user')
             user.permission = Permission.ADMIN
+            # user.inventory.reset_resources()
             if user.get_coins() < 10000:
                 user.inventory.update_coins(10000)
+
                 print('updating coins')
             # user.active = True
         db.session.commit()

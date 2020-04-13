@@ -4,7 +4,6 @@ from flask_login import login_required, current_user
 from app import db
 from core.forms import PurchaseForm
 from core.models import PurchaseType
-from resources.models import OreType, ResourceType
 from smelt.forms import SmelterForm
 from smelt.models import Smelter
 
@@ -54,14 +53,7 @@ def add_to_smelter(smelter_id, slot):
         form.set_options((('coal', 'coal'), ('wood', 'wood')))
     if form.validate_on_submit():
         res = form.options.data
-        if res == 'copper':
-            res = OreType.copper
-        elif res == 'iron':
-            res = OreType.iron
-        elif res == 'coal':
-            res = OreType.coal
-        elif res == 'wood':
-            res = ResourceType.wood
+        # TODO finish setup
         try:
             q = int(form.quantity.data)
             if q < 1 or q > 50:

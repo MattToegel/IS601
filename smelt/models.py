@@ -2,7 +2,8 @@ import enum
 from datetime import datetime
 
 from app import db
-from resources.models import OreType
+from resources.models import Resource
+
 
 class SmelterError(enum.Enum):
     OK = 0
@@ -14,9 +15,9 @@ class SmelterError(enum.Enum):
 
 class Smelter(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    primary_ore_type = db.Column(db.Enum(OreType, create_constraint=False), default=OreType.none)
+    primary_ore_type = db.Column(db.Enum(Resource, create_constraint=False), default=Resource.none)
     primary_ore_quantity = db.Column(db.SMALLINT, default=0)
-    secondary_ore_type = db.Column(db.Enum(OreType, create_constraint=False), default=OreType.none)
+    secondary_ore_type = db.Column(db.Enum(Resource, create_constraint=False), default=Resource.none)
     secondary_ore_quantity = db.Column(db.SMALLINT, default=0)
     fuel_type = db.Column(db.String(10), default='')
     fuel_quantity = db.Column(db.SMALLINT, default=0)
@@ -53,12 +54,12 @@ class Smelter(db.Model):
             return SmelterError.OK
 
     def has_primary(self):
-        if self.primary_ore_type is not None and self.primary_ore_type != OreType.none:
+        if self.primary_ore_type is not None and self.primary_ore_type != Resource.none:
             return True
         return False
 
     def has_secondary(self):
-        if self.secondary_ore_type is not None and self.secondary_ore_type != OreType.none:
+        if self.secondary_ore_type is not None and self.secondary_ore_type != Resource.none:
             return True
         return False
 
@@ -82,7 +83,7 @@ class Smelter(db.Model):
             return SmelterError.NOT_ENOUGH_RESOURCES
         if quantity > 50:
             return SmelterError.BEYOND_CAPACITY
-        if ore_type != OreType.coal:
+        if ore_type != Resource.coal:
             # only allow coal for now
             return SmelterError.INVALID_RESOURCE
         if self.secondary_ore_type == ore_type:
@@ -133,7 +134,7 @@ class Smelter(db.Model):
                     return SmelterError.NOT_ENOUGH_RESOURCES
             else:
                 # reset the ore details if we're 0 or less, shouldn't happen but being safe
-                self.primary_ore_type = OreType.none
+                self.primary_ore_type = Resource.none
                 self.primary_ore_quantity = 0
                 db.session.commit()  # TODO save reset
                 # run it through the function again now that we cleared up the ore type
@@ -166,5 +167,5 @@ class Smelter(db.Model):
         return True  # different worker assigned
 
     def smelt(self):
-        if self.ore_type == OreType.none:
+        if self.ore_type == Resource.none:
             pass
