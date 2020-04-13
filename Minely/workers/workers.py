@@ -7,7 +7,7 @@ from sqlalchemy import and_
 from app import admin_only, db
 from auth.models import User
 from core.forms import PurchaseForm
-from core.models import Purchase, PurchaseType
+from core.models import PurchaseType
 from resources.resources import harvest
 from workers.models import Worker, Promotion
 
@@ -41,7 +41,7 @@ def pick_to_gather(resource_id, worker_id=-1):
                     msg = res.get_name()
                 db.session.commit()
                 if n > 0:
-                    current_user.inventory.update_inventory(res.get_name(), n)
+                    current_user.inventory.update_inventory(res.type, n)
                     flash(worker.name + " gathered " + str(n) + " " + msg)
                 else:
                     flash(worker.name + " failed to gather any resources")

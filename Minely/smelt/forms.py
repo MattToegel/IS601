@@ -2,8 +2,6 @@ from markupsafe import escape
 from flask_wtf import FlaskForm
 from wtforms import SelectField, IntegerField, SubmitField, validators
 
-from resources.models import OreType
-
 
 def coerce_for_enum(enum):
     def coerce(name):

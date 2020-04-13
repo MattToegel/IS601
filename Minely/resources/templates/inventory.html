@@ -20,7 +20,7 @@
     <div class="row">
     {% for res in res_row %}
             <div class="card col-xl-2 m-1" style="height:4rem; max-width: 150px">
-                <h5 class="card-title">{{res.type}}</h5>
+                <h5 class="card-title">{{res.name()}}</h5>
                 <p class="card-text">{{ res.quantity }}</p>
             </div>
     {% endfor %}
