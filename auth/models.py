@@ -24,7 +24,7 @@ class User(UserMixin, db.Model):
     land = db.relationship('Land', cascade="all, delete-orphan")
     inventory = db.relationship("Inventory", uselist=False, back_populates="user", cascade="all, delete-orphan")
     workers = db.relationship('Worker')
-    purchases = db.relationship('Purchase', dynamic="lazy")
+    purchases = db.relationship('Purchase', lazy='dynamic')
 
     def receive_coins(self, coins, auto_commit=False):
         if self.inventory is not None:
