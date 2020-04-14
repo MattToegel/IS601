@@ -26,6 +26,7 @@ def acquire_new_resource():
     new_resource = res[randint(1, max)-1]
     _session = session.get(current_user.id)
     # TODO fix because this is terrible
+    # test
     if _session is not None:
         new_resource = _session
     else:
