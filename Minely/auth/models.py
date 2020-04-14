@@ -4,7 +4,7 @@ from flask_login import UserMixin
 
 from app import db
 from core.core import CachedStaticProperty
-from core.models import Purchase
+from core.models import Purchase, PurchaseType
 
 
 class Permission(enum.Enum):
@@ -24,7 +24,7 @@ class User(UserMixin, db.Model):
     land = db.relationship('Land', cascade="all, delete-orphan")
     inventory = db.relationship("Inventory", uselist=False, back_populates="user", cascade="all, delete-orphan")
     workers = db.relationship('Worker')
-
+    purchases = db.relationship('Purchase', dynamic="lazy")
 
     def receive_coins(self, coins, auto_commit=False):
         if self.inventory is not None:
@@ -63,14 +63,25 @@ class User(UserMixin, db.Model):
     """
     def get_land_cost(self):
         c = len(self.land)
-        return (c*c) * 10 # TODO setup base value increment
+        if c == 0:
+            # TODO fixes/exploits - free land sell/rebuy to get desired resource node
+            purchase = self.purchases.filter_by(purchase_type=PurchaseType.LAND).all()
+            if purchase is not None and len(purchase) > 0:
+                # if we purchased land at least once we lose the right to the free land
+                c = 1
+        return (c*c) * 10  # TODO setup base value increment
 
     def get_hire_cost(self):
         c = len(self.workers)
         if c == 0:
             # TODO will be exploitable if we don't cache the generated worker
             # TODO user would be able to fire/offer transfer and rehire
-            return 0
+            # TODO fixes/exploints - free worker hire fire/rehire to get optimal stats
+            purchase = self.purchases.filter_by(purchase_type=PurchaseType.WORKER).all()
+            if purchase is not None and len(purchase) > 0:
+                pass
+            else:  # if we never hired a worked then make first one free
+                return 0
         cost = 50
         for worker in self.workers:
             cost += worker.promote_base

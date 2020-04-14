@@ -24,14 +24,7 @@ def acquire_new_resource():
     # TODO user can sell for free and reacquire if they don't like the resource type
     # TODO fix logic as sometimes(?) resource becomes none
     new_resource = res[randint(1, max)-1]
-    _session = session.get(current_user.id)
-    # TODO fix because this is terrible
-    # test
-    if _session is not None:
-        new_resource = _session
-    else:
-        session[current_user.id] = new_resource
-    print(new_resource)
+
     if new_resource == Resource.none:
         new_resource = Resource.wood  # temp make it default to wood
     resource.type = new_resource
