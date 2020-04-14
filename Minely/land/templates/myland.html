@@ -4,7 +4,6 @@
 {% if my_land | length == 0 %}
     <div>You don't have any land available</div>
 {%  endif %}
-
 {% for land_row in my_land|batch(6 ) %}
     <div class="row">
     {% for land in land_row %}
