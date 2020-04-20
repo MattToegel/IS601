@@ -72,6 +72,7 @@ def register_blueprints(app):
     from resources.resources import resources_bp
     from workers.workers import workers_bp
     from smelt.smelt import smelters_bp
+    from shop.shop import shop_bp
     app.register_blueprint(auth_bp)
     # blueprint for non-auth parts of app
     app.register_blueprint(core_bp)
@@ -79,6 +80,7 @@ def register_blueprints(app):
     app.register_blueprint(resources_bp, url_prefix='/resource')
     app.register_blueprint(workers_bp, url_prefix='/workers')
     app.register_blueprint(smelters_bp, url_prefix='/smelt')
+    app.register_blueprint(shop_bp, url_prefix='/shop')
 
 
 def setup_database(app):
