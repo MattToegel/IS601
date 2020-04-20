@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <style>
+.copper {
+    background-color: #ff6f00
+}
+.iron{
+    background-color:#616161;
+}
+.coal{
+    background-color: #212121;
+}
+</style>
+<div class="table-responsive">
+<table class="table">
+<thead>
+    <th scope="col">Item</th>
+    <th scope="col">Quantity</th>
+    <th scope="col">Actions</th>
+</thead>
+<tbody>
+{% for res in resources %}
+<tr>
+    <td>{{ res.name() }}</td>
+    <td>{{ res.quantity }}</td>
+    <td>
+    {% if res.quantity >= 10 %}
+        <a class="btn btn-danger" href="{{ url_for("shop.sell", resource_id=res.type.value) }}">Sell 10</a>
+    {% else %}
+        <a class="btn btn-danger disabled" href="#">Not Enough</a>
+    {% endif %}
+    </td>
+</tr>
+{% endfor %}
+{% if resources | length == 0 %}
+    <td colspan="100%">You don't have any resources</td>
+{%  endif %}
+</tbody>
+</table>
+</div>
+{% endblock %}

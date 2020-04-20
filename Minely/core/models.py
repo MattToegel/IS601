@@ -10,6 +10,7 @@ class PurchaseType(enum.Enum):
     WORKER_LFG = 3
     LAND_SURVEY = 4
     SMELTER = 5
+    RESOURCE = 6
 
     def __str__(self):
         return self.name  # value string
