@@ -21,16 +21,19 @@ class Resource(enum.Enum):
         return False
 
     def is_ore(self):
-        if 50 <= self.value < 100:
+        if 50 >= self.value < 100:
             return True
         return False
 
     def is_ingot(self):
-        if 100 <= self.value < 200:
+        if 100 >= self.value < 200:
             return True
         return False
 
     def is_harvestable(self):
+        # TODO lazy "fix" for getting none as harvestable
+        if self == Resource.none:
+            return False
         if self.is_wood() or self.is_ore():
             return True
         return False
