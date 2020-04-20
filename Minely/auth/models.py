@@ -76,7 +76,7 @@ class User(UserMixin, db.Model):
         if c == 0:
             # TODO will be exploitable if we don't cache the generated worker
             # TODO user would be able to fire/offer transfer and rehire
-            # TODO fixes/exploints - free worker hire fire/rehire to get optimal stats
+            # TODO fixes/exploits - free worker hire fire/rehire to get optimal stats
             purchase = self.purchases.filter_by(purchase_type=PurchaseType.WORKER).all()
             if purchase is not None and len(purchase) > 0:
                 pass
