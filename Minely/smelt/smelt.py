@@ -50,10 +50,11 @@ def add_to_smelter(smelter_id, slot):
         form.set_options((Resource.copper_ore, Resource.iron_ore))
         # form.set_options((('copper', 'copper'), ('iron', 'iron')))
     elif slot == 'secondary':
-        form.set_options((Resource.copper_ore,))
+        form.set_options((Resource.coal_ore,))
         # form.set_options((('coal', 'coal'),))
     elif slot == 'fuel':
         form.set_options((Resource.wood, Resource.coal_ore))
+
         # form.set_options((('coal', 'coal'), ('wood', 'wood')))
     if form.validate_on_submit():
         res = form.options.data
@@ -65,7 +66,7 @@ def add_to_smelter(smelter_id, slot):
                 flash("Invalid quantity")
             smelter = Smelter.query.get(int(smelter_id))
             if smelter is not None:
-                res = Resource(res)
+                res = Resource(int(res))
                 if slot == 'primary':
                     resp = smelter.add_primary_resource(res, q)
                 elif slot == 'secondary':

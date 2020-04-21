@@ -19,7 +19,7 @@ class Smelter(db.Model):
     primary_ore_quantity = db.Column(db.SMALLINT, default=0)
     secondary_ore_type = db.Column(db.Enum(Resource, create_constraint=False), default=Resource.none)
     secondary_ore_quantity = db.Column(db.SMALLINT, default=0)
-    fuel_type = db.Column(db.String(10), default='')
+    fuel_type = db.Column(db.Enum(Resource), default=Resource.none)
     fuel_quantity = db.Column(db.SMALLINT, default=0)
     next_action = db.Column(db.DateTime, default=datetime.utcnow())
     inventory_id = db.Column(db.Integer, db.ForeignKey('inventory.id'))
@@ -43,6 +43,8 @@ class Smelter(db.Model):
             if self.fuel_quantity > 0:
                 if self.fuel_type == Resource.wood or self.fuel_type == Resource.coal_ore:
                     self.inventory.update_inventory(fuel_type, self.fuel_quantity)
+                else:
+                    self.fuel_type = fuel_type
             self.fuel_quantity = quantity
             db.session.commit()
             return SmelterError.OK
@@ -58,7 +60,7 @@ class Smelter(db.Model):
         return False
 
     def has_fuel(self):
-        if self.fuel_type is not None and len(self.fuel_type) > 1:
+        if self.fuel_type is not None and self.fuel_type is not Resource.none:
             return True
         return False
 
@@ -77,7 +79,7 @@ class Smelter(db.Model):
             return SmelterError.NOT_ENOUGH_RESOURCES
         if quantity > 50:
             return SmelterError.BEYOND_CAPACITY
-        if ore_type != Resource.coal:
+        if ore_type != Resource.coal_ore:
             # only allow coal for now
             return SmelterError.INVALID_RESOURCE
         if self.secondary_ore_type == ore_type:
