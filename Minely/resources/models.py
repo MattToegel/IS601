@@ -9,7 +9,7 @@ class Resource(enum.Enum):
     # ore
     copper_ore = 50
     iron_ore = 51
-
+    coal_ore = 52
     # ingot
     copper_ingot = 100
     iron_ingot = 101
@@ -39,15 +39,18 @@ class Resource(enum.Enum):
         return False
 
     def __str__(self):
-        return str(self.value)  # value string
+        return self.get_name()  # label string
 
     def __html__(self):
-        return self.get_name()  # label string
+        # wrapped in string for SelectField, when it pre_validates over enums form has str data
+        # but enum has int value
+        return str(self.value)  # value string
 
     def get_name(self):
         return self.name.replace('_', ' ')
 
-
+    def get_type(self):
+        return self.name.split('_')[0]
 
 
 # resource node can only belong to one land
