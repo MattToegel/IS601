@@ -8,9 +8,9 @@ from resources.models import Resource
 def coerce_for_enum(enum):
     def coerce(name):
         if isinstance(name, enum):
-            return name.value
+            return int(name.name)
         try:
-            return enum[name]
+            return enum(int(name))
         except KeyError:
             raise ValueError(name)
 
@@ -24,7 +24,9 @@ class SmelterForm(FlaskForm):
     submit = SubmitField('Add', render_kw={'class': 'form-control btn btn-primary'})
 
     def set_options(self, choices):
-        self.options.choices = [(str(v), escape(v)) for v in choices]
+        self.options.choices = [(str(v.value), v.get_name()) for v in choices]
+        self.options.coerce = coerce_for_enum(Resource)
         for v, _ in self.options.choices:
+            print('choice')
             print(v)
 
