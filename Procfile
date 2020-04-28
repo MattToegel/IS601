@@ -1,1 +1,1 @@
-web: gunicorn --bind 0.0.0.0 --chdir Minely "app:create_app()" 
+web: gunicorn --chdir Minely "app:create_app()" 
