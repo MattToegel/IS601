@@ -1,1 +1,1 @@
-web: cd Minely; python manager.py db migrate; gunicorn --chdir Minely "app:create_app()" 
+web: cd Minely; python manager.py db migrate; gunicorn "app:create_app()" 
