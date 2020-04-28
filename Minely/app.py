@@ -128,8 +128,5 @@ if __name__ == "__main__":
     print("Running")
     app = create_app()
     setup_database(app)
-    #app.run(debug=True)
-else:
-    app = create_app()
-    setup_database(app)
+    #app.run(debug=True)y
 
