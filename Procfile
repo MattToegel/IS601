@@ -1,1 +1,1 @@
-web: gunicorn Minely app:app 
+web: gunicorn Minely:app 
