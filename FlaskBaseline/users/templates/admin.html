@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if current_user.has_role("Admin") %}
+    <p>Here's your admin dashboard bud, not much to see yet.</p>
+{% endif %}
+{% endblock %}
