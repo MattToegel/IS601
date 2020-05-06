@@ -14,6 +14,7 @@ class Resource(enum.Enum):
     copper_ingot = 100
     iron_ingot = 101
     steel_ingot = 102
+    # TODO: Should we put coins here instead of separate column?
 
     def is_wood(self):
         if 1 >= self.value < 50:

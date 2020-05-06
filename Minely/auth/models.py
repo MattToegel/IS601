@@ -1,10 +1,23 @@
 import enum
-
-from flask_login import UserMixin
+from flask_security import UserMixin, RoleMixin
 
 from app import db
 from core.core import CachedStaticProperty
 from core.models import Purchase, PurchaseType
+
+
+class RolesUsers(db.Model):
+    __tablename__ = 'roles_users'
+    id = db.Column(db.Integer(), primary_key=True)
+    user_id = db.Column('user_id', db.Integer(), db.ForeignKey('user.id'))
+    role_id = db.Column('role_id', db.Integer(), db.ForeignKey('role.id'))
+
+
+class Role(db.Model, RoleMixin):
+    __tablename__ = 'role'
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(80), unique=True)
+    description = db.Column(db.String(255))
 
 
 class Permission(enum.Enum):
@@ -25,6 +38,10 @@ class User(UserMixin, db.Model):
     inventory = db.relationship("Inventory", uselist=False, back_populates="user", cascade="all, delete-orphan")
     workers = db.relationship('Worker')
     purchases = db.relationship('Purchase', lazy='dynamic')
+    active = db.Column(db.Boolean())
+    confirmed_at = db.Column(db.DateTime())
+    roles = db.relationship('Role', secondary='roles_users',
+                         backref=db.backref('users', lazy='dynamic'))
 
     def receive_coins(self, coins, auto_commit=False):
         if self.inventory is not None:

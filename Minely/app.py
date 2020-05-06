@@ -3,9 +3,11 @@ import secrets
 import string
 
 from flask import Flask, flash, redirect, url_for
+from flask_apscheduler import scheduler, APScheduler
 from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
 from flask_moment import Moment
+from flask_security import SQLAlchemyUserDatastore, Security
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
 from werkzeug.security import generate_password_hash
@@ -13,9 +15,12 @@ from werkzeug.security import generate_password_hash
 db = SQLAlchemy()
 migrate = Migrate()
 csrf = CSRFProtect()
+
+moment = Moment()
+scheduler = APScheduler()
+security = Security()
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
-moment = Moment()
 
 
 def admin_only(f):
@@ -36,6 +41,9 @@ def create_app():
     app.config['SECRET_KEY'] = 'this_is_mine'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SCHEDULER_API_ENABLED '] = True
+    #app.config['SECURITY_REGISTERABLE'] = False
+    app.config['SECURITY_LOGIN_URL'] = '/auth/login'
     register_extensions(app)
     register_blueprints(app)
     setup_database(app)
@@ -50,6 +58,13 @@ def register_extensions(app):
     csrf.init_app(app)
     login_manager.init_app(app)
     moment.init_app(app)
+    scheduler.init_app(app)
+    scheduler.start()
+
+    @app.context_processor
+    def inject_user():
+        return dict(user=current_user)
+
 
 
 def register_blueprints(app):
@@ -83,14 +98,29 @@ def register_blueprints(app):
     app.register_blueprint(shop_bp, url_prefix='/shop')
 
 
+"""@scheduler.task('interval', id='do_job_1', seconds=5, misfire_grace_time=900)
+def test_periodic_freebieness():
+    with scheduler.app.app_context():
+        print ("Printing some money")
+        _admins = ('matt@test.com',)
+        from auth.models import Permission, User
+        users = User.query.filter(User.email.in_(_admins)).all()
+        for user in users:
+            print('updating user')
+            user.permission = Permission.ADMIN
+            # user.inventory.reset_resources()
+            user.inventory.update_coins(100)"""
+
+
 def setup_database(app):
     with app.app_context():
         from land.models import Land
-        from auth.models import Permission, User
+        from auth.models import Permission, User, Role
         from core.models import Purchase, PurchaseType
         from workers.models import Worker
         from resources.models import ResourceNode, InventoryToResource, Inventory, Resource
         db.create_all()
+        security.init_app(app=app, datastore=SQLAlchemyUserDatastore(db, User, Role), register_blueprint=True)
         _admins = ('matt@test.com',)
         print("init db, setting up users/admins")
 
@@ -114,6 +144,10 @@ def setup_database(app):
         for user in users:
             print('updating user')
             user.permission = Permission.ADMIN
+
+            role = security.datastore.find_or_create_role(name="Admin", description="The one and only")
+            security.datastore.add_role_to_user(user, role)
+            security.datastore.activate_user(user)
             # user.inventory.reset_resources()
             if user.get_coins() < 10000:
                 user.inventory.update_coins(10000)
@@ -128,5 +162,6 @@ if __name__ == "__main__":
     print("Running")
     app = create_app()
     setup_database(app)
+
     #app.run(debug=True)y
 

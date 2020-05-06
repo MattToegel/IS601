@@ -1,10 +1,13 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify
+from flask_login import login_required
+from flask_security import login_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import login_user, logout_user, login_required
+#from flask_login import login_user, logout_user, login_required
 
 from auth.forms import RegisterForm, LoginForm
 from auth.models import User
-from app import db
+from app import db, security
+
 auth_bp = Blueprint('auth', __name__, template_folder='templates')
 
 
@@ -27,6 +30,7 @@ def login():
             return redirect(url_for('auth.login'))
         # if the above check passes, then we know the user has the right credentials
         login_user(user, remember=remember)
+
         return redirect(url_for('core.profile'))
     return render_template('login.html', form=form)
 
@@ -49,8 +53,10 @@ def signup():
         # create new user with the form data. Hash the password so plaintext version isn't saved.
         new_user = User(email=email, name=name, password=generate_password_hash(password, method='sha256'))
         # add the new user to the database
-        db.session.add(new_user)
+        security.datastore.create_user(new_user)
         db.session.commit()
+        #db.session.add(new_user)
+        #db.session.commit()
         return redirect(url_for('auth.login'))
     return render_template('signup.html', form=form)
 
