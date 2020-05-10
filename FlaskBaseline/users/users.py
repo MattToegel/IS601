@@ -29,6 +29,8 @@ def register():
                 db.session.commit()
                 flash("Successfully registered")
             except IntegrityError as err:
+                # here we're making sure a user can't join with duplicate information
+                # our model has unique email and unique username
                 db.session.rollback()
                 if "UNIQUE constraint failed" in str(err):
                     flash("error, username already exists (%s)" % form.username.data)

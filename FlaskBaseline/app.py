@@ -70,6 +70,8 @@ def setup_database(app):
         try:
             db.session.commit()
         except IntegrityError as err:
+            # since we have unique constraint we want to handle an error if we try
+            # to insert a duplicate
             db.session.rollback()
             if "UNIQUE constraint" in str(err):
                 print("Admin role already exists, this is ok")
@@ -82,6 +84,8 @@ def setup_database(app):
         try:
             db.session.commit()
         except IntegrityError as err:
+            # since we have unique constraint we want to handle an error if we try
+            # to insert a duplicate
             db.session.rollback()
 
         # TODO find admin user
@@ -93,6 +97,8 @@ def setup_database(app):
                 try:
                     db.session.commit()
                 except IntegrityError as err:
+                    # since we have unique constraint we want to handle an error if we try
+                    # to insert a duplicate role for our user
                     db.session.rollback()
                     if "UNIQUE constraint" in str(err):
                         print("Admin relationship duplicate constraint issue")
