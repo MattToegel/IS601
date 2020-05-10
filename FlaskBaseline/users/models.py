@@ -10,6 +10,7 @@ class RolesUsers(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     user_id = db.Column('user_id', db.Integer(), db.ForeignKey('user.id'))
     role_id = db.Column('role_id', db.Integer(), db.ForeignKey('role.id'))
+    db.UniqueConstraint('user_id', 'role_id', name='uniq_usr_role')
 
 
 class Role(db.Model):
