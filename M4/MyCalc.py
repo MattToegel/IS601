@@ -17,6 +17,7 @@ class MyCalc:
            'x': operator.mul,
            '/': operator.truediv}
 
+
     @staticmethod
     def _is_float(val):
         try:
@@ -45,7 +46,8 @@ class MyCalc:
     def calc(self, num1, op, num2):
         # map characters to operator function references
         # https://stackoverflow.com/a/18591880
-
+        # print("num1: " + str(num1))
+        # print("num2: " + str(num2))
         if num1 == "ans":
             return self.calc(self.ans, op, num2)
         else:
@@ -54,11 +56,18 @@ class MyCalc:
             self.ans = MyCalc.ops[op](num1, num2)
         return self.ans
 
+class AdvMyCalc(MyCalc):
+    def __init__(self):
+        super().ops["**"] = operator.pow
+        super().ops["//"] = operator.floordiv
+        super().ops["%"] = operator.mod
+
 
 if __name__ == '__main__':
     is_running = True
     iSTR = input("Are you ready?")
-    calc = MyCalc()
+    #calc = MyCalc()
+    calc = AdvMyCalc()
     print(calc)
     if iSTR == "yes":
         while is_running:
@@ -67,10 +76,10 @@ if __name__ == '__main__':
                 is_running = False
             else:
                 print("Your eq was " + str(iSTR))
-                checks = ["+", "/", "*", "x", "-"]
+                checks = ["+", "**", "//",  "/", "*", "x", "-", "%"]
                 handled = False
                 for check in checks:
-                    if check in iSTR:
+                    if not handled and check in iSTR:
                         nums = iSTR.split(check)
                         r = calc.calc(nums[0].strip(), check, nums[1].strip())
                         print("R is " + str(r))
