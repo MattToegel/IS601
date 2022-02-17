@@ -1,65 +1,57 @@
+import operator  # https://docs.python.org/3/library/operator.html
+
+# TODO idea
+# 1) Allow longer equations
+# 2) expand math functions
+# 3) Separate calculator answers
+# 4) Support config options (i.e., rounding logic, answer conversion)
+# 5) Persist last answer between application restarts
+# 6) Record eq history
+
+
 class MyCalc:
-    ans = 0
+    ans = 0  # todo, class vs static vs instance
+    ops = {'+': operator.add,
+           '-': operator.sub,
+           '*': operator.mul,
+           'x': operator.mul,
+           '/': operator.truediv}
 
-    def _is_float(self, val):
+    @staticmethod
+    def _is_float(val):
         try:
-            val = float(val)
+            float(val)
             return True
         except:
             return False
 
-    def _is_int(self, val):
+    @staticmethod
+    def _is_int(val):
         try:
-            val = int(val)
+            int(val)
             return True
         except:
             return False
 
-    def _as_number(self, val):
-        if self._is_int(val):
+    @staticmethod
+    def _as_number(val):
+        if MyCalc._is_int(val):
             return int(val)
-        elif self._is_float(val):
+        elif MyCalc._is_float(val):
             return float(val)
         else:
             raise Exception("Not a number")
 
-    def add(self, num1, num2):
-        if num1 == "ans":
-            return self.add(self.ans, num2)
-        else:
-            num1 = self._as_number(num1)
-            num2 = self._as_number(num2)
-            self.ans = num1+num2
-        return self.ans
+    def calc(self, num1, op, num2):
+        # map characters to operator function references
+        # https://stackoverflow.com/a/18591880
 
-    def sub(self, num1, num2):
         if num1 == "ans":
-            return self.sub(self.ans, num2)
+            return self.calc(self.ans, op, num2)
         else:
             num1 = self._as_number(num1)
             num2 = self._as_number(num2)
-            self.ans = num1-num2
-        return self.ans
-
-    def mult(self, num1, num2):
-        if num1 == "ans":
-            return self.mult(self.ans, num2)
-        else:
-            num1 = self._as_number(num1)
-            num2 = self._as_number(num2)
-            self.ans = num1*num2
-        return self.ans
-
-    def div(self, num1, num2):
-        if num1 == "ans":
-            return self.div(self.ans, num2)
-        else:
-            num1 = self._as_number(num1)
-            num2 = self._as_number(num2)
-            if num2 == 0:
-                print("Can't divide by zero, sorry")
-            else:
-                self.ans = num1/num2
+            self.ans = MyCalc.ops[op](num1, num2)
         return self.ans
 
 
@@ -75,29 +67,16 @@ if __name__ == '__main__':
                 is_running = False
             else:
                 print("Your eq was " + str(iSTR))
-                if "+" in iSTR:
-                    nums = iSTR.split("+")
-                    r = calc.add(nums[0].strip(), nums[1].strip())
-                    print("R is " + str(r))
-                # must be done before - check to hanlde negative values
-                elif "/" in iSTR:
-                    nums = iSTR.split("/")
-                    r = calc.div(nums[0].strip(), nums[1].strip())
-                    print("R is " + str(r))
-
-                elif "*" in iSTR or "x" in iSTR:
-                    nums = iSTR.split("*") if "*" in iSTR else iSTR.split("x")
-                    r = calc.mult(nums[0].strip(), nums[1].strip())
-                    print("R is " + str(r))
-                # must be done last so negative numbers work
-                elif "-" in iSTR:
-                    nums = iSTR.split("-")
-                    r = calc.sub(nums[0].strip(), nums[1].strip())
-                    print("R is " + str(r))
-
-
-
-
-    else:
+                checks = ["+", "/", "*", "x", "-"]
+                handled = False
+                for check in checks:
+                    if check in iSTR:
+                        nums = iSTR.split(check)
+                        r = calc.calc(nums[0].strip(), check, nums[1].strip())
+                        print("R is " + str(r))
+                        handled = True
+                if not handled:
+                    print("The action you tried is not supported, please try again")
+    else:  # exit loop
         print("Good bye")
         is_running = False
