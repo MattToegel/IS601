@@ -1,67 +1,46 @@
 class MyCalc:
     ans = 0
 
-    def _is_float(self, val):
+    @staticmethod
+    def _is_float(val):
         try:
             val = float(val)
             return True
         except:
             return False
 
-    def _is_int(self, val):
+    @staticmethod
+    def _is_int(val):
         try:
             val = int(val)
             return True
         except:
             return False
 
-    def _as_number(self, val):
-        if self._is_int(val):
+    @staticmethod
+    def _as_number(val):
+        if MyCalc._is_int(val):
             return int(val)
-        elif self._is_float(val):
+        elif MyCalc._is_float(val):
             return float(val)
         else:
             raise Exception("Not a number")
 
-    def add(self, num1, num2):
+    def calc(self, num1, num2, operator):
         if num1 == "ans":
-            return self.add(self.ans, num2)
-        else:
-            num1 = self._as_number(num1)
-            num2 = self._as_number(num2)
+            return self.calc(self.ans, num2, operator)
+        num1 = MyCalc._as_number(num1)
+        num2 = MyCalc._as_number(num2)
+
+        if operator == "+":
             self.ans = num1+num2
-        return self.ans
-
-    def sub(self, num1, num2):
-        if num1 == "ans":
-            return self.sub(self.ans, num2)
-        else:
-            num1 = self._as_number(num1)
-            num2 = self._as_number(num2)
+        elif operator == "-":
             self.ans = num1-num2
-        return self.ans
-
-    def mult(self, num1, num2):
-        if num1 == "ans":
-            return self.mult(self.ans, num2)
-        else:
-            num1 = self._as_number(num1)
-            num2 = self._as_number(num2)
+        elif operator == "*":
             self.ans = num1*num2
+        elif operator == "/":
+            self.ans = num1/num2
         return self.ans
-
-    def div(self, num1, num2):
-        if num1 == "ans":
-            return self.div(self.ans, num2)
-        else:
-            num1 = self._as_number(num1)
-            num2 = self._as_number(num2)
-            if num2 == 0:
-                print("Can't divide by zero, sorry")
-            else:
-                self.ans = num1/num2
-        return self.ans
-
 
 if __name__ == '__main__':
     is_running = True
@@ -75,25 +54,13 @@ if __name__ == '__main__':
                 is_running = False
             else:
                 print("Your eq was " + str(iSTR))
-                if "+" in iSTR:
-                    nums = iSTR.split("+")
-                    r = calc.add(nums[0].strip(), nums[1].strip())
-                    print("R is " + str(r))
-                # must be done before - check to hanlde negative values
-                elif "/" in iSTR:
-                    nums = iSTR.split("/")
-                    r = calc.div(nums[0].strip(), nums[1].strip())
-                    print("R is " + str(r))
+                ops = ["+", "/", "*","-"]
+                for op in ops:
+                    if op in iSTR:
+                        nums = iSTR.split(op)
+                        r = calc.calc(nums[0].strip(), nums[1].strip(), op)
+                        print("R is " + str(r))
 
-                elif "*" in iSTR or "x" in iSTR:
-                    nums = iSTR.split("*") if "*" in iSTR else iSTR.split("x")
-                    r = calc.mult(nums[0].strip(), nums[1].strip())
-                    print("R is " + str(r))
-                # must be done last so negative numbers work
-                elif "-" in iSTR:
-                    nums = iSTR.split("-")
-                    r = calc.sub(nums[0].strip(), nums[1].strip())
-                    print("R is " + str(r))
 
 
 
