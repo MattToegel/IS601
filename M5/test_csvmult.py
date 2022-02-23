@@ -16,9 +16,30 @@ from M4.MyCalc import MyCalc
 # Option 3: Split data into positive test case data and negative test case data
 # Pass respective chunks of data to respective positive/negative test case
 
-# Creating a fixture that grabs a file
-# before running a test
-# @pytest.fixture
+
+
+def grab_test_file2():
+    with open("random2.csv") as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        line_count = 0
+        rows = []
+        for row in csv_reader:
+            if line_count > 0:
+                rows.append(row)
+            line_count += 1
+        return rows
+
+# Option 1 https://stackoverflow.com/questions/45879028/pytest-parameterized-test-with-custom-id-function
+@pytest.mark.parametrize(argnames=("name","v1","v2", "ea"),argvalues=grab_test_file2(), ids=[i[0] for i in grab_test_file2()])
+def test_csvmult(name, v1,v2, ea):
+    calc = MyCalc()
+    r = calc.calc(v1, v2, "*")
+    if name == "positive":
+        assert r == int(ea)
+    else:
+        assert r != int(ea)
+
+
 def grab_test_file():
     with open("random.csv") as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
@@ -29,8 +50,7 @@ def grab_test_file():
                 rows.append(row)
             line_count += 1
         return rows
-
-# rowdata = grab_test_file()
+# Option 2
 @pytest.mark.parametrize("row", grab_test_file())
 def test_csvmult_pos(row):
     calc = MyCalc()
