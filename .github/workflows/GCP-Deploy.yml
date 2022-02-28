@@ -4,39 +4,39 @@ on:
     branches:
       - Flask-Sample-Test
 jobs:
-  setup-build-publish-deploy:
-    name: Setup, Build, Publish, and Deploy
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./sample-app
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
 
-    # Setup gcloud CLI
-    - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
-      with:
-        service_account_email: ${{ secrets.GCP_EMAIL }}
-        service_account_key: ${{ secrets.GCP_CREDENTIALS }}
-        export_default_credentials: true
+    deploy:
 
-    # Configure Docker with Credentials
-    - name: Configure Docker
-      run: |
-        gcloud auth configure-docker
+        name: Setup Gcloud Account
+        runs-on: ubuntu-latest
+        defaults:
+          run:
+            working-directory: ./sample-app
+        env:
+          IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_APP_NAME }}
+        steps:
 
-    # Build the Docker image
-    - name: Build & Publish
-      run: |
-        gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
-        gcloud builds submit --tag gcr.io/${{ secrets.GCP_PROJECT }}/${{ secrets.GCP_APP_NAME }}
-        gcloud config set run/region us-central1
+        - name: Login
+          uses: google-github-actions/setup-gcloud@v0
+          with:
+            project_id: ${{ secrets.GCP_PROJECT_ID }}
+            service_account_email: ${{ secrets.GCP_EMAIL }}
+            service_account_key: ${{ secrets.GCP_CREDENTIALS }}
 
-    # Deploy the Docker image to the GKE cluster
-    - name: Deploy
-      run: |
-        gcloud run deploy ${{ secrets.GCP_APP_NAME }} --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_APP_NAME }} \
-        --platform managed \
-        --allow-unauthenticated \
-        --memory 512M
+        - name: Configure Docker
+          run: gcloud auth configure-docker --quiet
+
+        - name: Checkout repository
+          uses: actions/checkout@v2
+
+        - name: Build Docker image
+          run: docker build . -t $IMAGE_NAME
+
+        #- name: Test Docker image
+        #  run: docker run $IMAGE_NAME sh -c "go test -v"
+
+        - name: Push Docker image
+          run: docker push $IMAGE_NAME
+
+        - name: Deploy Docker image
+          run: gcloud run deploy ${{ secrets.GCP_PROJECT_ID }} --image $IMAGE_NAME --region us-central1 --platform managed
