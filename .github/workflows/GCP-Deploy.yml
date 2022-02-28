@@ -15,11 +15,10 @@ jobs:
         env:
           IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_APP_NAME }}
         steps:
-
-          - id: 'auth'
-              uses: 'google-github-actions/auth@v0'
-              with:
-                credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+        - id: 'auth'
+            uses: 'google-github-actions/auth@v0'
+            with:
+              credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
 
         - name: Configure Docker
           run: gcloud auth configure-docker --quiet
