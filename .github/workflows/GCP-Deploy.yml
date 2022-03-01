@@ -35,4 +35,4 @@ jobs:
 
         # requires Google Cloud Run API enabled
         - name: Deploy Docker image
-          run: gcloud run deploy ${{ secrets.GCP_PROJECT_ID }} --image $IMAGE_NAME --region us-central1 --platform managed~
+          run: gcloud run deploy ${{ secrets.GCP_PROJECT_ID }} --image $IMAGE_NAME --region us-central1 --platform managed
