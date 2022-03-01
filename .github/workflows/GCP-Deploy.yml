@@ -20,6 +20,7 @@ jobs:
           uses: 'google-github-actions/auth@v0'
           with:
             credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
         - name: Configure Docker
           run: gcloud auth configure-docker --quiet
 
@@ -28,9 +29,10 @@ jobs:
 
         #- name: Test Docker image
         #  run: docker run $IMAGE_NAME sh -c "go test -v"
-
+        # requires Google Container/Artifact Registry API Enabled
         - name: Push Docker image
           run: docker push $IMAGE_NAME
 
+        # requires Google Cloud Run API enabled
         - name: Deploy Docker image
           run: gcloud run deploy ${{ secrets.GCP_PROJECT_ID }} --image $IMAGE_NAME --region us-central1 --platform managed
