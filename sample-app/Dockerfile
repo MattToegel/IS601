@@ -2,7 +2,7 @@ FROM python:3.9-slim
 
 # Allow statements and log messages to immediately appear in the Knative logs
 ENV PYTHONUNBUFFERED True
-
+ENV PORT 8080
 
 # Copy local code to the container image.
 COPY . /src
@@ -16,3 +16,6 @@ RUN pip install -r requirements.txt
 # For environments with multiple CPU cores, increase the number of workers
 # to be equal to the cores available.
 CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 main:app
+
+# To run locally after installation of Docker Desktop
+# docker run -p 3000:8080 --rm -it $(docker build -q .)
