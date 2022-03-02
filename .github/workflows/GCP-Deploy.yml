@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - Flask-Sample # rename this to your prod branch if the naming differs
+      - Flask-Sample-PyTest
 jobs:
 
     deploy:
