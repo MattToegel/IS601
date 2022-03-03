@@ -16,7 +16,7 @@ RUN pip install -r requirements.txt
 # webserver, with one worker process and 8 threads.
 # For environments with multiple CPU cores, increase the number of workers
 # to be equal to the cores available.
-CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 "app:create_app()"
+CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 "sample_app:create_app()"
 
 # To run locally after installation of Docker Desktop
 # docker run -p 3000:8080 --rm -it $(docker build -q .)
