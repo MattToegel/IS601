@@ -5,7 +5,7 @@ ENV PYTHONUNBUFFERED True
 # ENV PORT 8080
 
 # Copy local code to the container image.
-COPY . /src
+COPY . /src/sample_app
 WORKDIR /src
 
 # Install Python Requirements
