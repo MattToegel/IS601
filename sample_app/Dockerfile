@@ -9,6 +9,7 @@ COPY . /src
 WORKDIR /src
 
 # Install Python Requirements
+RUN ls
 RUN cd sample_app && pip install -r requirements.txt
 
 # Run the web service on container startup. Here we use the gunicorn
