@@ -3,6 +3,9 @@ on:
   push:
     branches:
       - Flask-Sample # rename this to your prod branch if the naming differs
+      - Flask-Sample-PyTest
+      - Flask-Sample-PyTest-Class
+      - prod
 jobs:
 
     deploy:
@@ -10,13 +13,13 @@ jobs:
         runs-on: ubuntu-latest
         defaults:
           run:
-            working-directory: sample-app # change this to the directory your web app is in
+            working-directory: sample_app # change this to the directory your web app is in
         env:
           IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_APP_NAME }}
         steps:
         - name: Checkout repository
           uses: actions/checkout@v2
-        - name: Run tests with pytest
+        - name: Run test with pytest
           run: pip install -r requirements.txt && pytest
         - id: 'auth'
           uses: 'google-github-actions/auth@v0'
