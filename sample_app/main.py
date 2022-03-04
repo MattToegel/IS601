@@ -9,9 +9,8 @@ CURR_DIR = os.path.dirname(os.path.abspath(__file__))
 print(CURR_DIR)
 sys.path.append(CURR_DIR)
 
+
 # app = Flask(__name__)
-
-
 def create_app(config_filename=''):
     app = Flask(__name__)
     # app.config.from_pyfile(config_filename)
@@ -20,7 +19,7 @@ def create_app(config_filename=''):
         app.register_blueprint(hello)
         return app
 
+
 app = create_app()
 if __name__ == "__main__":
-
     app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
