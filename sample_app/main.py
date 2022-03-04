@@ -5,12 +5,19 @@ from flask import Flask
 
 
 # app = Flask(__name__)
+
+
 def create_app(config_filename=''):
     app = Flask(__name__)
     # app.config.from_pyfile(config_filename)
-    from views.hello import hello
-    app.register_blueprint(hello)
-    return app
+    with app.app_context():
+        try:
+            from views.hello import hello
+        except:
+            from sample_app.views.hello import hello
+
+        app.register_blueprint(hello)
+        return app
 
 
 if __name__ == "__main__":
