@@ -4,6 +4,7 @@ on:
     branches:
       - prod # rename this to your prod branch if the naming differs
       - Flask-Sample-Video
+      - Flask-Sample-PyTest-Video
 jobs:
 
     deploy:
@@ -11,12 +12,14 @@ jobs:
         runs-on: ubuntu-latest
         defaults:
           run:
-            working-directory: sample-app # change this to the directory your web app is in
+            working-directory: sample_app # change this to the directory your web app is in
         env:
           IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID_VIDEO }}/${{ secrets.GCP_APP_NAME_VIDEO }}
         steps:
         - name: Checkout repository
           uses: actions/checkout@v2
+        - name: Run test with pytest
+          run: pip install -r requirements.txt && pytest
         - id: 'auth'
           uses: 'google-github-actions/auth@v0'
           with:
