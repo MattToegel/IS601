@@ -1,0 +1,39 @@
+name: cloudrun-deploy
+on:
+  push:
+    branches:
+      - prod # rename this to your prod branch if the naming differs
+      - Flask-Sample-Video
+jobs:
+
+    deploy:
+        name: Setup Gcloud Account
+        runs-on: ubuntu-latest
+        defaults:
+          run:
+            working-directory: sample-app # change this to the directory your web app is in
+        env:
+          IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID_VIDEO }}/${{ secrets.GCP_APP_NAME_VIDEO }}
+        steps:
+        - name: Checkout repository
+          uses: actions/checkout@v2
+        - id: 'auth'
+          uses: 'google-github-actions/auth@v0'
+          with:
+            credentials_json: '${{ secrets.GCP_CREDENTIALS_VIDEO }}'
+
+        - name: Configure Docker
+          run: gcloud auth configure-docker --quiet
+
+        - name: Build Docker image
+          run: docker build . -t $IMAGE_NAME
+
+        #- name: Test Docker image
+        #  run: docker run $IMAGE_NAME sh -c "go test -v"
+        # requires Google Container/Artifact Registry API Enabled
+        - name: Push Docker image
+          run: docker push $IMAGE_NAME
+
+        # requires Google Cloud Run API enabled
+        - name: Deploy Docker image
+          run: gcloud run deploy ${{ secrets.GCP_PROJECT_ID_VIDEO }} --image $IMAGE_NAME --region us-central1 --platform managed
