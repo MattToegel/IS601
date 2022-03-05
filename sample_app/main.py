@@ -15,7 +15,7 @@ def create_app(config_filename=''):
     app = Flask(__name__)
     # app.config.from_pyfile(config_filename)
     with app.app_context():
-        from sample_app.views import hello
+        from views.hello import hello
         app.register_blueprint(hello)
         return app
 
