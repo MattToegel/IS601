@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+{% block title %}The Calculator{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block content %}
+  <h1>The Calculator</h1>
+  <div class="container-fluid">
+    <div style="width:60%; margin-left:auto;margin-right:auto;">
+      <div class="row">
+        <div class="col">
+          <form method="POST">
+          <input name="eq" id="eq"/></form>
+        </div>
+        <div class="col">
+          <input id="result" value="{{result}}"/>
+        </div>
+      </div>
+    <div class="row row-cols-3 calc">
+      {% set buttons = ["0","1","2","3","4","5","6","7","8","9","+","-","x","/", "=", "clear"] %}
+      {% for i in buttons: %}
+      <div class="col"><div class="d-grid"><button class="btn btn-secondary">{{i}}</button></div></div>
+	  {% endfor %}
+    </div>
+      </div>
+  </div>
+<script>
+  let buttons = document.querySelectorAll(".calc button");
+  for(let b of buttons){
+    b.onclick = (event)=>{
+      let eq = document.getElementById("eq");
+      let v = event.srcElement.innerText;
+      if(v === "clear"){
+        eq.value = "";
+      }
+      else if(v === "="){
+        document.forms[0].submit();
+      }
+      else{
+        eq.value += v;
+      }
+    }
+  }
+</script>
+{% endblock %}
