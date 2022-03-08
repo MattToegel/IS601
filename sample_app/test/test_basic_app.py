@@ -30,3 +30,8 @@ def runner(app):
 def test_request_example(client):
     response = client.get("/")
     assert b"Hello World!" in response.data
+
+def test_post_add(client):
+    response = client.post("/mycalc/", data={"eq":"7+7"})
+    print(response.data)
+    assert b"value=\"14\"" in response.data
