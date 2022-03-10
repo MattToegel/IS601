@@ -37,7 +37,7 @@ def test_post_div(client):
     # find the <input> tag with id "result"
     result_ele = soup.find(id="result")
     # get the value attribute of the input tag
-    assert result_ele.get("value") == "2"
+    assert result_ele.get("value") == "2.0"
 
 # https://www.twilio.com/blog/web-scraping-and-parsing-html-in-python-with-beautiful-soup
 # https://www.crummy.com/software/BeautifulSoup/bs4/doc/
