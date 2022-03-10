@@ -7,6 +7,7 @@ on:
       - Flask-Sample-PyTest-Class
       - prod
       - Flask-Calc-Class
+      - Flask-Calc-PyTestClass
 jobs:
 
     deploy:
