@@ -8,6 +8,7 @@ on:
       - prod
       - Flask-Calc-Class
       - Flask-Calc-PyTestClass
+      - Flask-Calc-PyTest-Basics-Class
 jobs:
 
     deploy:
