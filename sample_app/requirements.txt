@@ -6,14 +6,15 @@
 # 2) python -m pip install gunicorn
 # 3) python -m pip freeze > requirements.txt
 
+
 atomicwrites==1.4.0
 attrs==21.4.0
+beautifulsoup4==4.10.0
 click==8.0.4
 colorama==0.4.4
-Flask==2.0.3
 gunicorn==20.1.0
 iniconfig==1.1.1
-itsdangerous==2.1.0
+itsdangerous==2.1.1
 Jinja2==3.0.3
 MarkupSafe==2.1.0
 packaging==21.3
@@ -21,5 +22,6 @@ pluggy==1.0.0
 py==1.11.0
 pyparsing==3.0.7
 pytest==7.0.1
+soupsieve==2.3.1
 tomli==2.0.1
 Werkzeug==2.0.3
