@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - Flask-Sample # rename this to your prod branch if the naming differs
+      - Flask-LoginReg
 jobs:
 
     deploy:
@@ -13,6 +14,7 @@ jobs:
             working-directory: sample_app # change this to the directory your web app is in
         env:
           IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_APP_NAME }}
+          DB_URL: ${{secrets.DB_URL}}
         steps:
         - name: Checkout repository
           uses: actions/checkout@v2
@@ -37,4 +39,5 @@ jobs:
 
         # requires Google Cloud Run API enabled
         - name: Deploy Docker image
-          run: gcloud run deploy ${{ secrets.GCP_PROJECT_ID }} --image $IMAGE_NAME --region us-central1 --platform managed
+          run: gcloud run deploy ${{ secrets.GCP_PROJECT_ID }} --image $IMAGE_NAME --region us-central1 --platform managed \
+          --set-env-vars "test=test"
