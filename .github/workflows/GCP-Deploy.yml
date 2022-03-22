@@ -14,7 +14,6 @@ jobs:
             working-directory: sample_app # change this to the directory your web app is in
         env:
           IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_APP_NAME }}
-          DB_URL: ${{secrets.DB_URL}}
         steps:
         - name: Checkout repository
           uses: actions/checkout@v2
@@ -39,4 +38,6 @@ jobs:
 
         # requires Google Cloud Run API enabled
         - name: Deploy Docker image
-          run: gcloud run deploy ${{ secrets.GCP_PROJECT_ID }} --image $IMAGE_NAME --region us-central1 --platform managed --set-env-vars "test=test"
+          run: gcloud run deploy ${{ secrets.GCP_PROJECT_ID }} --image $IMAGE_NAME --region us-central1 --platform managed --set-env-vars "DB_URL=${{secrets.DB_URL}}"
+        # we can pass our github secrets as environment variables during deploy
+        #(note: this isn't the most secure way of doing this, but it's sufficient for our app)
