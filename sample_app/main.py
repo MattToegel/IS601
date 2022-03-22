@@ -6,7 +6,7 @@ from flask import Flask
 from flask_login import LoginManager
 from sqlalchemy import MetaData
 
-from auth.models import db
+
 
 # added so modules can be found between the two different lookup states:
 # from tests and from regular running of the app
@@ -41,6 +41,7 @@ def create_app(config_filename=''):
 
 def register_extensions(app):
     print("registering extensions")
+    from auth.models import db
     db.init_app(app)
     login_manager.init_app(app)
 
@@ -48,6 +49,7 @@ def register_extensions(app):
 def setup_db(app):
     with app.app_context():
         print("create all")
+        from auth.models import db
         db.create_all()
         db.session.commit()
         metadata = MetaData()
