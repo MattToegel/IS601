@@ -9,7 +9,7 @@ COPY . /src
 WORKDIR /src
 
 RUN apt-get update -y
-RUN apt-get -y install libmysqlclient-dev
+RUN apt-get -y install  python3-dev default-libmysqlclient-dev build-essential
 
 RUN python3.9 -m pip install --no-cache-dir --upgrade \
     pip \
