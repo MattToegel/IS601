@@ -8,6 +8,7 @@ ENV PORT 8080
 COPY . /src
 WORKDIR /src
 
+RUN apt-get -y install default-libmysqlclient-dev
 # Install Python Requirements
 RUN pip install -r requirements.txt
 
