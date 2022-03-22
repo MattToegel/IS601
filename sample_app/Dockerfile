@@ -9,7 +9,7 @@ COPY . /src
 WORKDIR /src
 
 RUN apt-get update -y
-RUN apt-get -y install default-libmysqlclient-dev
+RUN apt-get -y install libmysqlclient-dev
 # Install Python Requirements
 RUN pip install -r requirements.txt
 
