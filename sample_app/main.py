@@ -52,11 +52,7 @@ def setup_db(app):
         from auth.models import db
         db.create_all()
         db.session.commit()
-        metadata = MetaData()
-        metadata.reflect(bind=db.engine)
-        # debugging output to verify tables were created
-        for table in metadata.sorted_tables:
-            print(table)
+
 
 
 def register_blueprints(app):
@@ -77,3 +73,9 @@ def register_blueprints(app):
 if __name__ == "__main__":
     app = create_app()
     app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
+    from auth.models import db
+    metadata = MetaData()
+    metadata.reflect(bind=db.engine)
+    # debugging output to verify tables were created
+    for table in metadata.sorted_tables:
+        print(table)
