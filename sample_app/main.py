@@ -34,7 +34,6 @@ def create_app(config_filename=''):
     # app.config.from_pyfile(config_filename)
     register_blueprints(app)
     register_extensions(app)
-
     setup_db(app)
     return app
 

@@ -15,8 +15,7 @@ RUN python3.9 -m pip install --no-cache-dir --upgrade \
     pip \
     setuptools \
     wheel
-RUN python3.9 -m pip install --no-cache-dir \
-    -r requirements.txt
+
 # Install Python Requirements
 RUN pip install -r requirements.txt
 
