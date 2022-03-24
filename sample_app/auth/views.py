@@ -8,9 +8,11 @@ from .models import User, db
 
 auth = Blueprint('auth', __name__, template_folder='templates')
 
+
 @auth.route('/home')
 def home():
     return render_template('index.html')
+
 
 @auth.route('/register', methods=['POST', 'GET'])
 def register():
