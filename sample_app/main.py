@@ -78,7 +78,7 @@ if __name__ == "__main__":
     app = create_app()
     with app.app_context():
         print("Printing tables")
-        from sample_app.base_model import db
+        from base_model import db
 
         metadata = MetaData()
         metadata.reflect(bind=db.engine)
