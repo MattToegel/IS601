@@ -1,3 +1,4 @@
+
 # from https://towardsdatascience.com/deploy-to-google-cloud-run-using-github-actions-590ecf957af0
 import os
 import sys
@@ -6,10 +7,10 @@ from flask import Flask
 from flask_login import LoginManager
 from sqlalchemy import MetaData
 
-
-
 # added so modules can be found between the two different lookup states:
 # from tests and from regular running of the app
+
+
 CURR_DIR = os.path.dirname(os.path.abspath(__file__))
 print(CURR_DIR)
 sys.path.append(CURR_DIR)
@@ -40,7 +41,7 @@ def create_app(config_filename=''):
 
 def register_extensions(app):
     print("registering extensions")
-    from auth.models import db
+    from sample_app.base_model import db
     db.init_app(app)
     login_manager.init_app(app)
 
@@ -48,13 +49,16 @@ def register_extensions(app):
 def setup_db(app):
     with app.app_context():
         print("create all")
-        from auth.models import db
+
+        # debugging output to verify tables were created
+        from sample_app.base_model import db
         db.create_all()
         db.session.commit()
 
 
-
 def register_blueprints(app):
+    # import models that haven't imported yet
+
     from auth.models import User
 
     @login_manager.user_loader
@@ -63,7 +67,7 @@ def register_blueprints(app):
 
     from views.hello import hello
     app.register_blueprint(hello)
-    from views.mycalc import mycalc
+    from sample_app.calc.views import mycalc
     app.register_blueprint(mycalc)
     from auth.views import auth
     app.register_blueprint(auth)
@@ -71,10 +75,14 @@ def register_blueprints(app):
 
 if __name__ == "__main__":
     app = create_app()
-    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
-    from auth.models import db
-    metadata = MetaData()
-    metadata.reflect(bind=db.engine)
-    # debugging output to verify tables were created
-    for table in metadata.sorted_tables:
-        print(table)
+    with app.app_context():
+        print("Printing tables")
+        from sample_app.base_model import db
+
+        metadata = MetaData()
+        metadata.reflect(bind=db.engine)
+
+        # debugging output to verify tables were created
+        for table in metadata.sorted_tables:
+            print(table)
+    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 8081)))
