@@ -56,6 +56,7 @@ jobs:
 
           env:
             DB_URL=${{secrets.DB_URL}}
+            PORT=8080
           # (Optional, default: "web")
           # Select the process type for which you want the docker container to be uploaded.
           # By default, this argument is set to "web".
