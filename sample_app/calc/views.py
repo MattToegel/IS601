@@ -3,8 +3,8 @@ import calc.MyCalc
 from flask_login import current_user
 from sqlalchemy.exc import SQLAlchemyError
 
-from sample_app.base_model import db
-from sample_app.calc.models import SimpleHistory
+from .models import db
+from calc.models import SimpleHistory
 
 c = calc.MyCalc.AdvMyCalc()  # here the state is persisted between requests (note it may be shared across users)
 mycalc = Blueprint('mycalc', __name__, url_prefix='/mycalc')
