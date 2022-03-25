@@ -1,4 +1,4 @@
-from sample_app.base_model import db
+from base_model import db
 
 
 class SimpleHistory(db.Model):
