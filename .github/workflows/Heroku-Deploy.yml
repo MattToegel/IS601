@@ -11,6 +11,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sample_app # change this to the directory your web app is in
     steps:
       # Check-out your repository.
       - name: Checkout
@@ -41,7 +44,7 @@ jobs:
           # (Optional, default: "./")
           # Dockerfile directory.
           # For example, if you have a Dockerfile in the root of your project, leave it as follows:
-          dockerfile_directory: ./sample_app
+          dockerfile_directory: ./
 
           # (Optional, default: "Dockerfile")
           # Dockerfile name.
