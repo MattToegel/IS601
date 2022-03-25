@@ -42,7 +42,7 @@ def create_app(config_filename=''):
 
 def register_extensions(app):
     print("registering extensions")
-    from sample_app.base_model import db
+    from base_model import db
     db.init_app(app)
     login_manager.init_app(app)
 
@@ -52,7 +52,7 @@ def setup_db(app):
         print("create all")
 
         # debugging output to verify tables were created
-        from sample_app.base_model import db
+        from base_model import db
         db.create_all()
         db.session.commit()
 
@@ -68,7 +68,7 @@ def register_blueprints(app):
 
     from views.hello import hello
     app.register_blueprint(hello)
-    from sample_app.calc.views import mycalc
+    from calc.views import mycalc
     app.register_blueprint(mycalc)
     from auth.views import auth
     app.register_blueprint(auth)
