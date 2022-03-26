@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<div>
+    {% if current_user.is_anonymous %}
+    <p>Not logged in</p>
+    {% else %}
+    <p>Welcome {{current_user.username}}</p>
+    {% endif %}
+</div>
+{% endblock %}
