@@ -5,6 +5,7 @@ on:
       - Flask-Sample # rename this to your prod branch if the naming differs
       - Flask-LoginReg
       - Flask-LoginReg-Video
+      - Flask-Calc-History-And-Styles-Video
 jobs:
 
     deploy:
