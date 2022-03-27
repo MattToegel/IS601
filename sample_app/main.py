@@ -64,7 +64,7 @@ def register_blueprints(app):
 
     from views.hello import hello
     app.register_blueprint(hello)
-    from views.mycalc import mycalc
+    from calc.views import mycalc
     app.register_blueprint(mycalc)
     from auth.views import auth
     app.register_blueprint(auth)

@@ -11,16 +11,26 @@
     {% endblock %}
 </head>
 <body>
-<nav>
-    <ul>
-        <li><a href="{{ url_for('auth.home') }}">Home</a></li>
-        {% if current_user.is_anonymous %}
-        <li><a href="{{ url_for('auth.login') }}">Login</a></li>
-        <li><a href="{{ url_for('auth.register') }}">Register</a></li>
-        {% else %}
-        <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
-        {% endif %}
-    </ul>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">MyCalc</a>
+        <button aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler"
+                data-bs-target="#navbarSupportedContent" data-bs-toggle="collapse" type="button">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.home') }}">Home</a></li>
+                {% if current_user.is_anonymous %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Login</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.register') }}">Register</a></li>
+                {% else %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('mycalc.do_calc') }}">Calc</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
 </nav>
 {% with messages = get_flashed_messages(with_categories=true) %}
 {% if messages %}
@@ -31,7 +41,7 @@
 </div>
 {% endif %}
 {% endwith %}
-<div id="content" class="container-fluid">{% block content %}{% endblock %}</div>
+<div class="container-fluid" id="content">{% block content %}{% endblock %}</div>
 <div id="footer">
     {% block footer %}
     &copy; Copyright 2022.
