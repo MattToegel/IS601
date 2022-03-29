@@ -52,7 +52,7 @@ def do_calc():
 
     data = request.form
     iSTR = data.get("eq")
-    loadHistory = c._as_number(data.get("loadHistory", 0)) > 0
+    loadHistory = data.get("loadHistory", 0, type=int) > 0
     if iSTR is not None:
         checks = calc.MyCalc.AdvMyCalc.ops
         r = "UNSUPPORTED"
@@ -61,6 +61,7 @@ def do_calc():
             c.ans = c._as_number(r)
         else:
             for check in checks:
+                print(check)
                 if check in iSTR:
                     nums = iSTR.split(check)
                     if nums[0] == '':
@@ -82,7 +83,7 @@ def do_calc():
                             print(e)
                             flash(str(e), "error")
                             db.session.rollback()
-                return render_template("my_calc.html", result=r, eq=iSTR)
+                    return render_template("my_calc.html", result=r, eq=iSTR)
         print("The action you tried is not supported, please try again")
         return render_template("my_calc.html", result=r, eq=iSTR)
     return render_template("my_calc.html")
