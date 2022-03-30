@@ -8,6 +8,7 @@ on:
     branches:
       - Test-Heroku-Deploy
       - Flask-Calc-History-Continued
+      - Flask-Calc-History-Heroku
 
 # Your workflows jobs.
 jobs:
