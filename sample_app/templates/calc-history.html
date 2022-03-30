@@ -1,0 +1,40 @@
+{% include "bootstrap.html" %}
+<div class="container-fluid">
+    <table class="table">
+        <thread>
+            <th>Equation</th>
+            <th>Result</th>
+            <th>Created</th>
+            <th>Actions</th>
+        </thread>
+        <tbody>
+        {% if history|length > 0%}
+        {% for hist in history %}
+        <tr>
+            <td>{{hist.eq}}</td>
+            <td>{{hist.result}}</td>
+            <td>{{hist.created.strftime("%B %d, %Y %I:%M:%S %Z %p")}}</td>
+            <td><button class="btn btn-secondary" onclick="submitParentForm('{{hist.eq}}', '{{hist.result}}')">Load</button></td>
+        </tr>
+        {% endfor %}
+        {% else %}
+        <tr>
+            <td colspan="100%">No history</td>
+        </tr>
+        {% endif %}
+        </tbody>
+        <script>
+            function submitParentForm(eq, result){
+                let form = parent.document.forms[1];
+                form.eq.value = eq;
+                form.result.value = result;
+                form.submit();
+            }
+        </script>
+    </table>
+</div>
+<style>
+    html{
+    overflow:hidden;
+    }
+</style>
