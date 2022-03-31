@@ -11,7 +11,7 @@ from .models import User, db
 auth = Blueprint('auth', __name__, template_folder='templates')
 
 # Create a permission with a single Need, in this case a RoleNeed.
-admin_permission = Permission(RoleNeed('admin'))
+admin_permission = Permission(RoleNeed('Admin'))
 
 """@auth.errorhandler(404)
 def page_not_found(e):
