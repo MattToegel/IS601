@@ -1,16 +1,46 @@
-from flask import Blueprint, url_for, render_template, request, flash
-from flask_login import login_required, logout_user, login_user
+from flask import Blueprint, url_for, render_template, request, flash, session, current_app
+from flask_login import login_required, logout_user, login_user, current_user
+from flask_principal import identity_changed, AnonymousIdentity, Permission, RoleNeed
+from sqlalchemy import or_
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.utils import redirect
 
-from .forms import RegistrationForm, LoginForm
+from .forms import RegistrationForm, LoginForm, ProfileForm
 from .models import User, db
 
 auth = Blueprint('auth', __name__, template_folder='templates')
 
+# Create a permission with a single Need, in this case a RoleNeed.
+admin_permission = Permission(RoleNeed('admin'))
+
+"""@auth.errorhandler(404)
+def page_not_found(e):
+    # note that we set the 404 status explicitly
+    return render_template('404.html'), 404"""
+
+@auth.errorhandler(403)
+def permission_denied(e):
+    # note that we set the 404 status explicitly
+    return render_template('permission_denied.html'), 403
+
+def handle_duplicate_column(error):
+    if "UNIQUE constraint" in error:
+        col = error.split(".")[1]
+        flash(f"{col.capitalize()} already exists, please try another", "warning")
+        return True
+    return False
+
+
 @auth.route('/home')
 def home():
     return render_template('index.html')
+
+
+@auth.route("/admin")
+@admin_permission.require(403)
+def test_admin():
+    return render_template("test_admin.html")
+
 
 @auth.route('/register', methods=['POST', 'GET'])
 def register():
@@ -26,7 +56,8 @@ def register():
             return redirect(url_for('auth.login'))
         except SQLAlchemyError as e:
             print(e)
-            flash(str(e), "error")
+            if not handle_duplicate_column(e.orig):
+                flash(str(e), "error")
             db.session.rollback()
 
     return render_template('registration.html', form=form)
@@ -36,12 +67,13 @@ def register():
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
+        # login with username OR email
+        user = User.query.filter(or_(User.email == form.email.data, User.username == form.email.data)).first()
         if user is not None and user.check_password(form.password.data):
             login_user(user)
-            next = request.args.get("next")
-            return redirect(next or url_for('auth.home'))
-        flash('Invalid email address or Password.', "danger")
+            next_route = request.args.get("next")
+            return redirect(next_route or url_for('auth.home'))
+        flash('Invalid login details.', "danger")
     return render_template('login.html', form=form)
 
 
@@ -49,6 +81,13 @@ def login():
 # @login_required
 def logout():
     logout_user()
+    # Remove session keys set by Flask-Principal
+    for key in ('identity.name', 'identity.auth_type'):
+        session.pop(key, None)
+
+    # Tell Flask-Principal the user is anonymous
+    identity_changed.send(current_app._get_current_object(),
+                          identity=AnonymousIdentity())
     return redirect(url_for('auth.home'))
 
 
@@ -56,3 +95,29 @@ def logout():
 @login_required
 def protected():
     return redirect(url_for('forbidden.html'))
+
+
+@auth.route("/profile", methods=['GET', 'POST'])
+@login_required
+def profile():
+    form = ProfileForm(obj=current_user)
+    if form.validate_on_submit():
+        pw = form.password1.data
+        updating_password = False
+        if len(pw) > 0:
+            current_user.set_password(pw)
+            updating_password = True
+        current_user.email = form.email.data
+        current_user.username = form.username.data
+        try:
+            db.session.add(current_user)
+            db.session.commit()
+            flash("Saved Profile", "success")
+            if updating_password:
+                flash("Password Changed", "success")
+        except SQLAlchemyError as e:
+            print(e)
+            if not handle_duplicate_column(e.orig):
+                flash(str(e), "error")
+
+    return render_template('profile.html', form=form)
