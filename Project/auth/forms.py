@@ -48,7 +48,7 @@ class LoginForm(FlaskForm):
 class ProfileForm(FlaskForm):
     username = StringField('username', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
-    current_password = PasswordField("Current Password")
-    password1 = PasswordField('Password', validators=[])
-    password2 = PasswordField('Confirm Password', validators=[EqualTo('password1')])
+    current_password = PasswordField('Current Password', validators=[])
+    password1 = PasswordField('New Password', validators=[])
+    password2 = PasswordField('Confirm new Password', validators=[EqualTo('password1')])
     submit = SubmitField('Save Profile')

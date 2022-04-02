@@ -4,7 +4,8 @@ import sys
 
 from flask import Flask
 from flask_login import LoginManager, current_user
-from flask_principal import UserNeed, identity_loaded, RoleNeed, Principal
+from flask_principal import Principal, identity_loaded, UserNeed, RoleNeed
+
 from sqlalchemy import MetaData
 
 
@@ -71,7 +72,6 @@ def register_blueprints(app):
     def on_identity_loaded(sender, identity):
         # Set the identity user object
         identity.user = current_user
-
         # Add the UserNeed to the identity
         if hasattr(current_user, 'id'):
             identity.provides.add(UserNeed(current_user.id))
@@ -85,7 +85,6 @@ def register_blueprints(app):
                 identity.provides.add(RoleNeed(assoc.role.name))
         else:
             print("User doesn't have any roles")
-
 
     from views.hello import hello
     app.register_blueprint(hello)

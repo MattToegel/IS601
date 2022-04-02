@@ -4,9 +4,9 @@ from datetime import datetime
 
 from flask_sqlalchemy import Model, SQLAlchemy
 from sqlalchemy import DateTime
-
 import sqlalchemy as sa
 from sqlalchemy.ext.declarative import declared_attr
+
 
 
 class IdModel(Model):

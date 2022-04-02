@@ -1,6 +1,7 @@
 from flask import Blueprint, url_for, render_template, request, flash, session, current_app
 from flask_login import login_required, logout_user, login_user, current_user
-from flask_principal import identity_changed, AnonymousIdentity, Permission, RoleNeed
+from flask_principal import identity_changed, AnonymousIdentity, Permission, RoleNeed, Identity
+
 from sqlalchemy import or_
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.utils import redirect
@@ -22,6 +23,7 @@ def page_not_found(e):
 def permission_denied(e):
     # note that we set the 404 status explicitly
     return render_template('permission_denied.html'), 403
+
 
 def handle_duplicate_column(error):
     if "UNIQUE constraint" in error:
@@ -56,8 +58,7 @@ def register():
             return redirect(url_for('auth.login'))
         except SQLAlchemyError as e:
             print(e)
-            if not handle_duplicate_column(str(e.orig)):
-                flash(str(e), "error")
+            handle_duplicate_column(str(e.orig))
             db.session.rollback()
 
     return render_template('registration.html', form=form)
@@ -72,6 +73,9 @@ def login():
         if user is not None and user.check_password(form.password.data):
             login_user(user)
             next_route = request.args.get("next")
+            # Tell Flask-Principal the identity changed
+            identity_changed.send(current_app._get_current_object(),
+                                  identity=Identity(user.id))
             return redirect(next_route or url_for('auth.home'))
         flash('Invalid login details.', "danger")
     return render_template('login.html', form=form)
@@ -86,8 +90,8 @@ def logout():
         session.pop(key, None)
 
     # Tell Flask-Principal the user is anonymous
-    identity_changed.send(current_app._get_current_object(),
-                          identity=AnonymousIdentity())
+    identity_changed.send(current_app._get_current_object(), identity=AnonymousIdentity())
+
     return redirect(url_for('auth.home'))
 
 
@@ -118,7 +122,6 @@ def profile():
                 flash("Password Changed", "success")
         except SQLAlchemyError as e:
             print(e)
-            if not handle_duplicate_column(str(e.orig)):
-                flash(str(e), "error")
+            handle_duplicate_column(str(e.orig))
 
     return render_template('profile.html', form=form)
