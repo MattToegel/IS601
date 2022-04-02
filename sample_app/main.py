@@ -28,7 +28,8 @@ def create_app(config_filename=''):
         app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     # configure flask-login
-    SECRET_KEY = os.urandom(32)
+    SECRET_KEY = os.environ.get("SECRET_KEY", "thisisforlocal") # os.urandom(32 )
+
     app.config["SECRET_KEY"] = SECRET_KEY
 
     # app.config.from_pyfile(config_filename)
