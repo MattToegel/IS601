@@ -86,6 +86,7 @@ def register_blueprints(app):
         else:
             print("User doesn't have any roles")
 
+
     from views.hello import hello
     app.register_blueprint(hello)
     from auth.views import auth

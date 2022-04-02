@@ -24,8 +24,9 @@ class Role(db.Model):
 
 # https://docs.sqlalchemy.org/en/14/orm/basic_relationships.html#association-object
 class UserRoles(db.Model):
-    user_id = db.Column(db.ForeignKey('is601_user.id'), primary_key=True)
-    role_id = db.Column(db.ForeignKey('is601_role.id'), primary_key=True)
+    __table_args__ = (db.UniqueConstraint('user_id', 'role_id'),)
+    user_id = db.Column(db.ForeignKey('is601_user.id'))
+    role_id = db.Column(db.ForeignKey('is601_role.id'))
     # extra_data = db.Column(String(50))
     role = db.relationship("Role", back_populates="users")
     user = db.relationship("User", back_populates="roles")

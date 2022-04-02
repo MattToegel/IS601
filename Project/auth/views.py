@@ -56,7 +56,7 @@ def register():
             return redirect(url_for('auth.login'))
         except SQLAlchemyError as e:
             print(e)
-            if not handle_duplicate_column(e.orig):
+            if not handle_duplicate_column(str(e.orig)):
                 flash(str(e), "error")
             db.session.rollback()
 
@@ -102,9 +102,10 @@ def protected():
 def profile():
     form = ProfileForm(obj=current_user)
     if form.validate_on_submit():
+        cpw = form.current_password.data
         pw = form.password1.data
         updating_password = False
-        if len(pw) > 0:
+        if len(pw) > 0 and len(cpw) > 0 and current_user.verify_password(cpw):
             current_user.set_password(pw)
             updating_password = True
         current_user.email = form.email.data
@@ -117,7 +118,7 @@ def profile():
                 flash("Password Changed", "success")
         except SQLAlchemyError as e:
             print(e)
-            if not handle_duplicate_column(e.orig):
+            if not handle_duplicate_column(str(e.orig)):
                 flash(str(e), "error")
 
     return render_template('profile.html', form=form)

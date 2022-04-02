@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}Registration{% endblock %}
+{% block title %}Profile{% endblock %}
 {% block content %}
 <h1>Profile</h1>
 <form action="" method="post">
@@ -19,14 +19,21 @@
         {% endfor %}
     </div>
     <div class="mb-3">
-        {{ form.password1(placeholder="password",
+        {{ form.current_password(placeholder="current password",
+        class="form-control") }}
+        {% for error in form.current_password.errors %}
+        <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+    <div class="mb-3">
+        {{ form.password1(placeholder="new password",
         class="form-control") }}
         {% for error in form.password1.errors %}
         <p>{{ error }}</p>
         {% endfor %}
     </div>
     <div class="mb-3">
-        {{ form.password2(placeholder="Confirm password",
+        {{ form.password2(placeholder="Confirm new password",
         class="form-control") }}
         {% for error in form.password2.errors %}
         <p>{{ error }}</p>
