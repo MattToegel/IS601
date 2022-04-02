@@ -3,7 +3,8 @@ import os
 import sys
 
 from flask import Flask
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
+from flask_principal import Principal, identity_loaded, UserNeed, RoleNeed
 from sqlalchemy import MetaData
 
 
@@ -44,6 +45,7 @@ def register_extensions(app):
     print("registering extensions")
     from auth.models import db
     db.init_app(app)
+    Principal(app) # https://pythonhosted.org/Flask-Principal/
     login_manager.init_app(app)
 
 
@@ -63,6 +65,24 @@ def register_blueprints(app):
     def load_user(user_id):
         return User.query.get(user_id)
 
+    @identity_loaded.connect_via(app)
+    def on_identity_loaded(sender, identity):
+        # Set the identity user object
+        identity.user = current_user
+        # print(current_user.__dict__)
+        # Add the UserNeed to the identity
+        if hasattr(current_user, 'id'):
+            identity.provides.add(UserNeed(current_user.id))
+
+        # Assuming the User model has a list of roles, update the
+        # identity with the roles that the user provides
+        if hasattr(current_user, 'roles'):
+            print("User has roles {}".format(current_user.roles))
+            for assoc in current_user.roles:
+                print(assoc.role.name)
+                identity.provides.add(RoleNeed(assoc.role.name))
+        else:
+            print("User doesn't have any roles")
     from views.hello import hello
     app.register_blueprint(hello)
 
