@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<h1>Login</h1>
+<form action="" method="post">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+
+        {{ form.email(placeholder="email/username",
+        class="form-control") }}
+        {% for error in form.email.errors %}
+        <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+    <div class="mb-3">
+        {{ form.password(placeholder="password",
+        class="form-control") }}
+        {% for error in form.password.errors %}
+        <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+
+    <div class="mb-3">{{ form.submit(class="btn btn-primary") }}
+    </div>
+</form>
+<a class="btn btn-secondary" href="{{ url_for('auth.register') }}">Create a new Account!</a>
+{% endblock %}

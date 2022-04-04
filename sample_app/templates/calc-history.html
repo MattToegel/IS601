@@ -8,6 +8,7 @@
             <th>Actions</th>
         </thread>
         <tbody>
+<<<<<<< HEAD
         {% if history|length > 0%}
         {% for hist in history %}
         <tr>
@@ -17,6 +18,17 @@
             <td><button class="btn btn-secondary" onclick="submitParentForm('{{hist.eq}}', '{{hist.result}}')">Load</button></td>
         </tr>
         {% endfor %}
+=======
+        {% if history|length > 0 %}
+            {% for hist in history %}
+            <tr>
+                <td>{{hist.eq}}</td>
+                <td>{{hist.result}}</td>
+                <td>{{hist.created.strftime("%B %d, %Y %I:%M:%S %Z %p")}}</td>
+                <td><button class="btn btn-secondary" onclick="submitParentForm('{{hist.eq}}', '{{hist.result}}')">Load</button></td>
+            </tr>
+            {% endfor %}
+>>>>>>> 4dd3f66f1edbaa0ad2d83bb4974fa7eb21c71a96
         {% else %}
         <tr>
             <td colspan="100%">No history</td>
