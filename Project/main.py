@@ -90,6 +90,8 @@ def register_blueprints(app):
     app.register_blueprint(hello)
     from auth.views import auth
     app.register_blueprint(auth)
+    from admin.views import admin
+    app.register_blueprint(admin)
 
 
 if __name__ == "__main__":
