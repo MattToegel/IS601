@@ -1,0 +1,79 @@
+{% extends "layout.html" %}
+{% block title %}Assign Roles{% endblock %}
+{% block content %}
+<h1>Assign Roles</h1>
+<div class="row">
+    <div class="col">
+        <form class="mb-3" method="POST">
+            <div class="row">
+                <div class="col">
+                    <input class="form-control" name="username" placeholder="username" value="{{username}}"/>
+                </div>
+                <div class="col">
+                    <input class="btn btn-secondary col" type="submit" value="Search"/>
+                </div>
+            </div>
+        </form>
+
+    </div>
+    <div class="col">
+        <form id="assign" method="POST">
+            {% if username %}
+            <input name="username" type="hidden" value="{{username}}"/>
+            {% endif %}
+            <input class="btn btn-primary" type="submit" value="Assign Selected"/>
+        </form>
+    </div>
+</div>
+<div class="row">
+
+    <div class="col">
+        <ul class="list-group">
+            {% if users|length == 0 %}
+            <li class="list-group-item">No Users</li>
+            {% else %}
+            {% for user in users %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <input class="form-check-input me-1" form="assign" name="user_id[]" type="checkbox"
+                       value="{{user.id}}"/>
+                {{user.username}} - {{user.email}}
+                {% if user.roles|length > 0 %}
+                {% for assoc in user.roles %}
+                <form action="/admin/role/unassign" method="POST">
+                    {% if username %}
+                    <input name="username" type="hidden" value="{{username}}"/>
+                    {% endif %}
+                    <input name="role_id" type="hidden" value="{{assoc.role.id}}"/>
+                    <input name="user_id" type="hidden" value="{{user.id}}"/>
+                    <button class="bg-transparent" style="border:none">
+                        <span class="badge bg-primary rounded-pill">{{assoc.role.name}} <span
+                                class="pl-1 badge bg-danger rounded-pill">x</span></span>
+                    </button>
+                </form>
+                {% endfor %}
+                {% else %}
+                <span>No Roles</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+            {% endif %}
+        </ul>
+    </div>
+    <div class="col">
+        <ul class="list-group">
+            {% if roles|length == 0 %}
+            <li class="list-group-item">No Roles</li>
+            {% else %}
+            {% for role in roles %}
+            <li class="list-group-item">
+                <input class="form-check-input me-1" form="assign" name="role_id[]" type="checkbox"
+                       value="{{role.id}}"/>
+                {{role.name}} - Assigned Users: {{role.users|length}}
+            </li>
+            {% endfor %}
+            {% endif %}
+        </ul>
+    </div>
+</div>
+
+{% endblock %}

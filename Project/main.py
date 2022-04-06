@@ -3,7 +3,9 @@ import os
 import sys
 
 from flask import Flask
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
+from flask_principal import Principal, identity_loaded, UserNeed, RoleNeed
+
 from sqlalchemy import MetaData
 
 
@@ -28,15 +30,10 @@ def create_app(config_filename=''):
         app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     # configure flask-login
-<<<<<<< HEAD
     # use an environment variable to pull the secret key
     # having this random each app start will clear the session every time the app reloads
     # set SECRET_KEY the same way you do DB_URL, just a different value
     SECRET_KEY = os.environ.get("SECRET_KEY", "thisisforlocal") # os.urandom(32 )
-=======
-    SECRET_KEY = os.environ.get("SECRET_KEY", "thisisforlocal") # os.urandom(32 )
-
->>>>>>> 4dd3f66f1edbaa0ad2d83bb4974fa7eb21c71a96
     app.config["SECRET_KEY"] = SECRET_KEY
 
     # app.config.from_pyfile(config_filename)
@@ -51,6 +48,7 @@ def register_extensions(app):
     print("registering extensions")
     from auth.models import db
     db.init_app(app)
+    Principal(app) # https://pythonhosted.org/Flask-Principal/
     login_manager.init_app(app)
 
 
@@ -70,16 +68,37 @@ def register_blueprints(app):
     def load_user(user_id):
         return User.query.get(user_id)
 
+    @identity_loaded.connect_via(app)
+    def on_identity_loaded(sender, identity):
+        # Set the identity user object
+        identity.user = current_user
+        # Add the UserNeed to the identity
+        if hasattr(current_user, 'id'):
+            identity.provides.add(UserNeed(current_user.id))
+
+        # Assuming the User model has a list of roles, update the
+        # identity with the roles that the user provides
+        if hasattr(current_user, 'roles'):
+            print("User has roles {}".format(current_user.roles))
+            for assoc in current_user.roles:
+                if assoc.role is None:
+                    continue
+                print(assoc.role.name)
+                identity.provides.add(RoleNeed(assoc.role.name))
+        else:
+            print("User doesn't have any roles")
+
     from views.hello import hello
     app.register_blueprint(hello)
-    from calc.views import mycalc
-    app.register_blueprint(mycalc)
     from auth.views import auth
     app.register_blueprint(auth)
+    from admin.views import admin
+    app.register_blueprint(admin)
 
 
 if __name__ == "__main__":
     app = create_app()
+
     app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 8081)))
     from auth.models import db
     metadata = MetaData()

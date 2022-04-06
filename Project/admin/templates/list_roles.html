@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block title %}Roles{% endblock %}
+{% block content %}
+<h1>Roles</h1>
+<ul class="list-group">
+    {% if roles|length == 0 %}
+    <li class="list-group-item">No Roles</li>
+    {% else %}
+        {% for role in roles %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">{{role.name}} - Assigned Users: {{role.users|length}}
+            <form action="/admin/role/delete" method="POST">
+                <input type="hidden" name="role_id" value="{{role.id}}"/>
+                <input type="submit" value="X" class="btn btn-danger"/>
+            </form>
+        </li>
+        {% endfor %}
+    {% endif %}
+</ul>
+{% endblock %}
