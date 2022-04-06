@@ -10,6 +10,12 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(150))
     roles = db.relationship("UserRoles", back_populates="user")
 
+    def has_role(self, role):
+        for assoc in self.roles:
+            if assoc.role.name == role:
+                return True
+        return False
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 

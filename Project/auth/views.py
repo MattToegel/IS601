@@ -8,6 +8,7 @@ from werkzeug.utils import redirect
 
 from .forms import RegistrationForm, LoginForm, ProfileForm
 from .models import User, db
+from helpers import handle_duplicate_column
 
 auth = Blueprint('auth', __name__, template_folder='templates')
 
@@ -19,18 +20,12 @@ def page_not_found(e):
     # note that we set the 404 status explicitly
     return render_template('404.html'), 404"""
 
+
 @auth.errorhandler(403)
 def permission_denied(e):
+    print("denied")
     # note that we set the 404 status explicitly
     return render_template('permission_denied.html'), 403
-
-
-def handle_duplicate_column(error):
-    if "UNIQUE constraint" in error:
-        col = error.split(".")[1]
-        flash(f"{col.capitalize()} already exists, please try another", "warning")
-        return True
-    return False
 
 
 @auth.route('/home')
