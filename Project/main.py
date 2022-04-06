@@ -81,6 +81,8 @@ def register_blueprints(app):
         if hasattr(current_user, 'roles'):
             print("User has roles {}".format(current_user.roles))
             for assoc in current_user.roles:
+                if assoc.role is None:
+                    continue
                 print(assoc.role.name)
                 identity.provides.add(RoleNeed(assoc.role.name))
         else:

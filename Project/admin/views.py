@@ -49,6 +49,8 @@ def delete_role():
         if role.name == "Admin":
             flash("Prevented the deletion of Admin", "danger")
         else:
+            for assoc in role.users:
+                db.session.delete(assoc)
             db.session.delete(role)
             try:
                 db.session.commit()
@@ -88,6 +90,9 @@ def assign_roles():
                     flash(f"User {user.username} already has role {role.name}", "danger")
     roles = Role.query.all()
     search = request.form.get("username", "")
+    if not search:
+        # TODO look for query parameter of username
+        pass
     if search:
         like_search = "%{}%".format(search)
         users = User.query.filter(User.username.like(like_search)).limit(10).all()

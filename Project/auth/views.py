@@ -23,6 +23,7 @@ def page_not_found(e):
 
 @auth.errorhandler(403)
 def permission_denied(e):
+    print("denied")
     # note that we set the 404 status explicitly
     return render_template('permission_denied.html'), 403
 
