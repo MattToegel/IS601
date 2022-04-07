@@ -8,6 +8,7 @@ from werkzeug.utils import redirect
 
 from .forms import RegistrationForm, LoginForm, ProfileForm
 from .models import User, db
+from accounts.models import Account, Transactions
 from helpers import handle_duplicate_column
 
 auth = Blueprint('auth', __name__, template_folder='templates')
@@ -71,6 +72,18 @@ def login():
             # Tell Flask-Principal the identity changed
             identity_changed.send(current_app._get_current_object(),
                                   identity=Identity(user.id))
+            print(user.account)
+            if user.account is None:
+                a = Account(user_id=user.id)
+                db.session.add(a)
+                try:
+                    db.session.commit()
+                    flash("Account Created", "success")
+                except SQLAlchemyError as e:
+                    print(e)
+                    flash("Error creating account", "danger")
+                if Transactions.do_transfer(10, "welcome-bonus", -1, a.id, details="Welcome bonus!"):
+                    flash("Here's a welcome bonus of 10 points!","success")
             return redirect(next_route or url_for('auth.home'))
         flash('Invalid login details.', "danger")
     return render_template('login.html', form=form)
