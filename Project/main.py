@@ -94,6 +94,8 @@ def register_blueprints(app):
     app.register_blueprint(auth)
     from admin.views import admin
     app.register_blueprint(admin)
+    from game.views import game
+    app.register_blueprint(game)
 
 
 if __name__ == "__main__":
