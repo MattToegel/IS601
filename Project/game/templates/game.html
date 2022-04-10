@@ -2,7 +2,12 @@
 {% block title %}Treasure Hunter{% endblock %}
 {% block content %}
 <div class="mx-auto" style="height: 75%; width: 75%;">
-    <canvas height="1024px" style="width:100%" tabindex="1" width="1024px"></canvas>
+    <div class="row h-100">
+        <div class="col">
+            <canvas height="1024px" class="mx-auto" style="height:auto; width:100%; aspect-ratio:1; max-height: 768px; max-width:768px;" tabindex="1" width="1024px"></canvas>
+        </div>
+    </div>
+
 </div>
 <script>
     let canvas = document.getElementsByTagName("canvas")[0];
@@ -111,6 +116,7 @@
             let found = this.treasure.filter(x=>x.found).length;
             context.fillText(`Found: ${found}/${this.treasure.length}`,canvas.width * .25, canvas.height*.05);
             context.fillText(`Holes Dug: ${this.holes.length}`, canvas.width * .45, canvas.height*.05);
+            context.fillText(`Energy: ${this.energy}/${this.energyMax}`,canvas.width * .65, canvas.height*.05);
         },
         Draw: function(){
             this.Erase();
@@ -149,6 +155,7 @@
             }
         },
         Dig: function(e){
+
             console.log("dig", e);
             var pos = scaledMP(e);
             let newHole = Hole(0,0);
@@ -165,6 +172,11 @@
             console.log("color", p,mx,my, t);
             //depends on drawing method (1024 is 255*4, each rgba value of 255 for white)
             if(t >= 1020 || t == 0){
+                if(GameState.energy <= 0){
+                    console.log("out of energy");
+                    return;
+                }
+                GameState.energy--;
                 GameState.holes.push(newHole);
                 GameState.Draw();
                 console.log("Added hole");
