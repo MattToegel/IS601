@@ -1,0 +1,7 @@
+id;name;description;cost;stock;image
+-1;"Shovel +1"; "Slightly increases shovel radius for 10 digs, doesn't stack";1;99999;
+-2;"Shovel +2"; "Moderately increases shovel radius for 10 digs, doesn't stack";3;99999;
+-3; "Shovel +3"; "Greatly increases shovel radius for 10 digs, doesn't stack";5;999999;
+-4;"Dynomite"; "Single use explosive"; 15;999999;
+-5;"Redbull";"Restore some energy";3;999999;
+-6;"Siesta"; "Restore half energy";10;99999;
