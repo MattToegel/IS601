@@ -12,6 +12,8 @@ from sqlalchemy import MetaData
 
 # added so modules can be found between the two different lookup states:
 # from tests and from regular running of the app
+from sqlalchemy.exc import SQLAlchemyError
+
 CURR_DIR = os.path.dirname(os.path.abspath(__file__))
 print(CURR_DIR)
 sys.path.append(CURR_DIR)
@@ -41,6 +43,19 @@ def create_app(config_filename=''):
     register_extensions(app)
 
     setup_db(app)
+    @app.before_first_request
+    def preload_data():
+        from accounts.models import Account
+        from base_model import db
+        # create system account if not exists
+        if Account.query.get(-1) is None:
+            system_account = Account(id=-1, user_id=None)
+            db.session.add(system_account)
+            try:
+                db.session.commit()
+                print("System account created")
+            except SQLAlchemyError as e:
+                print(e)
     return app
 
 
@@ -62,6 +77,7 @@ def setup_db(app):
 
 
 def register_blueprints(app):
+    from accounts.models import Account
     from auth.models import User
 
     @login_manager.user_loader
@@ -94,6 +110,9 @@ def register_blueprints(app):
     app.register_blueprint(auth)
     from admin.views import admin
     app.register_blueprint(admin)
+    from game.views import game
+    app.register_blueprint(game)
+
 
 
 if __name__ == "__main__":

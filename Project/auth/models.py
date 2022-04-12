@@ -9,6 +9,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(150), unique=True, index=True)
     password_hash = db.Column(db.String(150))
     roles = db.relationship("UserRoles", back_populates="user")
+    account = db.relationship("Account", back_populates="user", uselist=False)
 
     def has_role(self, role):
         for assoc in self.roles:
