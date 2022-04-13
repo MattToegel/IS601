@@ -70,7 +70,7 @@ def purchase():
     total_items = len(items)
     total_cost = sum(c.item.cost for c in items) or 0
     balance = current_user.account.balance or 0
-    if balance > total_cost:
+    if balance >= total_cost:
         # can afford
         is_valid = True
         next_order_id = db.session.query(func.max(OrderHistory.order_id)).scalar() or 0
@@ -100,6 +100,8 @@ def purchase():
             if not success:
                 db.session.rollback()
                 flash("There was a probably completing the purchase", "danger")
+            else:
+                flash("Purchase successful! Order ID {}".format(next_order_id))
         else:
             db.session.rollback()
     else:
