@@ -1,0 +1,54 @@
+{% extends "layout.html" %}
+{% block title %}My Cart{% endblock %}
+{% block content %}
+<div class="mx-auto container-fluid">
+    <div class="h1">My Cart</div>
+    <table class="table">
+        <thead>
+        <th>Item</th>
+        <th>Cost</th>
+        <th>Quantity</th>
+        <th>Subtotal</th>
+        <th></th>
+        </thead>
+        <tbody>
+        {% if items|length > 0 %}
+        <!-- https://stackoverflow.com/a/49699589 -->
+        {% set total = namespace(value=0) %}
+        {% for cart_item in items %}
+        <tr>
+            <td>{{cart_item.item.name}}</td>
+            <td>{{cart_item.item.cost}}</td>
+            <td>{{cart_item.quantity}}</td>
+            <td>{{cart_item.item.cost * cart_item.quantity}}
+                {% set total.value = (total.value + (cart_item.item.cost * cart_item.quantity)) %}
+            </td>
+            <td>
+                <form method="POST" action="{{url_for('shop.delete_cart_item')}}">
+                    <input type="hidden" name="cart_id" value="{{cart_item.id}}"/>
+                    <input type="submit" value="x" class="btn btn-danger"/>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        <tr>
+            <td class="text-end" colspan="100%">Total: {{total.value}}</td>
+        </tr>
+
+        {% else %}
+        <tr>
+            <td colspan="100%">
+                No items in cart
+            </td>
+        </tr>
+        {% endif %}
+        </tbody>
+
+    </table>
+    <div class="text-end">
+        <form method="POST" action="{{url_for('shop.purchase')}}">
+            <input class="btn btn-primary" type="submit" value="Purchase"/>
+        </form>
+    </div>
+</div>
+{% endblock %}

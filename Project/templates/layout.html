@@ -23,6 +23,8 @@
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.register') }}">Register</a></li>
                 {% else %}
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.profile') }}">Profile</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('shop.index') }}">Shop</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('shop.view_cart') }}">My Cart</a></li>
                 {% if current_user.has_role("Admin") %}
                 <li class="nav-item dropdown">
                     <a aria-expanded="false" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#"
@@ -39,6 +41,9 @@
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a></li>
                 {% endif %}
             </ul>
+            <span class="navbar-text">
+                Balance: {{current_user.account.balance or 0}}
+            </span>
         </div>
     </div>
 </nav>

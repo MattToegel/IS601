@@ -55,7 +55,31 @@ def create_app(config_filename=''):
                 db.session.commit()
                 print("System account created")
             except SQLAlchemyError as e:
+                db.session.rollback()
                 print(e)
+        # preload item data
+        import csv
+        from shop.models import Item
+        with open("initial_items.csv") as csv_file:
+            csv_reader = csv.DictReader(csv_file, delimiter=";")
+            for row in csv_reader:
+                # name;description;cost;stock;image
+                # I use negative ids so they don't collide with the auto increment ids
+                item = Item(id=row["id"].strip(),
+                            name=row["name"].strip(),
+                            description=row["description"].strip(),
+                            cost=row["cost"].strip(),
+                            stock=row["stock"].strip())
+                # set an image if available, otherwise rely on model's default
+                if row["image"]:
+                    item.image = row["image"].strip()
+                db.session.add(item)
+                try:
+                    db.session.commit()
+                except SQLAlchemyError as e:
+                    db.session.rollback()
+                    pass # can likely ignore is it'll mostly be duplicate constraint violations
+
     return app
 
 
@@ -112,6 +136,8 @@ def register_blueprints(app):
     app.register_blueprint(admin)
     from game.views import game
     app.register_blueprint(game)
+    from shop.views import shop
+    app.register_blueprint(shop)
 
 
 
