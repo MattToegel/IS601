@@ -1,0 +1,22 @@
+<!-- this is a partial file -->
+
+<table class="table">
+    <thead>
+        <th>Username</th>
+        <th>Score</th>
+        <th>Date</th>
+    </thead>
+    <tbody>
+        {% if scores|length == 0 %}
+            <tr><td colspan="100%">No scores available</td></tr>
+        {% else %}
+            {% for score in scores %}
+                <tr>
+                    <td>{{score.user.username}}</td>
+                    <td>{{score.score}}</td>
+                    <td>{{score.created}}</td>
+                </tr>
+            {% endfor %}
+        {% endif %}
+    </tbody>
+</table>

@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block title %}Top Scores{% endblock %}
+{% block content %}
+    {% if rtop %}
+    <div class="h1">Regular Top Scores Today</div>
+    {% set scores = rtop %}
+    {% include("scores_table.html") %}
+    {% endif %}
+    {% if itop %}
+    <div class="h1">Accumulated Individual Top Scores Today</div>
+    {% set scores = itop %}
+    {% include("scores_table.html") %}
+    {% endif %}
+    {% if atop %}
+    <div class="h1">Accumulative Top Scores Today</div>
+    {% set scores = atop %}
+    {% include("scores_table.html") %}
+    {% endif %}
+{% endblock %}

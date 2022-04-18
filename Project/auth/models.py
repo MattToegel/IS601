@@ -11,6 +11,9 @@ class User(UserMixin, db.Model):
     roles = db.relationship("UserRoles", back_populates="user")
     account = db.relationship("Account", back_populates="user", uselist=False)
     orders = db.relationship("OrderHistory", back_populates="user")
+    iscores = db.relationship("IndividualScore", back_populates="user")
+    ascores = db.relationship("AccumulativeScore", back_populates="user")
+    scores = db.relationship("RegularScore", back_populates="user")
 
     def has_role(self, role):
         for assoc in self.roles:

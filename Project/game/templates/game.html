@@ -94,13 +94,13 @@
 
             //generate treasure
             let tx = Math.random()*canvas.width;
-            let ty = (Math.random()*(canvas.height-this.headerHeight)) + this.headerHeight;
+            let ty = (Math.random()*(canvas.height-this.headerHeight)) + this.headerHeight + 50;
             this.treasure.push(Treasure(tx,ty));
             console.log(this.treasure);
             //generate initial hole
             let x = Math.random()*canvas.width;
             let y = (Math.random()*(canvas.height-this.headerHeight)) + this.headerHeight;
-            this.holes.push(Hole(x,y, 50));
+            this.holes.push(Hole(x,y, canvas.width*.05));
             this.Draw();
             //allow dig
             canvas.addEventListener("click", this.Dig);
@@ -130,7 +130,7 @@
             let t = this.treasure[0];
             context.fillStyle="red";
             context.fillRect(t.x,t.y, 5,5);*/
-            this.FindTreasure();
+
 
         },
         FindTreasure: function(){
@@ -139,19 +139,48 @@
                 for(let t of unfoundTreasure){
                     let dx = h.x - t.x;
                     let dy = h.y - t.y;
-                    let d = Math.hypot(dx, dy) - (h.s + t.s);
-                    if(d < Math.sqrt(h.s+t.s,2)){
+                    let d = Math.pow(dx,2) + Math.pow(dy,2);
+                    let l = Math.pow(h.s+t.s, 2);
+                    console.log(`D: ${d} L: ${l}`);
+                    if(d < Math.pow(h.s+t.s,2)){
                         console.log("found!",d, Math.sqrt(h.s+t.s,2));
-                        this.score += 100;
+                        let treasureValue = 100;
+                        this.score += treasureValue;
                         t.found = true;
+                        this.SaveScore(treasureValue, 1);// save individual changes
+                        unfoundTreasure = this.treasure.filter(x=>!x.found);
+                        if(unfoundTreasure.length === 0){
+                            this.SaveScore(this.score, 2);//save the sum at the end
+                            this.SaveScore(this.score, 3);//save the sum at the end and append to running total
+                            //lazy reset
+                            alert("You found all the treasure");
+                            window.location.reload();
+                        }
                     }
                 }
             }
         },
+        SaveScore: function(score, option){
+            fetch("{{url_for('game.save_score')}}",{
+                            method:"POST",
+                            headers: { "Content-Type":"application/x-www-form-urlencoded"},
+                            body: `score=${score}&option=${option}`
+                        })
+                        .then(resp=>resp.json())
+                        .then(data=>{
+                            console.log("save score response");
+                            if(data.success){
+                                alert("Saved score");
+                            }
+                            else{
+                                alert("Error saving score");
+                            }
+                        });
+        },
         Dig: function(e){
             console.log("dig", e);
             var pos = scaledMP(e);
-            let newHole = Hole(0,0);
+            let newHole = Hole(0,0, canvas.width*.05);
             var mx = pos.x + (newHole.s*.5);
             var my = pos.y + (newHole.s*.5);
             newHole.x = mx;
@@ -166,6 +195,7 @@
             //depends on drawing method (1024 is 255*4, each rgba value of 255 for white)
             if(t >= 1020 || t == 0){
                 GameState.holes.push(newHole);
+                GameState.FindTreasure();
                 GameState.Draw();
                 console.log("Added hole");
             }
