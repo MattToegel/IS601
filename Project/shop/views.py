@@ -9,6 +9,8 @@ from base_model import db
 
 from accounts.models import Transactions
 
+from game.models import Inventory
+
 shop = Blueprint('shop', __name__, template_folder='templates', url_prefix='/shop')
 
 
@@ -83,6 +85,8 @@ def purchase():
                     # add item to order history
                     oh = OrderHistory()
                     oh.map_cart_item(c, next_order_id, current_user)
+                    # add item to inventory
+                    Inventory.add_item(c.item, current_user, c.quantity)
                     db.session.delete(c)  # delete processed cart item
             else:
                 flash(f"{c.item.name} doesn't have enough stock", "warning")

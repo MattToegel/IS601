@@ -15,6 +15,33 @@ def ind_mapper(x):
     return r
 
 
+class Inventory(db.Model):
+    __table_args__ = (db.UniqueConstraint('user_id', 'item_id'),)
+    item_id = db.Column(db.ForeignKey("is601_item.id"))
+    item = db.relationship("Item", backref="inventory")
+    user_id = db.Column(db.ForeignKey("is601_user.id"))
+    user = db.relationship("User", backref="inventory")
+    quantity = db.Column(db.Integer, default=0)
+
+    @staticmethod
+    def add_item(item, user, quantity=1):
+        inv = Inventory(item=item, user=user, quantity=1)
+        db.session.add(inv)
+        try:
+            db.session.commit()
+            print("Added to inventory")
+        except SQLAlchemyError as e:
+            print(e)
+            existing_inv = Inventory.query.filter_by(item_id=item.id).filter_by(user_id=user.id).first()
+            existing_inv.quantity += quantity
+            try:
+                db.session.commit()
+                print("Updated inventory")
+            except SQLAlchemyError as e:
+                print(e)
+
+
+# Made the decision to use this version of scores 04/18/2022
 class IndividualScore(db.Model):
     # this example is for games that have an upper limit score like if it plays to 10
     # then an individual record is added, but upon getting the results the scores get SUM'ed for each person
