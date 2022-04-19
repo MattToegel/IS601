@@ -40,6 +40,22 @@ class Inventory(db.Model):
             except SQLAlchemyError as e:
                 print(e)
 
+    @staticmethod
+    def use_item(inventory_id, quantity=1):
+        inv = Inventory.query.get(inventory_id)
+        if inv is not None:
+            if quantity > inv.quantity:
+                raise Exception("Not enough quantity")
+            inv.quantity -= quantity
+            if inv.quantity <= 0:
+                db.session.delete(inv)
+            try:
+                db.session.commit()
+                return True
+            except SQLAlchemyError as e:
+                print(e)
+        return False
+
 
 # Made the decision to use this version of scores 04/18/2022
 class IndividualScore(db.Model):

@@ -38,12 +38,12 @@ def save_score():
             # changed my mind to use option 1
             AccumulativeScore.save_score(score, current_user)
             # example add points
-            #points = round(score * .01)
+            # points = round(score * .01)
             resp["success"] = True
 
-            #if points > 0:
-                #Transactions.do_transfer(points, "treasure", -1, current_user.account.id, f"Received {points} points")
-                #resp["message"] = f"Received {points} points!"
+            # if points > 0:
+            # Transactions.do_transfer(points, "treasure", -1, current_user.account.id, f"Received {points} points")
+            # resp["message"] = f"Received {points} points!"
 
         if s is not None:
             s.user = current_user
@@ -80,24 +80,22 @@ def top_scores_today():
     print(atop)
     return render_template("top-today.html", rtop=rtop, itop=itop, atop=atop)
 
+
 @game.route("/get_inventory")
 @login_required
 def get_inventory():
     inv = current_user.inventory
     return render_template("inventory.html", inv=inv)
 
+
 @game.route("/use_item", methods=["POST"])
 @login_required
 def use_item():
     inventory_id = request.form.get("inventory_id", 0, type=int)
-    inv = Inventory.query.get(inventory_id)
-    if inv is not None:
-        inv.quantity -= 1
-        if inv.quantity <= 0:
-            db.session.delete(inv)
-        try:
-            db.session.commit()
-        except SQLAlchemyError as e:
-            print(e)
-            return jsonify({"message":"error"})
-    return jsonify({"message":"removed"})
+    try:
+        if Inventory.use_item(inventory_id):
+            return jsonify({"message": "error"})
+    except Exception as e:
+        print(e)
+        return jsonify({"message"}, "Not enough quantity")
+    return jsonify({"message": "removed"})
