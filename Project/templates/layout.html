@@ -48,20 +48,28 @@
         </div>
     </div>
 </nav>
-{% with messages = get_flashed_messages(with_categories=true) %}
-{% if messages %}
-<div class="container-fluid">
-    {% for category, message in messages %}
-    <div class="alert alert-{{ category }}">{{ message }}</div>
-    {% endfor %}
-</div>
-{% endif %}
-{% endwith %}
+<iframe id="flashes" src="{{url_for('flash.get_messages')}}"></iframe>
 <div class="container-fluid" id="content">{% block content %}{% endblock %}</div>
 <div id="footer">
     {% block footer %}
     &copy; Copyright 2022.
     {% endblock %}
 </div>
+<script>
+    function flash(message, category="info"){
+        fetch("{{url_for('flash.add_message')}}",
+        {
+            method:"POST",
+            headers:{
+                "Content-Type":"application/x-www-form-urlencoded"
+            },
+            body: `message=${message}&category=${category}`
+        }).then(resp=>{
+           let ele= document.getElementById("flashes");
+           console.log(ele.contentWindow)
+           ele.contentWindow.location.reload();
+        });
+    }
+</script>
 </body>
 </html>

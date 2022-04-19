@@ -139,6 +139,9 @@ def register_blueprints(app):
     from shop.views import shop
     app.register_blueprint(shop)
 
+    from views.views import clientflash
+    app.register_blueprint(clientflash)
+
 
 
 if __name__ == "__main__":
