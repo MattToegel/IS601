@@ -1,0 +1,40 @@
+<!-- this is a partial file -->
+{% include "bootstrap.html" %}
+<div class="h5">Inventory</div>
+<table class="table">
+    <thead>
+        <th>Item</th>
+        <th>Details</th>
+        <th></th>
+    </thead>
+    <tbody>
+        {% if inv|length == 0 %}
+            <tr><td colspan="100%">No items available</td></tr>
+        {% else %}
+            {% for item in inv %}
+                <tr>
+                    <td>{{item.item.name}}</td>
+                    <td>{{item.item.description}}</td>
+                    <td><button onclick="activate_item({{item.item.id}}, {{item.id}});">1/{{item.quantity}}</button></td>
+                </tr>
+            {% endfor %}
+        {% endif %}
+    </tbody>
+</table>
+<script>
+    function activate_item(item_id, inventory_id){
+        console.log(parent);
+        parent.window.parent_activate_item(item_id);
+        fetch("{{url_for('game.use_item')}}", {
+            method:"POST",
+            headers:{
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: `inventory_id=${inventory_id}`
+        }).then(resp=>resp.json())
+        .then(data=>{
+            console.log(data);
+            window.location.reload();
+        });
+    }
+</script>

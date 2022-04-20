@@ -1,8 +1,22 @@
 {% extends "layout.html" %}
 {% block title %}Treasure Hunter{% endblock %}
 {% block content %}
-<div class="mx-auto" style="height: 75%; width: 75%;">
-    <canvas height="1024px" style="width:100%" tabindex="1" width="1024px"></canvas>
+<div class="row">
+    <div class="col">
+        <div class="mx-auto" style="height: 75%; width: 75%;">
+            <canvas height="1024px" style="width:100%" tabindex="1" width="1024px"></canvas>
+        </div>
+    </div>
+    <div class="col-4">
+        <iframe class="w-100" src="{{url_for('game.get_inventory')}}"></iframe>
+    </div>
+</div>
+<div style="display:none">
+    <img id="shovel_0" src="/static/images/shovel_0.png"/>
+    <img id="shovel_1" src="/static/images/shovel_1.png"/>
+    <img id="shovel_2" src="/static/images/shovel_2.png"/>
+    <img id="shovel_3" src="/static/images/shovel_3.png"/>
+
 </div>
 <script>
     let canvas = document.getElementsByTagName("canvas")[0];
@@ -62,8 +76,15 @@
         treasure: [],
         score: 0,
         headerHeight: 100,
-        energy: 10,
-        energyMax: 10,
+        energy: 100,
+        energyMax: 100,
+        mx:0,
+        my:0,
+        shovel: 0,
+        shovelMod: 1,
+        uses: 0,
+        Graphics: [],
+        loop: null,
         Erase: function(){
             context.clearRect(0, 0, canvas.width, canvas.height);
         },
@@ -86,7 +107,26 @@
         },
         Start: function(){
             console.log("start");
+
+            for(let i = 0; i < 4; i++){
+                let ele = document.getElementById(`shovel_${i}`);
+                this.Graphics.push(ele);
+            }
+            console.log("graphics", this.Graphics);
+            canvas.addEventListener("mousemove", this.MouseMove);
+
             this.LoadQuarry();
+            let self = this;
+            this.loop = setInterval(()=>{self.Draw();}, 16);
+        },
+        MouseMove: function(event){
+        let m = scaledMP(event);
+                //var rect = canvas.getBoundingClientRect();
+
+              GameState.mx= m.x;//event.clientX - rect.left,
+              GameState.my= m.y;// event.clientY - rect.top
+            //console.log(GameState.mx, GameState.my);
+
         },
         LoadQuarry: function(){
             this.Erase();
@@ -95,11 +135,17 @@
             //generate treasure
             let tx = Math.random()*canvas.width;
             let ty = (Math.random()*(canvas.height-this.headerHeight)) + this.headerHeight + 50;
-            this.treasure.push(Treasure(tx,ty));
+            let total = Math.ceil((Math.random() * 4) + 1);
+            for(let i = 0; i < total; i++){
+                tx = Math.random()*canvas.width;
+                ty = (Math.random()*(canvas.height-this.headerHeight)) + this.headerHeight + 50;
+                this.treasure.push(Treasure(tx,ty));
+            }
+
             console.log(this.treasure);
             //generate initial hole
             let x = Math.random()*canvas.width;
-            let y = (Math.random()*(canvas.height-this.headerHeight)) + this.headerHeight;
+            let y = (Math.random()*(canvas.height-this.headerHeight)) + (this.headerHeight*1.5);
             this.holes.push(Hole(x,y, canvas.width*.05));
             this.Draw();
             //allow dig
@@ -111,6 +157,8 @@
             let found = this.treasure.filter(x=>x.found).length;
             context.fillText(`Found: ${found}/${this.treasure.length}`,canvas.width * .25, canvas.height*.05);
             context.fillText(`Holes Dug: ${this.holes.length}`, canvas.width * .45, canvas.height*.05);
+            context.fillText(`Energy: ${this.energy}/${this.energyMax}`, canvas.width * .65, canvas.height*.05);
+            context.fillText(`Item Uses: ${this.uses}`, canvas.width * .85, canvas.height*.05);
         },
         Draw: function(){
             this.Erase();
@@ -125,7 +173,10 @@
             for(let t of this.treasure){
                 t.Draw();
             }
+            let sizeX = 32;
+            let sizeY = 32;
 
+            context.drawImage(this.Graphics[this.shovel], this.mx + (sizeX*.35), this.my - (sizeY*1.75), sizeX * 2, sizeY * 2);
             /* debugging
             let t = this.treasure[0];
             context.fillStyle="red";
@@ -177,10 +228,40 @@
                             }
                         });
         },
+        ActivateItem(item_id){
+            item_id = parseInt(item_id);
+            console.log("item id", item_id);
+            if([-1,-2,-3].includes(item_id)){
+                console.log("shovel");
+                this.shovel = Math.abs(item_id);
+                this.shovelMod = 1 + (this.shovel*.25);
+                this.uses = 10;
+            }
+            else if(item_id === -4){
+                this.shovelMod = 2.5;
+                this.uses = 1;
+            }
+            else if(item_id === -5){
+                this.energy += 15;
+                if(this.energy >= this.energyMax){
+                    this.energy = this.energyMax;
+                }
+            }
+            else if(item_id === -6){
+                this.energy += Math.ceil(this.energyMax * .5);
+                if(this.energy >= this.energyMax){
+                    this.energy = this.energyMax;
+                }
+            }
+        },
         Dig: function(e){
             console.log("dig", e);
+            if(GameState.energy <= 0){
+                return;
+            }
+
             var pos = scaledMP(e);
-            let newHole = Hole(0,0, canvas.width*.05);
+            let newHole = Hole(0,0, canvas.width*.05*GameState.shovelMod);
             var mx = pos.x + (newHole.s*.5);
             var my = pos.y + (newHole.s*.5);
             newHole.x = mx;
@@ -198,13 +279,46 @@
                 GameState.FindTreasure();
                 GameState.Draw();
                 console.log("Added hole");
+                GameState.energy--;
+                if(GameState.energy <= 0){
+                    alert("You ran out of energy");
+                    window.location.reload();
+                }
+                if(GameState.uses > 0){
+                    GameState.uses--;
+                    if(GameState.uses <= 0){
+                        GameState.ResetShovel();
+                    }
+                }
             }
+        },
+        ResetShovel(){
+            GameState.uses = 0;
+            GameState.shovel = 0;
+            GameState.shovelMod = 1;
         }
     }
-
+    window.addEventListener("load", ()=>{
     GameState.Menu();
+    });
+    function parent_activate_item(item_id){
+    console.log("parent ");
+        GameState.ActivateItem(item_id);
+    }
+
+
+
+
 
 
 
 </script>
+<style>
+    *{
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+</style>
 {% endblock %}

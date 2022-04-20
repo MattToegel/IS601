@@ -2,7 +2,7 @@ from flask import Blueprint, request, render_template, jsonify
 from flask_login import current_user, login_required
 from sqlalchemy.exc import SQLAlchemyError
 
-from .models import IndividualScore, AccumulativeScore, RegularScore
+from .models import IndividualScore, AccumulativeScore, RegularScore, Inventory
 from base_model import db
 
 from accounts.models import Transactions
@@ -27,17 +27,23 @@ def save_score():
         s = None
         if option == 1:
             s = IndividualScore(score=score)
-        elif option == 2:
-            s = RegularScore(score=score)
-        elif option == 3:
-            AccumulativeScore.save_score(score, current_user)
-            # example add points
+            # changed my mind to use option 1
             points = round(score * .01)
-            resp["success"] = True
-
             if points > 0:
                 Transactions.do_transfer(points, "treasure", -1, current_user.account.id, f"Received {points} points")
                 resp["message"] = f"Received {points} points!"
+        elif option == 2:
+            s = RegularScore(score=score)
+        elif option == 3:
+            # changed my mind to use option 1
+            AccumulativeScore.save_score(score, current_user)
+            # example add points
+            # points = round(score * .01)
+            resp["success"] = True
+
+            # if points > 0:
+            # Transactions.do_transfer(points, "treasure", -1, current_user.account.id, f"Received {points} points")
+            # resp["message"] = f"Received {points} points!"
 
         if s is not None:
             s.user = current_user
@@ -73,3 +79,23 @@ def top_scores_today():
     atop = AccumulativeScore.get_top_today()
     print(atop)
     return render_template("top-today.html", rtop=rtop, itop=itop, atop=atop)
+
+
+@game.route("/get_inventory")
+@login_required
+def get_inventory():
+    inv = current_user.inventory
+    return render_template("inventory.html", inv=inv)
+
+
+@game.route("/use_item", methods=["POST"])
+@login_required
+def use_item():
+    inventory_id = request.form.get("inventory_id", 0, type=int)
+    try:
+        if Inventory.use_item(inventory_id):
+            return jsonify({"message": "error"})
+    except Exception as e:
+        print(e)
+        return jsonify({"message"}, "Not enough quantity")
+    return jsonify({"message": "removed"})
