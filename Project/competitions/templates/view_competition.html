@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+{% block title %}Create Competition{% endblock %}
+{% block content %}
+<div class="h1">Active Competitions</div>
+<table class="table">
+    <thead>
+    <th>Competition</th>
+    <th>Participants</th>
+    <th>Reward and Payout</th>
+    <th>Expires</th>
+    <th></th>
+    </thead>
+
+    <tr>
+        <td>{{c.name}}</td>
+        <td>{{c.current_participants}}/{{c.min_participants}}</td>
+        <td>{{c.current_reward}}<br>{{c.payout}}</td>
+        <td>{{c.expires}}</td>
+        <td>
+            {% if not c.is_participant(current_user) %}
+            <form action="{{url_for('comps.join_competition')}}" method="POST">
+                <input name="competition_id" type="hidden" value="{{c.id}}"/>
+                <input class="btn btn-primary" type="submit" value="Join"/>
+            </form>
+            {% endif %}
+        </td>
+    </tr>
+
+</table>
+
+{% set scores = c.get_scores() %}
+<table class="table">
+
+    <thead>
+    <th>Player</th>
+    <th>Score</th>
+    </thead>
+    {% for score in scores %}
+    <tr>
+        <td>{{score.username}}</td>
+        <td>{{score.score}}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

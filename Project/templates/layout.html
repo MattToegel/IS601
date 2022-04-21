@@ -23,6 +23,16 @@
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.register') }}">Register</a></li>
                 {% else %}
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('game.index') }}">Game</a></li>
+                 <li class="nav-item dropdown">
+                    <a aria-expanded="false" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#"
+                       id="compsDropdown" role="button">
+                        Competitions
+                    </a>
+                    <ul aria-labelledby="compsDropdown" class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('comps.create_competition') }}">Create</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('comps.list_competitions') }}">List</a></li>
+                    </ul>
+                </li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.profile') }}">Profile</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('shop.index') }}">Shop</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('shop.view_cart') }}">My Cart</a></li>
@@ -48,7 +58,7 @@
         </div>
     </div>
 </nav>
-<iframe id="flashes" src="{{url_for('flash.get_messages')}}"></iframe>
+<iframe class="w-100" style="max-height:60px" id="flashes" src="{{url_for('flash.get_messages')}}"></iframe>
 <div class="container-fluid" id="content">{% block content %}{% endblock %}</div>
 <div id="footer">
     {% block footer %}

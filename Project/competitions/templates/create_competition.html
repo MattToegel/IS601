@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block title %}Create Competition{% endblock %}
+{% block content %}
+<div class="h1">Create Competition</div>
+<form action="" method="post">
+    {{ form.hidden_tag() }}
+    {% for field in form %}
+    <div class="mb-3">
+        {% if field.type != "SubmitField" and field.type != "CSRFTokenField" %}
+        {% if field.label %}
+        {{ field.label(class="form-label") }}
+        {% endif %}
+        {{ field(class="form-control") }}
+        <div>
+            {% for error in field.errors %}
+            <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+    <p>{{ form.submit(class="btn btn-primary") }}</p>
+</form>
+{% endblock %}

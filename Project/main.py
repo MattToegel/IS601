@@ -138,6 +138,8 @@ def register_blueprints(app):
     app.register_blueprint(game)
     from shop.views import shop
     app.register_blueprint(shop)
+    from competitions.views import comps
+    app.register_blueprint(comps)
 
     from views.views import clientflash
     app.register_blueprint(clientflash)
