@@ -66,6 +66,7 @@ def login():
     if form.validate_on_submit():
         # login with username OR email
         user = User.query.filter(or_(User.email == form.email.data, User.username == form.email.data)).first()
+                            # was incorrectly user.verify_password
         if user is not None and user.check_password(form.password.data):
             login_user(user)
             next_route = request.args.get("next")

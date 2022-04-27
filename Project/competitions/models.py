@@ -1,8 +1,10 @@
 from datetime import datetime, timedelta
+from pprint import pprint
 
 from base_model import db
 from game.models import IndividualScore
-from sqlalchemy import CheckConstraint, func
+from sqlalchemy import CheckConstraint, func, text, desc
+from sqlalchemy.orm import load_only, defer, joinedload
 
 
 def current_default(context):
@@ -44,6 +46,40 @@ class Competition(db.Model):
 
     def get_scores(self, limit=10):
         scores = []
+        """ db.session.query(IndividualScore, func.Sum(IndividualScore.score).label("tScore")).group_by( \
+                IndividualScore.user_id) \
+                .order_by(desc("tScore")).limit(10).all()"""
+
+        # TODO get username
+        cs = db.session.query(IndividualScore.score.label("score"), IndividualScore.user_id.label("user_id")).join(UserComps, UserComps.user_id == IndividualScore.user_id).filter(
+            IndividualScore.created >= UserComps.created).filter(IndividualScore.created <= self.expires).filter(
+            UserComps.competition_id == self.id).subquery()
+        pprint("stage 1: {}".format(db.session.query(cs).all()))
+        agg = db.session.query(cs.c.user_id, func.Sum(cs.c.score).label("tScore")).group_by(
+            cs.c.user_id) \
+            .order_by(desc("tScore")).limit(10).subquery()
+        pprint("stage 2: {}".format(db.session.query(agg).all()))
+        query = db.session.query(agg, func.rank()
+                                 .over(
+            order_by=agg.c.score.desc(),
+            partition_by=agg.c.user_id,
+        )
+                                 .label('rnk')).subquery()
+        """query = db.session.query(
+                IndividualScore,
+                func.rank()
+                    .over(
+                    order_by=IndividualScore.score.desc(),
+                    partition_by=IndividualScore.user_id,
+                )
+                    .label('rnk')
+            ).filter(
+                    IndividualScore.created >= uc.created).filter(IndividualScore.created <= self.expires).subquery()"""
+        r = db.session.query(query).filter(text("rnk == 1")).all()
+        pprint("Results {}".format(r))
+        # TODO refactor as this will get expensive
+        # the more participants we have since it's per person
+        # a more proper approach is dense rank
         for uc in self.participants:
             uid = uc.user.id
 
@@ -73,7 +109,7 @@ class Competition(db.Model):
         scores = db.session.execute(stmt).scalars()
         for user_obj in scores:
             print(user_obj)"""
-        return scores
+        return scores[0:limit]
 
 
 class UserComps(db.Model):

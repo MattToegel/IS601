@@ -1,3 +1,4 @@
+import math
 from datetime import datetime
 
 from flask import Blueprint, render_template, flash, request, url_for
@@ -25,6 +26,7 @@ def create_competition():
         if current_user.account.balance >= cost:
             c.user_id = current_user.id
             uc = UserComps(user=current_user, competition=c)
+            c.current_participants = len(c.participants)
             db.session.add(c)
             did_charge = False
             try:
@@ -62,13 +64,15 @@ def join_competition():
             cost = c.join_cost
             if current_user.account.balance >= cost:
                 uc = UserComps(user=current_user, competition=c)
+                c.current_participants = len(c.participants)
+                # TODO calculate current reward
                 db.session.add(uc)
                 did_charge = False
                 try:
                     if Transactions.do_transfer(cost, "create-comp", current_user.account.id, -1,
                                                 f"Created Comp ${c.name}"):
                         did_charge = True
-                        db.commit()
+                        db.session.commit()
                 except SQLAlchemyError as e:
                     print(e)
                     flash("Error joining competition, you may already be a participant", "warning")
@@ -81,8 +85,29 @@ def join_competition():
                     "warning")
     return redirect(url_for("comps.list_competitions"))
 
+
 @comps.route("/view")
 def view_competition():
     id = request.args.get("id")
     c = Competition.query.get(id)
     return render_template("view_competition.html", c=c)
+
+
+@comps.route("/winners")
+def calc_winners():
+    comps = Competition.query.filter(Competition.min_participants<=Competition.current_participants).filter(Competition.expires <= datetime.now()).filter(Competition.did_calc < 1).limit(10)
+    for c in comps:
+        scores = c.get_scores(3) # top 3
+        payout = c.payout.split(",")
+        reward = c.current_reward
+        fpr = math.ceil(reward * float(payout[0])/100)
+        spr = math.ceil(reward * float(payout[1])/100)
+        tpr = math.ceil(reward * float(payout[2])/100)
+        if fpr > 0:
+            Transactions.do_transfer(fpr, "win-comp", -1, scores[0].user.account.id, f"Won 1st in competition {c.name}")
+        if spr > 0:
+            Transactions.do_transfer(spr, "win-comp", -1, scores[1].user.account.id, f"Won 2nd in competition {c.name}")
+        if tpr > 0:
+            Transactions.do_transfer(tpr, "win-comp", -1, scores[2].user.account.id, f"Won 3rd in competition {c.name}")
+        c.did_calc = 1
+        c.did_pay = 1 if (fpr > 0 or spr > 0 or tpr > 0) else 0
