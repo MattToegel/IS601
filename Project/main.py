@@ -24,9 +24,14 @@ login_manager = LoginManager()
 # app = Flask(__name__)
 def create_app(config_filename=''):
     app = Flask(__name__)
+    # load a .env file in your project if you
+    from dotenv import load_dotenv
+
+    load_dotenv()
     # add db connection
     # default to sqlite if DB_URL isn't setup properly
     db_url = os.environ.get("DB_URL", "sqlite:///mydb.db")
+    print(f"dburl: {db_url}")
     if db_url:
         app.config["SQLALCHEMY_DATABASE_URI"] = db_url
         app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
