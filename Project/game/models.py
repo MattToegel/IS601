@@ -77,7 +77,7 @@ class IndividualScore(db.Model):
     def get_latest_scores(user_id):
         if user_id is not None:
             return IndividualScore.query.filter(IndividualScore.user_id == user_id).order_by(
-                IndividualScore.created.desc()).limit(10).all()
+                IndividualScore.created.asc()).limit(10).all()
         return []
 
     @staticmethod
@@ -102,13 +102,13 @@ class RegularScore(db.Model):
 
     @staticmethod
     def get_top_10():
-        return RegularScore.query.order_by(RegularScore.score.desc(), RegularScore.created.desc()).limit(10).all()
+        return RegularScore.query.order_by(RegularScore.score.desc(), RegularScore.created.asc()).limit(10).all()
 
     @staticmethod
     def get_latest_scores(user_id):
         if user_id is not None:
             return RegularScore.query.filter(RegularScore.user_id == user_id).order_by(
-                RegularScore.created.desc()).limit(10).all()
+                RegularScore.created.asc()).limit(10).all()
         return []
 
     @staticmethod
@@ -116,7 +116,7 @@ class RegularScore(db.Model):
         eod = datetime.combine(datetime.now(), time.max).astimezone(timezone.utc)
         bod = datetime.combine(datetime.now(), time.min).astimezone(timezone.utc)
         return RegularScore.query.filter(and_(RegularScore.created >= bod, RegularScore.created <= eod)).order_by(
-            RegularScore.score.desc(), RegularScore.created.desc()).limit(10).all()
+            RegularScore.score.desc(), RegularScore.created.asc()).limit(10).all()
 
 
 class AccumulativeScore(db.Model):
@@ -143,14 +143,14 @@ class AccumulativeScore(db.Model):
 
     @staticmethod
     def get_top_10():
-        return AccumulativeScore.query.order_by(AccumulativeScore.score.desc(), AccumulativeScore.created.desc()).limit(
+        return AccumulativeScore.query.order_by(AccumulativeScore.score.desc(), AccumulativeScore.modified.asc()).limit(
             10).all()
 
     @staticmethod
     def get_latest_scores(user_id):
         if user_id is not None:
             return AccumulativeScore.query.filter(AccumulativeScore.user_id == user_id).order_by(
-                AccumulativeScore.created.desc()).limit(10).all()
+                AccumulativeScore.modified.asc()).limit(10).all()
         return []
 
     @staticmethod
@@ -159,5 +159,5 @@ class AccumulativeScore(db.Model):
         bod = datetime.combine(datetime.now(), time.min).astimezone(timezone.utc)
         return AccumulativeScore.query.filter(
             and_(AccumulativeScore.created >= bod, AccumulativeScore.created <= eod)).order_by(
-            AccumulativeScore.score.desc(), AccumulativeScore.created.desc()).limit(
+            AccumulativeScore.score.desc(), AccumulativeScore.modified.asc()).limit(
             10).all()
