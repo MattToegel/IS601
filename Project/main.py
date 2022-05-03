@@ -26,7 +26,7 @@ def create_app(config_filename=''):
     app = Flask(__name__)
     # add db connection
     # default to sqlite if DB_URL isn't setup properly
-    db_url = os.environ.get("DB_URL", "sqlite:///mydb.db")
+    db_url = "sqlite:///mydb.db" # os.environ.get("DB_URL", "sqlite:///mydb.db")
     if db_url:
         app.config["SQLALCHEMY_DATABASE_URI"] = db_url
         app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
