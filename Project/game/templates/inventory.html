@@ -1,4 +1,4 @@
-<!-- this is a partial file -->
+    <!-- this is a partial file -->
 {% include "bootstrap.html" %}
 <div class="h5">Inventory</div>
 <table class="table">
@@ -24,7 +24,7 @@
 <script>
     function activate_item(item_id, inventory_id){
         console.log(parent);
-        parent.window.parent_activate_item(item_id);
+
         fetch("{{url_for('game.use_item')}}", {
             method:"POST",
             headers:{
@@ -34,6 +34,9 @@
         }).then(resp=>resp.json())
         .then(data=>{
             console.log(data);
+            if(data.message === "removed"){
+                parent.window.parent_activate_item(item_id);
+            }
             window.location.reload();
         });
     }

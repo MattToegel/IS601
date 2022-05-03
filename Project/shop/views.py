@@ -74,7 +74,6 @@ def purchase():
     total_cost = 0
     for ci in items:
         total_cost += int(ci.item.cost)
-
     balance = current_user.account.balance or 0
     if balance >= total_cost:
         # can afford
@@ -115,3 +114,4 @@ def purchase():
     else:
         flash("You can't afford all the items in your cart", "danger")
     return redirect(url_for("shop.view_cart"))
+

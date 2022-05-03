@@ -93,7 +93,7 @@ def get_inventory():
 def use_item():
     inventory_id = request.form.get("inventory_id", 0, type=int)
     try:
-        if Inventory.use_item(inventory_id):
+        if not Inventory.use_item(inventory_id):
             return jsonify({"message": "error"})
     except Exception as e:
         print(e)
