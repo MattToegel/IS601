@@ -1,324 +1,324 @@
-{% extends "layout.html" %}
-{% block title %}Treasure Hunter{% endblock %}
-{% block content %}
-<div class="row">
-    <div class="col">
-        <div class="mx-auto" style="height: 75%; width: 75%;">
-            <canvas height="1024px" style="width:100%" tabindex="1" width="1024px"></canvas>
+    {% extends "layout.html" %}
+    {% block title %}Treasure Hunter{% endblock %}
+    {% block content %}
+    <div class="row">
+        <div class="col">
+            <div class="mx-auto" style="height: 75%; width: 75%;">
+                <canvas height="1024px" style="width:100%" tabindex="1" width="1024px"></canvas>
+            </div>
+        </div>
+        <div class="col-4">
+            <iframe class="w-100" src="{{url_for('game.get_inventory')}}"></iframe>
         </div>
     </div>
-    <div class="col-4">
-        <iframe class="w-100" src="{{url_for('game.get_inventory')}}"></iframe>
+    <div style="display:none">
+        <img id="shovel_0" src="/static/images/shovel_0.png"/>
+        <img id="shovel_1" src="/static/images/shovel_1.png"/>
+        <img id="shovel_2" src="/static/images/shovel_2.png"/>
+        <img id="shovel_3" src="/static/images/shovel_3.png"/>
+
     </div>
-</div>
-<div style="display:none">
-    <img id="shovel_0" src="/static/images/shovel_0.png"/>
-    <img id="shovel_1" src="/static/images/shovel_1.png"/>
-    <img id="shovel_2" src="/static/images/shovel_2.png"/>
-    <img id="shovel_3" src="/static/images/shovel_3.png"/>
-
-</div>
-<script>
-    let canvas = document.getElementsByTagName("canvas")[0];
-    let context = canvas.getContext("2d");
-     const scaledMP = (e) => {
-        //scaled mouse position on canvas https://stackoverflow.com/a/17130415
-        var rect = canvas.getBoundingClientRect(); // abs. size of element
-        scaleX = canvas.width / rect.width; // relationship vs. element for X
-        scaleY = canvas.height / rect.height; // relationship vs. element for Y
-        return{
-            x: (e.clientX - rect.left) * scaleX,
-            y: (e.clientY - rect.top) * scaleY
+    <script>
+        let canvas = document.getElementsByTagName("canvas")[0];
+        let context = canvas.getContext("2d");
+         const scaledMP = (e) => {
+            //scaled mouse position on canvas https://stackoverflow.com/a/17130415
+            var rect = canvas.getBoundingClientRect(); // abs. size of element
+            scaleX = canvas.width / rect.width; // relationship vs. element for X
+            scaleY = canvas.height / rect.height; // relationship vs. element for Y
+            return{
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top) * scaleY
+            }
         }
-    }
-    function Hole(x,y, s=20){
-        return{
-            x:x,
-            y:y,
-            s:s,
+        function Hole(x,y, s=20){
+            return{
+                x:x,
+                y:y,
+                s:s,
+                Draw: function(){
+                //https://www.tutorialspoint.com/html5/canvas_composition.htm
+                let gco = context.globalCompositeOperation;
+                context.beginPath();
+                context.globalCompositeOperation = "destination-out";
+                    context.fillStyle = "rgba(255,255,255,128)";
+
+                    context.arc(this.x - (this.s*.5), this.y - (this.s*.5), this.s, 0, 2 * Math.PI);
+                    context.fill();
+                    context.closePath();
+                    context.globalCompositeOperation = gco;
+                }
+            }
+        }
+        function Treasure(x,y, s=20){
+            return{
+                found: false,
+                x:x,
+                y:y,
+                s:s,
+                Draw: function(){
+                //https://www.tutorialspoint.com/html5/canvas_composition.htm
+                let gco = context.globalCompositeOperation;
+                 context.beginPath();
+                 context.globalCompositeOperation = "destination-over";
+                    context.fillStyle = this.found?"green":"gray";
+
+                    context.arc(this.x - (this.s*.5), this.y - (this.s*.5), this.s, 0, 2 * Math.PI);
+                    context.fill();
+                    context.closePath();
+                    context.globalCompositeOperation = gco;
+                }
+            }
+        }
+        const GameState = {
+            test:"test",
+            holes: [],
+            treasure: [],
+            score: 0,
+            headerHeight: 100,
+            energy: 100,
+            energyMax: 100,
+            mx:0,
+            my:0,
+            shovel: 0,
+            shovelMod: 1,
+            uses: 0,
+            Graphics: [],
+            loop: null,
+            Erase: function(){
+                context.clearRect(0, 0, canvas.width, canvas.height);
+            },
+            Menu: function(){
+                this.Erase();
+                // Show the menu
+                context.imageSmoothingEnabled = false;
+                  context.fillStyle = '#000000';
+                  context.font = '24px Arial';
+                  context.textAlign = 'center';
+                  context.fillText('Treasure Hunt', canvas.width *.5, canvas.height *.25);
+                  context.font = '18px Arial';
+                  context.fillText('Click to Start', canvas.width *.5, canvas.height *.3);
+                  context.font = '14px Arial';
+
+                  context.fillText('Click to Dig', canvas.width *.5, (canvas.height *.3) * 2);
+                  // Start the game on a click
+                  let self = this;
+                  canvas.addEventListener('click', function handler(){ this.removeEventListener("click", handler); self.Start();});
+            },
+            Start: function(){
+                console.log("start");
+
+                for(let i = 0; i < 4; i++){
+                    let ele = document.getElementById(`shovel_${i}`);
+                    this.Graphics.push(ele);
+                }
+                console.log("graphics", this.Graphics);
+                canvas.addEventListener("mousemove", this.MouseMove);
+
+                this.LoadQuarry();
+                let self = this;
+                this.loop = setInterval(()=>{self.Draw();}, 16);
+            },
+            MouseMove: function(event){
+            let m = scaledMP(event);
+                    //var rect = canvas.getBoundingClientRect();
+
+                  GameState.mx= m.x;//event.clientX - rect.left,
+                  GameState.my= m.y;// event.clientY - rect.top
+                //console.log(GameState.mx, GameState.my);
+
+            },
+            LoadQuarry: function(){
+                this.Erase();
+                context.beginPath();
+
+                //generate treasure
+                let tx = Math.random()*canvas.width;
+                let ty = (Math.random()*(canvas.height-this.headerHeight)) + this.headerHeight + 50;
+                let total = Math.ceil((Math.random() * 4) + 1);
+                for(let i = 0; i < total; i++){
+                    tx = Math.random()*canvas.width;
+                    ty = (Math.random()*(canvas.height-this.headerHeight)) + this.headerHeight + 50;
+                    this.treasure.push(Treasure(tx,ty));
+                }
+
+                console.log(this.treasure);
+                //generate initial hole
+                let x = Math.random()*canvas.width;
+                let y = (Math.random()*(canvas.height-this.headerHeight)) + (this.headerHeight*1.5);
+                this.holes.push(Hole(x,y, canvas.width*.05));
+                this.Draw();
+                //allow dig
+                canvas.addEventListener("click", this.Dig);
+            },
+            DrawHeader: function(){
+                context.font = '24px Arial';
+                context.fillText(`Score: ${this.score}`, canvas.width * .05, canvas.height*.05);
+                let found = this.treasure.filter(x=>x.found).length;
+                context.fillText(`Found: ${found}/${this.treasure.length}`,canvas.width * .25, canvas.height*.05);
+                context.fillText(`Holes Dug: ${this.holes.length}`, canvas.width * .45, canvas.height*.05);
+                context.fillText(`Energy: ${this.energy}/${this.energyMax}`, canvas.width * .65, canvas.height*.05);
+                context.fillText(`Item Uses: ${this.uses}`, canvas.width * .85, canvas.height*.05);
+            },
             Draw: function(){
-            //https://www.tutorialspoint.com/html5/canvas_composition.htm
-            let gco = context.globalCompositeOperation;
-            context.beginPath();
-            context.globalCompositeOperation = "destination-out";
-                context.fillStyle = "rgba(255,255,255,128)";
+                this.Erase();
+                context.strokeStyle="black";
+                context.strokeRect(0,0, canvas.width, canvas.height);
+                this.DrawHeader();
+                context.fillStyle = "brown";
+                context.fillRect(0,this.headerHeight,canvas.width,canvas.height);
+                for(let h of this.holes){
+                    h.Draw();
+                }
+                for(let t of this.treasure){
+                    t.Draw();
+                }
+                let sizeX = 32;
+                let sizeY = 32;
 
-                context.arc(this.x - (this.s*.5), this.y - (this.s*.5), this.s, 0, 2 * Math.PI);
-                context.fill();
-                context.closePath();
-                context.globalCompositeOperation = gco;
-            }
-        }
-    }
-    function Treasure(x,y, s=20){
-        return{
-            found: false,
-            x:x,
-            y:y,
-            s:s,
-            Draw: function(){
-            //https://www.tutorialspoint.com/html5/canvas_composition.htm
-            let gco = context.globalCompositeOperation;
-             context.beginPath();
-             context.globalCompositeOperation = "destination-over";
-                context.fillStyle = this.found?"green":"gray";
-
-                context.arc(this.x - (this.s*.5), this.y - (this.s*.5), this.s, 0, 2 * Math.PI);
-                context.fill();
-                context.closePath();
-                context.globalCompositeOperation = gco;
-            }
-        }
-    }
-    const GameState = {
-        test:"test",
-        holes: [],
-        treasure: [],
-        score: 0,
-        headerHeight: 100,
-        energy: 100,
-        energyMax: 100,
-        mx:0,
-        my:0,
-        shovel: 0,
-        shovelMod: 1,
-        uses: 0,
-        Graphics: [],
-        loop: null,
-        Erase: function(){
-            context.clearRect(0, 0, canvas.width, canvas.height);
-        },
-        Menu: function(){
-            this.Erase();
-            // Show the menu
-            context.imageSmoothingEnabled = false;
-              context.fillStyle = '#000000';
-              context.font = '24px Arial';
-              context.textAlign = 'center';
-              context.fillText('Treasure Hunt', canvas.width *.5, canvas.height *.25);
-              context.font = '18px Arial';
-              context.fillText('Click to Start', canvas.width *.5, canvas.height *.3);
-              context.font = '14px Arial';
-
-              context.fillText('Click to Dig', canvas.width *.5, (canvas.height *.3) * 2);
-              // Start the game on a click
-              let self = this;
-              canvas.addEventListener('click', function handler(){ this.removeEventListener("click", handler); self.Start();});
-        },
-        Start: function(){
-            console.log("start");
-
-            for(let i = 0; i < 4; i++){
-                let ele = document.getElementById(`shovel_${i}`);
-                this.Graphics.push(ele);
-            }
-            console.log("graphics", this.Graphics);
-            canvas.addEventListener("mousemove", this.MouseMove);
-
-            this.LoadQuarry();
-            let self = this;
-            this.loop = setInterval(()=>{self.Draw();}, 16);
-        },
-        MouseMove: function(event){
-        let m = scaledMP(event);
-                //var rect = canvas.getBoundingClientRect();
-
-              GameState.mx= m.x;//event.clientX - rect.left,
-              GameState.my= m.y;// event.clientY - rect.top
-            //console.log(GameState.mx, GameState.my);
-
-        },
-        LoadQuarry: function(){
-            this.Erase();
-            context.beginPath();
-
-            //generate treasure
-            let tx = Math.random()*canvas.width;
-            let ty = (Math.random()*(canvas.height-this.headerHeight)) + this.headerHeight + 50;
-            let total = Math.ceil((Math.random() * 4) + 1);
-            for(let i = 0; i < total; i++){
-                tx = Math.random()*canvas.width;
-                ty = (Math.random()*(canvas.height-this.headerHeight)) + this.headerHeight + 50;
-                this.treasure.push(Treasure(tx,ty));
-            }
-
-            console.log(this.treasure);
-            //generate initial hole
-            let x = Math.random()*canvas.width;
-            let y = (Math.random()*(canvas.height-this.headerHeight)) + (this.headerHeight*1.5);
-            this.holes.push(Hole(x,y, canvas.width*.05));
-            this.Draw();
-            //allow dig
-            canvas.addEventListener("click", this.Dig);
-        },
-        DrawHeader: function(){
-            context.font = '24px Arial';
-            context.fillText(`Score: ${this.score}`, canvas.width * .05, canvas.height*.05);
-            let found = this.treasure.filter(x=>x.found).length;
-            context.fillText(`Found: ${found}/${this.treasure.length}`,canvas.width * .25, canvas.height*.05);
-            context.fillText(`Holes Dug: ${this.holes.length}`, canvas.width * .45, canvas.height*.05);
-            context.fillText(`Energy: ${this.energy}/${this.energyMax}`, canvas.width * .65, canvas.height*.05);
-            context.fillText(`Item Uses: ${this.uses}`, canvas.width * .85, canvas.height*.05);
-        },
-        Draw: function(){
-            this.Erase();
-            context.strokeStyle="black";
-            context.strokeRect(0,0, canvas.width, canvas.height);
-            this.DrawHeader();
-            context.fillStyle = "brown";
-            context.fillRect(0,this.headerHeight,canvas.width,canvas.height);
-            for(let h of this.holes){
-                h.Draw();
-            }
-            for(let t of this.treasure){
-                t.Draw();
-            }
-            let sizeX = 32;
-            let sizeY = 32;
-
-            context.drawImage(this.Graphics[this.shovel], this.mx + (sizeX*.35), this.my - (sizeY*1.75), sizeX * 2, sizeY * 2);
-            /* debugging
-            let t = this.treasure[0];
-            context.fillStyle="red";
-            context.fillRect(t.x,t.y, 5,5);*/
+                context.drawImage(this.Graphics[this.shovel], this.mx + (sizeX*.35), this.my - (sizeY*1.75), sizeX * 2, sizeY * 2);
+                /* debugging
+                let t = this.treasure[0];
+                context.fillStyle="red";
+                context.fillRect(t.x,t.y, 5,5);*/
 
 
-        },
-        FindTreasure: function(){
-            let unfoundTreasure = this.treasure.filter(x=>!x.found);
-            for(let h of this.holes){
-                for(let t of unfoundTreasure){
-                    let dx = h.x - t.x;
-                    let dy = h.y - t.y;
-                    let d = Math.pow(dx,2) + Math.pow(dy,2);
-                    let l = Math.pow(h.s+t.s, 2);
-                    console.log(`D: ${d} L: ${l}`);
-                    if(d < Math.pow(h.s+t.s,2)){
-                        console.log("found!",d, Math.sqrt(h.s+t.s,2));
-                        let treasureValue = 100;
-                        this.score += treasureValue;
-                        t.found = true;
-                        this.SaveScore(treasureValue, 1);// save individual changes
-                        unfoundTreasure = this.treasure.filter(x=>!x.found);
-                        if(unfoundTreasure.length === 0){
-                            this.SaveScore(this.score, 2);//save the sum at the end
-                            this.SaveScore(this.score, 3);//save the sum at the end and append to running total
-                            //lazy reset
-                            alert("You found all the treasure");
-                            window.location.reload();
+            },
+            FindTreasure: function(){
+                let unfoundTreasure = this.treasure.filter(x=>!x.found);
+                for(let h of this.holes){
+                    for(let t of unfoundTreasure){
+                        let dx = h.x - t.x;
+                        let dy = h.y - t.y;
+                        let d = Math.pow(dx,2) + Math.pow(dy,2);
+                        let l = Math.pow(h.s+t.s, 2);
+                        console.log(`D: ${d} L: ${l}`);
+                        if(d < Math.pow(h.s+t.s,2)){
+                            console.log("found!",d, Math.sqrt(h.s+t.s,2));
+                            let treasureValue = 100;
+                            this.score += treasureValue;
+                            t.found = true;
+                            this.SaveScore(treasureValue, 1);// save individual changes
+                            unfoundTreasure = this.treasure.filter(x=>!x.found);
+                            if(unfoundTreasure.length === 0){
+                                this.SaveScore(this.score, 2);//save the sum at the end
+                                this.SaveScore(this.score, 3);//save the sum at the end and append to running total
+                                //lazy reset
+                                alert("You found all the treasure");
+                                window.location.reload();
+                            }
                         }
                     }
                 }
-            }
-        },
-        SaveScore: function(score, option){
-            fetch("{{url_for('game.save_score')}}",{
-                            method:"POST",
-                            headers: { "Content-Type":"application/x-www-form-urlencoded"},
-                            body: `score=${score}&option=${option}`
-                        })
-                        .then(resp=>resp.json())
-                        .then(data=>{
-                            console.log("save score response");
-                            if(data.success){
-                                alert("Saved score");
-                            }
-                            else{
-                                alert("Error saving score");
-                            }
-                        });
-        },
-        ActivateItem(item_id){
-            item_id = parseInt(item_id);
-            console.log("item id", item_id);
-            if([-1,-2,-3].includes(item_id)){
-                console.log("shovel");
-                this.shovel = Math.abs(item_id);
-                this.shovelMod = 1 + (this.shovel*.25);
-                this.uses = 10;
-            }
-            else if(item_id === -4){
-                this.shovelMod = 2.5;
-                this.uses = 1;
-            }
-            else if(item_id === -5){
-                this.energy += 15;
-                if(this.energy >= this.energyMax){
-                    this.energy = this.energyMax;
+            },
+            SaveScore: function(score, option){
+                fetch("{{url_for('game.save_score')}}",{
+                                method:"POST",
+                                headers: { "Content-Type":"application/x-www-form-urlencoded"},
+                                body: `score=${score}&option=${option}`
+                            })
+                            .then(resp=>resp.json())
+                            .then(data=>{
+                                console.log("save score response");
+                                if(data.success){
+                                    alert("Saved score");
+                                }
+                                else{
+                                    alert("Error saving score");
+                                }
+                            });
+            },
+            ActivateItem(item_id){
+                item_id = parseInt(item_id);
+                console.log("item id", item_id);
+                if([-1,-2,-3].includes(item_id)){
+                    console.log("shovel");
+                    this.shovel = Math.abs(item_id);
+                    this.shovelMod = 1 + (this.shovel*.25);
+                    this.uses = 10;
                 }
-            }
-            else if(item_id === -6){
-                this.energy += Math.ceil(this.energyMax * .5);
-                if(this.energy >= this.energyMax){
-                    this.energy = this.energyMax;
+                else if(item_id === -4){
+                    this.shovelMod = 2.5;
+                    this.uses = 1;
                 }
-            }
-        },
-        Dig: function(e){
-            console.log("dig", e);
-            if(GameState.energy <= 0){
-                return;
-            }
-
-            var pos = scaledMP(e);
-            let newHole = Hole(0,0, canvas.width*.05*GameState.shovelMod);
-            var mx = pos.x + (newHole.s*.5);
-            var my = pos.y + (newHole.s*.5);
-            newHole.x = mx;
-            newHole.y = my;
-            var p = context.getImageData(pos.x, pos.y, 1, 1).data;
-            let t = 0;
-            for(let c of p){
-                t+=c;
-                console.log(c);
-            }
-            console.log("color", p,mx,my, t);
-            //depends on drawing method (1024 is 255*4, each rgba value of 255 for white)
-            if(t >= 1020 || t == 0){
-                GameState.holes.push(newHole);
-                GameState.FindTreasure();
-                GameState.Draw();
-                console.log("Added hole");
-                GameState.energy--;
-                if(GameState.energy <= 0){
-                    alert("You ran out of energy");
-                    window.location.reload();
-                }
-                if(GameState.uses > 0){
-                    GameState.uses--;
-                    if(GameState.uses <= 0){
-                        GameState.ResetShovel();
+                else if(item_id === -5){
+                    this.energy += 15;
+                    if(this.energy >= this.energyMax){
+                        this.energy = this.energyMax;
                     }
                 }
+                else if(item_id === -6){
+                    this.energy += Math.ceil(this.energyMax * .5);
+                    if(this.energy >= this.energyMax){
+                        this.energy = this.energyMax;
+                    }
+                }
+            },
+            Dig: function(e){
+                console.log("dig", e);
+                if(GameState.energy <= 0){
+                    return;
+                }
+
+                var pos = scaledMP(e);
+                let newHole = Hole(0,0, canvas.width*.05*GameState.shovelMod);
+                var mx = pos.x + (newHole.s*.5);
+                var my = pos.y + (newHole.s*.5);
+                newHole.x = mx;
+                newHole.y = my;
+                var p = context.getImageData(pos.x, pos.y, 1, 1).data;
+                let t = 0;
+                for(let c of p){
+                    t+=c;
+                    console.log(c);
+                }
+                console.log("color", p,mx,my, t);
+                //depends on drawing method (1024 is 255*4, each rgba value of 255 for white)
+                if(t >= 1020 || t == 0){
+                    GameState.holes.push(newHole);
+                    GameState.FindTreasure();
+                    GameState.Draw();
+                    console.log("Added hole");
+                    GameState.energy--;
+                    if(GameState.energy <= 0){
+                        alert("You ran out of energy");
+                        window.location.reload();
+                    }
+                    if(GameState.uses > 0){
+                        GameState.uses--;
+                        if(GameState.uses <= 0){
+                            GameState.ResetShovel();
+                        }
+                    }
+                }
+            },
+            ResetShovel(){
+                GameState.uses = 0;
+                GameState.shovel = 0;
+                GameState.shovelMod = 1;
             }
-        },
-        ResetShovel(){
-            GameState.uses = 0;
-            GameState.shovel = 0;
-            GameState.shovelMod = 1;
         }
+        window.addEventListener("load", ()=>{
+        GameState.Menu();
+        });
+        function parent_activate_item(item_id){
+            console.log("parent ");
+            GameState.ActivateItem(item_id);
+        }
+
+
+
+
+
+
+
+    </script>
+    <style>
+        *{
+      user-select: none;
+      -moz-user-select: none;
+      -webkit-user-select: none;
+      -ms-user-select: none;
     }
-    window.addEventListener("load", ()=>{
-    GameState.Menu();
-    });
-    function parent_activate_item(item_id){
-    console.log("parent ");
-        GameState.ActivateItem(item_id);
-    }
-
-
-
-
-
-
-
-</script>
-<style>
-    *{
-  user-select: none;
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
-}
-</style>
-{% endblock %}
+    </style>
+    {% endblock %}
