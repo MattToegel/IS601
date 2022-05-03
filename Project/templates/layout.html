@@ -42,9 +42,11 @@
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a></li>
                 {% endif %}
             </ul>
+            {% if current_user.account %}
             <span class="navbar-text">
                 Balance: {{current_user.account.balance or 0}}
             </span>
+            {% endif %}
         </div>
     </div>
 </nav>

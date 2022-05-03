@@ -70,7 +70,11 @@ def delete_cart_item():
 def purchase():
     items = Cart.get_user_cart(current_user.id)
     total_items = len(items)
-    total_cost = sum(c.item.cost for c in items) or 0
+    # total_cost = sum(c.item.cost for c in items) or 0
+    total_cost = 0
+    for ci in items:
+        total_cost += int(ci.item.cost)
+
     balance = current_user.account.balance or 0
     if balance >= total_cost:
         # can afford
