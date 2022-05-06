@@ -47,6 +47,9 @@ class Transactions(db.Model):
             except SQLAlchemyError as e:
                 print(e)
                 flash("Error creating transaction", "danger")
+        elif change == 0:
+            flash("You got something for free", "success")
+            return True
         else:
             flash("Invalid transaction amount", "warning")
         return False

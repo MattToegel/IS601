@@ -35,11 +35,15 @@
     <th>Player</th>
     <th>Score</th>
     </thead>
+    {% if scores|length > 0 %}
     {% for score in scores %}
     <tr>
         <td>{{score.username}}</td>
         <td>{{score.score}}</td>
     </tr>
     {% endfor %}
+    {% else %}
+    <tr><td colspan="100%">No scores yet </td></tr>
+    {% endif %}
 </table>
 {% endblock %}

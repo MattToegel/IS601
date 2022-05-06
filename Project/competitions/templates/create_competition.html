@@ -2,7 +2,7 @@
 {% block title %}Create Competition{% endblock %}
 {% block content %}
 <div class="h1">Create Competition</div>
-<form action="" method="post">
+<form action="" method="POST">
     {{ form.hidden_tag() }}
     {% for field in form %}
     <div class="mb-3">
@@ -12,8 +12,9 @@
         {% endif %}
         {{ field(class="form-control") }}
         <div>
+
             {% for error in field.errors %}
-            <p>{{ error }}</p>
+            <p style="color:red">{{ error }}</p>
             {% endfor %}
         </div>
         {% endif %}

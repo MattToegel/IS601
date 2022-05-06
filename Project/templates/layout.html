@@ -53,7 +53,7 @@
                 {% endif %}
             </ul>
             <span class="navbar-text">
-                Balance: {{0 if current_user.is_anonymous else current_user.account.balance}}
+                Balance: {{0 if current_user.is_anonymous else current_user.account.balance or 0}}
             </span>
         </div>
     </div>
