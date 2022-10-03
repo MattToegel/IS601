@@ -133,6 +133,7 @@ class IceCreamMachine:
         if total == str(expected):
             print("Thank you! Enjoy your icecream!")
             self.total_icecreams += 1
+            self.total_sales += expected # only if successful
             self.reset()
         else:
             raise InvalidPaymentException
@@ -155,7 +156,6 @@ class IceCreamMachine:
             expected = self.calculate_cost()
             total = input(f"Your total is {expected}, please enter the exact value.\n")
             self.handle_pay(expected, total)
-            self.total_sales += expected # only if successful
             choice = input("What would you like to do? (icecream or quit)\n")
             if choice == "quit":
                 exit()
