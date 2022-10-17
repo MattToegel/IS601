@@ -17,6 +17,9 @@ jobs:
       run:
           # change to the project directory you're deploying
           working-directory: flask_sample
+    env:
+      DB_URL=${{secrets.DB_URL}}
+      PORT=8080
     steps:
       # Check-out your repository.
       - name: Checkout
@@ -28,6 +31,7 @@ jobs:
 
       - name: Build, Push and Release a Docker container to Heroku. # Your custom step name
         uses: gonuit/heroku-docker-deploy@v1.3.3 # GitHub action name (leave it as it is).
+        working-dir: inherit
         with:
           # Below you must provide variables for your Heroku app.
 
@@ -55,9 +59,7 @@ jobs:
           # (Optional, default: "")
           # Additional options of docker build command.
           docker_options: "--no-cache"
-          env:
-            DB_URL=${{secrets.DB_URL}}
-            PORT=8080
+          
           # (Optional, default: "web")
           # Select the process type for which you want the docker container to be uploaded.
           # By default, this argument is set to "web".
