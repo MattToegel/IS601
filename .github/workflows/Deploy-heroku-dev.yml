@@ -8,6 +8,7 @@ on:
     branches:
       - dev
       - DeploymentSetup007
+      - Flask_Sample_Pytest
 
 # Your workflows jobs.
 jobs:
