@@ -2,6 +2,7 @@
 name: Deploy to heroku dev.
 
 # Run workflow on every push to master branch.
+
 on:
   push:
     branches:
@@ -19,7 +20,7 @@ jobs:
     steps:
       # Check-out your repository.
       - name: Checkout
-        uses: actions/checkout
+        uses: actions/checkout@v2
       - name: Run tests
         run: pip install -r requirements.txt && pytest
 
