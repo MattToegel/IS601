@@ -16,11 +16,11 @@ jobs:
     env:
       DB_URL=${{secrets.DB_URL}}
       PORT=8080
-      working-directory: flask_sample
+      WORKING_DIRECTORY: flask_sample
     defaults:
       run:
           # change to the project directory you're deploying
-          working-directory: ${{env.working-directory}}
+          working-directory: ${{env.WORKING_DIRECTORY}}
     
     steps:
       # Check-out your repository.
@@ -51,7 +51,7 @@ jobs:
           # (Optional, default: "./")
           # Dockerfile directory.
           # For example, if you have a Dockerfile in the root of your project, leave it as follows:
-          dockerfile_directory: ${{env.working_directory}}
+          dockerfile_directory: ${{env.WORKING_DIRECTORY}}
 
           # (Optional, default: "Dockerfile")
           # Dockerfile name.
