@@ -91,8 +91,9 @@ class DB:
             import mysql.connector
             import os
             import re
-            
-            db_url  = os.environ.get("DB_URL", "mysql://mt85:tCjoOsPgpNmd@db.ethereallab.app:3306/mt85")
+            from dotenv import load_dotenv
+            load_dotenv()
+            db_url  = os.environ.get("DB_URL")
             data = re.findall("mysql:\/\/(\w+):(\w+)@([\w\.]+):([\d]+)\/([\w]+)", db_url)
             if len(data) > 0:
                 data = data[0]
