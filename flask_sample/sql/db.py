@@ -80,6 +80,12 @@ class DB:
         return row
 
     @staticmethod
+    def close():
+        if DB.db and DB.db.is_connected:
+            DB.db.close()
+            DB.db = None
+
+    @staticmethod
     def getDB():
         if DB.db is None:
             import mysql.connector
