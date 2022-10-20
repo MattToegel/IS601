@@ -1,4 +1,5 @@
 from mysql.connector import Error
+
 class DB:
     db = None
 
@@ -9,9 +10,14 @@ class DB:
         try:
             cursor = db.cursor()
             status = cursor.execute(queryString)
+            
+            if status is None:
+                status = True
             db.commit()
         except Error as e:
             print("Error executing query", e)
+        except Exception as e2:
+            print("Unknown error ", e2)
         finally:
             if db.is_connected():
                 cursor.close()
@@ -24,6 +30,8 @@ class DB:
         try:
             cursor = db.cursor()
             status = cursor.executemany(queryString, data)
+            if status is None:
+                status = True
             db.commit()
         except Error as e:
             print("Error inserting data into MySQL table", e)
@@ -39,6 +47,8 @@ class DB:
         try:
             cursor = db.cursor()
             status = cursor.execute(queryString, args)
+            if status is None:
+                status = True
             db.commit()
         except Error as e:
             print("Error inserting data into MySQL table", e)
