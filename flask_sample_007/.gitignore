@@ -1,6 +1,6 @@
-.idea
-__pycache__
-.vscode
 venv
+.idea
+.vscode
+__pycache__
 .DS_Store
 .env
