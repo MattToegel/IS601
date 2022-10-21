@@ -21,10 +21,12 @@ queries = sorted(queries, key=lambda x:x["file"].lower())
 tables = DB.selectAll("SHOW TABLES")
 existing_tables = []
 # map to a 1D array for easy checking
-for t in tables:
-    existing_tables.append(list(t.values())[0])
+if tables.rows:
+    for t in tables.rows:
+        existing_tables.append(list(t.values())[0])
 
 # execute sql files
+db_calls = 1
 for q in queries:
     sql = q["sql"]
     file = q["file"]
@@ -38,7 +40,14 @@ for q in queries:
         if t in existing_tables:
             print(f"Table {t} already exists, blocking query")
             continue
-    success = DB.query(sql)
-    print(f"Ran {'successfully' if success else 'unsuccessfully'}")
+    try:
+        success = DB.query(sql)
+        db_calls += 1
+        print(f"Ran {'successfully' if success.status else 'unsuccessfully'}")
+    except Exception as e:
+        print("An error occured (some may be expected)", e)
+if queries is None:
+    queries = []
 print(f"Finished running {len(queries)} files")
+print(f"Used {db_calls} out of 10000 max quota")
 DB.db.close()
