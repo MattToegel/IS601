@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - dev
+      - DeploymentSetup-video
 
 # Your workflows jobs.
 jobs:
