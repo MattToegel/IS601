@@ -8,7 +8,7 @@ on:
     branches:
       - dev
       - DeploymentSetup-video
-      - Flask-Sample-PyTest-Video
+      - F22-Flask-Sample-PyTest-Video
 
 # Your workflows jobs.
 jobs:
