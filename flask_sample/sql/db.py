@@ -34,7 +34,7 @@ class DB:
                 else:
                     status = cursor.execute(queryString)
             else:
-                if len(args) > 0:
+                if args i None or len(args) > 0:
                     status = cursor.executemany(queryString, args)
                 else:
                     status = cursor.executemany(queryString)
