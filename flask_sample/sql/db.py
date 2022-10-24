@@ -29,12 +29,12 @@ class DB:
             status = False
             
             if not isMany or CRUD.READ:
-                if args is None or len(args) > 0:
+                if args is not None and len(args) > 0:
                     status = cursor.execute(queryString, args)
                 else:
                     status = cursor.execute(queryString)
             else:
-                if args is None or len(args) > 0:
+                if args is not None and len(args) > 0:
                     status = cursor.executemany(queryString, args)
                 else:
                     status = cursor.executemany(queryString)
