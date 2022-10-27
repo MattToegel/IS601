@@ -27,6 +27,7 @@ def list():
     order = request.args.get("order")
     limit = request.args.get("limit", 10)
     args = []
+    print(f"col {col} order {order}")
     # dynamically build our query and data mappings
     # use the WHERE true trick so we can easily append conditions without caring if a condition
     # already was applied (no need to check if WHERE exists)
@@ -34,14 +35,23 @@ def list():
     if key:
         query += " AND name like %s"
         args.append(f"%{key}%")
-    if col and order and col in ["name", "val", "created", "modified"]:
+    if col and order:
         # incorrect
-        query += " ORDER BY %s %s"
-        args.append(col)
-        args.append(order)
-        # correct
-        # query += f" ORDER BY {col} {order}"
+        # these get passed as safe strings rather than sql keywords
+        # query += f" ORDER BY %s %s"
+        # args.append(col)
+        # args.append(order)
+        # correct - validate fully that col and order are expected values
+        # this will be directly injected and if not validated could
+        # lead to sql injection
+        if col in ["name","val","created","modified"] \
+            and order in ["asc", "desc"]:
+            query += f" ORDER BY {col} {order}"
+
     if limit and int(limit) > 0 and int(limit) <= 100:
+        # technically this should follow the same rules as col/order
+        # but it seems to work with the placeholder mapping with
+        # this connector
         query += " LIMIT %s"
         args.append(int(limit))
     rows = []

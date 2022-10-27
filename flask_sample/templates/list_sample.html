@@ -28,13 +28,13 @@
             <select class="form-select" id="order" name="order" value="{{request.args.get('order')}}">
                 <option value="">Choose...</option>
                 <option {{'selected' if request.args.get('order')=="asc" }} value="asc">+</option>
-                <option {{'selected' if request.args.get('order')=="desc" }}value="desc">-</option>
+                <option {{'selected' if request.args.get('order')=="desc" }} value="desc">-</option>
             </select>
         </div>
         <div class="col-12">
             <label class="form-label" for="limit">Limit</label>
             <input class="form-control" type="number" min="1" max="100" id="limit" name="limit"
-                value="{{request.args.get('limit')}}" />
+                value="{{request.args.get('limit') or '10'}}" />
         </div>
         <div class="col-12">
             <!-- hack to align button with inputs in inline form with labels-->
