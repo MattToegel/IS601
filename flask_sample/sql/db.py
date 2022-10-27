@@ -61,6 +61,10 @@ class DB:
         return response 
 
     @staticmethod
+    def delete(queryString, *args):
+        return DB.__runQuery(CRUD.DELETE, False, queryString, args)
+        
+    @staticmethod
     def update(queryString, *args):
         return DB.__runQuery(CRUD.UPDATE, False, queryString, args)
 
