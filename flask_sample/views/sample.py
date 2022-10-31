@@ -1,4 +1,4 @@
-from flask import Blueprint, redirect, request, render_template, url_for
+from flask import Blueprint, redirect, request, render_template, url_for, flash
 
 from sql.db import DB
 sample = Blueprint('sample', __name__, url_prefix='/sample')
@@ -8,17 +8,17 @@ sample = Blueprint('sample', __name__, url_prefix='/sample')
 def add():
     k = request.form.get("key", None)
     v = request.form.get("value", None)
-    resp = None
     if k and v:
         try:
             result = DB.insertOne(
                 "INSERT INTO IS601_Sample (name, val) VALUES(%s, %s)", k, v)
             if result.status:
-                resp = "Saved record"
+                flash("Created Record", "success")
         except Exception as e:
-            resp = e
+            # TODO make this user-friendly
+            flash(e, "danger")
 
-    return render_template("add_sample.html", resp=resp)
+    return render_template("add_sample.html")
 
 @sample.route('/list', methods=['GET'])
 def list():
@@ -55,7 +55,6 @@ def list():
         query += " LIMIT %s"
         args.append(int(limit))
     rows = []
-    error = None
     try:
         # convert our list to args via *
         print(query)
@@ -63,16 +62,17 @@ def list():
         if resp.status:
             rows = resp.rows
     except Exception as e:
-        error = e
+        # TODO make this user-friendly
+        flash(e, "danger")
     
-    return render_template("list_sample.html", resp=rows, error=error)
+    return render_template("list_sample.html", resp=rows)
 
 @sample.route("/edit", methods=["GET", "POST"])
 def edit():
     id = request.args.get("id")
-    resp = None
     row = None
     if id is None:
+        flash("ID is missing", "danger")
         return redirect("sample.list")
     else:
         if request.method == "POST" and request.form.get("value"):
@@ -80,16 +80,18 @@ def edit():
             try:
                 result = DB.update("UPDATE IS601_Sample SET val = %s WHERE id = %s", val, id)
                 if result.status:
-                    resp = "Updated"
+                    flash("Updated record", "success")
             except Exception as e:
-                resp = e
+                # TODO make this user-friendly
+                flash(e, "danger")
         try:
             result = DB.selectOne("SELECT name, val FROM IS601_Sample WHERE id = %s", id)
             if result.status:
                 row = result.row
         except Exception as e:
-            resp = e
-    return render_template("edit_sample.html", row=row, resp=resp)
+            # TODO make this user-friendly
+            flash(e, "danger")
+    return render_template("edit_sample.html", row=row)
 
 @sample.route("/delete", methods=["GET"])
 def delete():
@@ -97,7 +99,13 @@ def delete():
     # make a mutable dict
     args = {**request.args}
     if id:
-        result = DB.delete("DELETE FROM IS601_Sample WHERE id = %s", id)
+        try:
+            result = DB.delete("DELETE FROM IS601_Sample WHERE id = %s", id)
+            if result.status:
+                flash("Deleted record", "success")
+        except Exception as e:
+            # TODO make this user-friendly
+            flash(e, "danger")
         # TODO pass along feedback
 
         # remove the id args since we don't need it in the list route

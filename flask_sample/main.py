@@ -2,6 +2,8 @@
 import os
 import sys
 from flask import Flask
+from dotenv import load_dotenv
+load_dotenv()
 
 # added so modules can be found between the two different lookup states:
 # from tests and from regular running of the app
@@ -13,6 +15,7 @@ sys.path.append(CURR_DIR)
 # app = Flask(__name__)
 def create_app(config_filename=''):
     app = Flask(__name__)
+    app.secret_key = os.environ.get("SECRET_KEY", "missing_secret")
     # app.config.from_pyfile(config_filename)
     with app.app_context():
         from views.hello import hello
