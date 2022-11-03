@@ -16,7 +16,7 @@ def add():
                 flash("Created Record", "success")
         except Exception as e:
             # TODO make this user-friendly
-            flash(e, "danger")
+            flash(str(e), "danger")
 
     return render_template("add_sample.html")
 
@@ -63,7 +63,7 @@ def list():
             rows = resp.rows
     except Exception as e:
         # TODO make this user-friendly
-        flash(e, "danger")
+        flash(str(e), "danger")
     
     return render_template("list_sample.html", resp=rows)
 
@@ -73,7 +73,7 @@ def edit():
     row = None
     if id is None:
         flash("ID is missing", "danger")
-        return redirect("sample.list")
+        return redirect(url_for("sample.list"))
     else:
         if request.method == "POST" and request.form.get("value"):
             val = request.form.get("value")
@@ -96,6 +96,9 @@ def edit():
 @sample.route("/delete", methods=["GET"])
 def delete():
     id = request.args.get("id")
+    if not id:
+        flash("ID must be set", "danger")
+
     # make a mutable dict
     args = {**request.args}
     if id:
