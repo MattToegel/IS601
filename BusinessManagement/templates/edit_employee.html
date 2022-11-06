@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block title %}Edit Employee{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="h1">Edit Employee</div>
+    <div>
+        <form method="POST">
+            {#
+            generate fields with proper types for
+            first_name
+            last_name
+            email
+            and prefill the fields with loaded employee data
+            #}
+            {# use the below for company selection #}
+            {% include "company_dropdown.html" %}
+            <input type="submit" class="btn btn-primary" value="Save Employee" />
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% set comps = get_companies() %}
+{# can set val prior to inclusion to prefill this field #}
+{# TODO DO NOT EDIT #}
+<select class="form-select" name="company" value="{{val or ''}}">
+    <option value="">No Company</option>
+    {% for c in comps %}
+    {# example of using external data setting and casting #}
+    <option {{'selected' if val|string==c['id']|string}} value="{{c['id']}}">{{c['name']}}</option>
+    {% endfor %}
+</select>

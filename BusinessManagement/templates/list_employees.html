@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+{% block title %}Employee Directory{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="h1 text-center">{{request.args.get("company_name","")}} Employee Directory</div>
+    <form method="GET">
+        {# TODO
+        build a horizontal filter/sort form with
+        first_name
+        last_name
+        email
+        company (provided)
+        sort/order (using allowed_columns and provided partial template)
+        limit
+        ensure all fields prefill with request arg data if provided
+        #}
+        <div class="col-12">
+            <label class="visually-hidden" for="company">Company</label>
+            {% with val = request.args.get("company", '') %}
+            {% include "company_dropdown.html" %}
+            {% endwith %}
+        </div>
+    {% with cols = [] %}
+        {% include "sort_filter.html" %}
+        {% endwith %}
+        
+        <div class="col-12">
+            <input type="submit" class="btn btn-primary" value="Filter" />
+        </div>
+        <div class="col-12">
+            <a href="?" class="btn btn-secondary">Reset</a>
+        </div>
+    </form>
+    <table class="table">
+        {% if rows and rows|length > 0 %}
+        <thead>
+            <tr class="text-capitalize">
+                {# generate th tags for each column to display #}
+                {# IMPORTANT use table column names as the headings, replace _ with space #}
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {# generate tr with td tags for each piece of data #}
+            {# in the last column add the following
+            an edit button that passes the employee id to employee edit
+            a delete button that passes the employee id and the request args to the employee delete route
+            #}
+        </tbody>
+        {% else %}
+        <tbody>
+            <tr>
+                <td colspan="100%">No results to show</td>
+            </tr>
+        </tbody>
+        {% endif %}
+    </table>
+</div>
+{% endblock %}

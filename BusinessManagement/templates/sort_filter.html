@@ -1,0 +1,17 @@
+{# TODO DO NOT EDIT #}
+<div class="col-12">
+    <label class="visually-hidden" for="col">Field</label>
+    <select class="form-select" id="col" name="column" value="{{request.args.get('column', '')}}">
+        <option value="">Field...</option>
+        {% for v,l in cols %}
+        <option {{'selected' if v==request.args.get('column', '' )}} value="{{v}}">{{l}}</option>
+        {% endfor %}
+    </select>
+</div>
+<div class="col-12">
+    <label class="visually-hidden" for="order">Order</label>
+    <select class="form-select" id="order" name="order" value="{{request.args.get('order', 'asc')}}">
+        <option {{'selected' if request.args.get('order')=='asc' }} value="asc">Up</option>
+        <option {{'selected' if request.args.get('order')=='desc' }} value="desc">Down</option>
+    </select>
+</div>

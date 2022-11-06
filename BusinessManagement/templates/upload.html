@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block title %}Import Data{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="h1">Import Data</div>
+    <div>
+        <form method="POST" enctype="multipart/form-data">
+            <div class="form-group mb-3">
+                <label class="form-label" for="n">Search File</label>
+                <input class="form-control" id="n" name="file" type="file" />
+            </div>
+            <input type="submit" class="btn btn-primary" value="Import" />
+        </form>
+    </div>
+</div>
+{% endblock %}

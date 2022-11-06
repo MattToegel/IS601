@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block title %}Add Company{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="h1">Add Company</div>
+    <div>
+        <form method="POST">
+            {#
+            generate fields for
+            name
+            address
+            city
+            website
+            #}
+            {# use this for country/state selection #}
+            {% include "country_state_selector.html" %}
+            <input type="submit" class="btn btn-primary" value="Save Company" />
+        </form>
+    </div>
+</div>
+{% endblock %}
