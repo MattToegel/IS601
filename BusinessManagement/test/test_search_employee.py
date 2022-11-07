@@ -12,6 +12,7 @@ def app():
 
     # other setup can go here
     yield app
+    DB.close()
     # clean up / reset resources here
 
 

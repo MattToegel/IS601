@@ -12,9 +12,8 @@ def app():
 
     # other setup can go here
     yield app
-    DB.delete("DELETE FROM IS601_MP2_Employees WHERE first_name = %s and last_name=%s", "delme","delme")
-    DB.close()
     try:
+        DB.delete("DELETE FROM IS601_MP2_Employees WHERE first_name = %s and last_name=%s", "delme","delme")
         # reset AUTO_INCREMENT value to max id + 1 so test cases don't cause large id gaps
         result = DB.query(""" set session wait_timeout = 1;
         ALTER TABLE IS601_MP2_Employees AUTO_INCREMENT = 1;
@@ -22,8 +21,8 @@ def app():
         print("result", result.status)
     except Exception as e:
         print(e)
+    DB.close()
     # clean up / reset resources here
-
 
 @pytest.fixture()
 def client(app):
@@ -34,6 +33,8 @@ def client(app):
 def runner(app):
     return app.test_cli_runner()
 
+#https://pypi.org/project/pytest-order/
+@pytest.mark.order("last")
 def test_add_employee(client):
     from ..sql.db import DB
     resp = client.post("/employee/add", data={

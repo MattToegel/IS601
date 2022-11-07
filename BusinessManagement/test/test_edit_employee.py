@@ -11,6 +11,7 @@ def app():
     })"""
 
     # other setup can go here
+    DB.query("set session wait_timeout = 1")
     DB.delete("DELETE FROM IS601_MP2_Employees WHERE id = %s", -1)
     DB.delete("DELETE FROM IS601_MP2_Companies WHERE id = %s", -1)
     
@@ -19,6 +20,7 @@ def app():
     yield app
     DB.delete("DELETE FROM IS601_MP2_Employees WHERE id = %s", -1)
     DB.delete("DELETE FROM IS601_MP2_Companies WHERE id = %s", -1)
+    DB.close()
     # clean up / reset resources here
 
 
@@ -31,7 +33,9 @@ def client(app):
 def runner(app):
     return app.test_cli_runner()
 
-def off_test_edit_employee(client):
+#https://pypi.org/project/pytest-order/
+@pytest.mark.order("second_to_last")
+def test_edit_employee(client):
     resp = client.post("/employee/edit?id=-1", data={
         "last_name": "_test2",
         "company": -1
