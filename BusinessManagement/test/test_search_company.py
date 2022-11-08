@@ -153,7 +153,7 @@ def test_employee_count(client):
     target = "employees"
     args = []
     query = """SELECT name,
-    (SELECT count(1) FROM IS601_MP2_Employees e where e.company_id = id) as employees 
+    (SELECT count(1) FROM IS601_MP2_Employees e where e.company_id = IS601_MP2_Companies.id) as employees 
     FROM IS601_MP2_Companies ORDER BY RAND() LIMIT 1"""
     from ..sql.db import DB
     result = DB.selectOne(query, *args)
@@ -162,7 +162,7 @@ def test_employee_count(client):
         count = int(result.row["employees"])
         print("expected count", count)
         query = """SELECT
-    (SELECT count(1) FROM IS601_MP2_Employees e where e.company_id = id) as employees 
+    (SELECT count(1) FROM IS601_MP2_Employees e where e.company_id = IS601_MP2_Companies.id) as employees 
     FROM IS601_MP2_Companies where name = %s LIMIT 1"""
         args = [name]
         import urllib.parse
