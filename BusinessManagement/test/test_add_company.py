@@ -9,21 +9,21 @@ def app():
     """app.config.update({
         "TESTING": True,
     })"""
-
+    
     # other setup can go here
     yield app
     try:
         DB.getDB().autocommit = True
-        DB.delete("DELETE FROM IS601_MP2_Employees WHERE first_name = %s and last_name=%s", "delme","delme")
+        DB.delete("DELETE FROM IS601_MP2_Companies WHERE name=%s", "_test_comp")
         # reset AUTO_INCREMENT value to max id + 1 so test cases don't cause large id gaps
         result = DB.query(""" set session wait_timeout = 1;
-        ALTER TABLE IS601_MP2_Employees AUTO_INCREMENT = 1;
+        ALTER TABLE IS601_MP2_Companies AUTO_INCREMENT = 1;
         """)
         print("result", result.status)
     except Exception as e:
         print(e)
     DB.close()
-    # clean up / reset resources here
+    
 
 @pytest.fixture()
 def client(app):
@@ -36,25 +36,29 @@ def runner(app):
 
 #https://pypi.org/project/pytest-order/
 @pytest.mark.order("last")
-def test_add_employee(client):
+def test_add_compnay(client):
     from ..sql.db import DB
-    resp = client.post("/employee/add", data={
-        "first name": "delme",
-        "last name": "delme",
-        "email": "delme@delme.com"
+    resp = client.post("/company/add", data={
+        "name": "_test_comp",
+        "address": "123 fake st",
+        "city": "Nowhereville",
+        "zip":"00000",
+        "website": "https://google.com",
+        "country": "US",
+        "state":"NJ"
     }, follow_redirects=True )
     assert resp.status_code == 200
-    result = DB.selectOne("SELECT id from IS601_MP2_Employees where first_name = %s and last_name = %s LIMIT 1", 'delme', 'delme')
+    result = DB.selectOne("SELECT id from IS601_MP2_Companies where name = %s  LIMIT 1", '_test_comp')
     if result and result.row:
         id = int(result.row["id"])
         print("id", id)
-        resp = client.get(f"/employee/edit?id={id}", follow_redirects=True )
+        resp = client.get(f"/company/edit?id={id}", follow_redirects=True )
         # print(resp.data)
         from bs4 import BeautifulSoup
         soup = BeautifulSoup(resp.data, "html.parser")
         form = soup.form
-        ele = form.select("[name='last name']")[0]
+        ele = form.select("[name='name']")[0]
         print(ele)
-        assert ele.get("value") == 'delme'
-        ele = form.select("[name='first name']")[0]
-        assert ele.get("value") == 'delme'
+        assert ele.get("value") == '_test_comp'
+        ele = form.select("[name='zip']")[0]
+        assert ele.get("value") == '00000'
