@@ -57,9 +57,14 @@ class DB:
                     db.commit()
                 status = True if status is None else False
                 response = DBResponse(status)
-            if db.is_connected():
+            try:
                 cursor.close()
+            except Exception as ce:
+                print("cursor close error", ce)
+        
         except Error as e:
+            if e.errno == -1:
+                DB.close()
             # converting to a plain exception so other modules don't need to import mysql.connector.Error
             # this will let you more easily swap out DB connectors without needing to refactor your code, just this class
             raise Exception(e)
@@ -103,9 +108,11 @@ class DB:
     
     @staticmethod
     def close():
-        if DB.db and DB.db.is_connected:
+        try:
             DB.db.close()
-            DB.db = None
+        except:
+            pass
+        DB.db = None
 
     @staticmethod
     def getDB():

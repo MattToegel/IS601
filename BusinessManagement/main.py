@@ -48,6 +48,13 @@ def create_app(config_filename=''):
             except Exception as e:
                 print(e)
             return []
+        # DON'T DELETE, this cleans up the DB connection after each request
+        # this avoids sleeping queries
+        @app.after_request
+        def after_request_cleanup(response):
+            from sql.db import DB
+            DB.close()
+            return response
         return app
 
 
