@@ -16,6 +16,12 @@ def app():
         DB.getDB().autocommit = True
         DB.delete("DELETE FROM IS601_MP2_Employees WHERE first_name = %s and last_name=%s", "delme","delme")
         # reset AUTO_INCREMENT value to max id + 1 so test cases don't cause large id gaps
+
+        # this needs to run at the end of the other tests
+        # if this hangs (takes longer than 10 seconds) run the following commands manually via your mysql extension
+        # show processlist;
+        # kill #;
+        # the # will be the process id of the sleeping query
         result = DB.query(""" set session wait_timeout = 1;
         ALTER TABLE IS601_MP2_Employees AUTO_INCREMENT = 1;
         """)
