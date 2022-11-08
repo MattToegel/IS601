@@ -45,7 +45,7 @@ def test_edit_employee(client):
     from bs4 import BeautifulSoup
     soup = BeautifulSoup(resp.data, "html.parser")
     form = soup.form
-    ele = form.select("[name='last name']")[0]
+    ele = form.select("[name='last_name']")[0]
     print(ele)
     assert ele.get("value") == '_test2'
     ele = form.select("[name='company']")[0]

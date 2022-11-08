@@ -101,4 +101,5 @@ def delete():
     # TODO delete-1 delete company by id (unallocate any employees)
     # TODO delete-2 redirect to company search
     # TODO delete-3 pass all argument except id to this route
+    # TODO delete-4 ensure a flash message shows for successful delete
     pass

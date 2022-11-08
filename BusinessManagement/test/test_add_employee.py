@@ -59,8 +59,8 @@ def test_add_employee(client):
         from bs4 import BeautifulSoup
         soup = BeautifulSoup(resp.data, "html.parser")
         form = soup.form
-        ele = form.select("[name='last name']")[0]
+        ele = form.select("[name='last_name']")[0]
         print(ele)
         assert ele.get("value") == 'delme'
-        ele = form.select("[name='first name']")[0]
+        ele = form.select("[name='first_name']")[0]
         assert ele.get("value") == 'delme'
