@@ -1,8 +1,12 @@
-flask-WTF
-email_validator
-blueprint template_folder exposes blueprint's templates folder
-https://flask.palletsprojects.com/en/2.2.x/patterns/wtforms/
-flask_login
-https://python.plainenglish.io/implementing-flask-login-with-hash-password-888731c88a99
-flask_bcrypt
-https://www.rithmschool.com/courses/intermediate-flask/hashing-passwords-flask
+flask-principal
+jsons
+
+403, 404 pages
+roles blueprint
+updated formshelpers
+added dropdown nav
+fixed closing table in list_sample
+added updated version of db.py
+renamed var in init_Db.py (not a functional change)
+added roles, userroles tables and insert of admin role
+updated flask_login user lookup to use sessions instead of a db call per request

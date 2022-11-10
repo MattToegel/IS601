@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, flash, redirect, url_for
+from flask import Blueprint, render_template, flash, redirect, url_for,current_app, session
 from auth.forms import LoginForm, RegisterForm
 from sql.db import DB
 
@@ -7,6 +7,9 @@ from auth.models import User
 from flask_bcrypt import Bcrypt
 
 bcrypt = Bcrypt()
+
+from flask_principal import Identity, AnonymousIdentity, \
+     identity_changed
 
 auth = Blueprint('auth', __name__, url_prefix='/',template_folder='templates')
 
@@ -39,10 +42,24 @@ def login():
             if result.status and result.row:
                 hash = result.row["password"]
                 if bcrypt.check_password_hash(hash, password):
+                    from roles.models import Role
                     del result.row["password"] # don't carry password/hash beyond here
                     user = User(**result.row)
+                    # get roles
+                    result = DB.selectAll("""
+                    SELECT name FROM IS601_Roles r JOIN IS601_UserRoles ur on r.id = ur.role_id WHERE ur.user_id = %s AND r.is_active = 1 AND ur.is_active = 1
+                    """, user.id)
+                    if result.status and result.rows:
+                        print("role rows", result.rows)
+                        user.roles = [Role(**r) for r in result.rows]
+                    print(f"Roles: {user.roles}")
                     success = login_user(user) # login the user via flask_login
+                    # Tell Flask-Principal the identity changed
+                    identity_changed.send(current_app._get_current_object(),
+                                  identity=Identity(user.id))
                     if success:
+                        # store user object in session as json
+                        session["user"] = user.toJson()
                         flash("Log in successful", "success")
                         return redirect(url_for("auth.landing_page"))
                     else:
@@ -67,5 +84,12 @@ def landing_page():
 @auth.route("/logout", methods=["GET"])
 def logout():
     logout_user()
+     # Remove session keys set by Flask-Principal
+    for key in ('identity.name', 'identity.auth_type'):
+        session.pop(key, None)
+
+    # Tell Flask-Principal the user is anonymous
+    identity_changed.send(current_app._get_current_object(),
+                          identity=AnonymousIdentity())
     flash("Successfully logged out", "success")
     return redirect(url_for("auth.login"))

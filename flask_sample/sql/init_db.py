@@ -41,9 +41,9 @@ for q in queries:
             print(f"Table {t} already exists, blocking query")
             continue
     try:
-        success = DB.query(sql)
+        result = DB.query(sql)
         db_calls += 1
-        print(f"Ran {'successfully' if success.status else 'unsuccessfully'}")
+        print(f"Ran {'successfully' if result.status else 'unsuccessfully'}")
     except Exception as e:
         print("An error occured (some may be expected)", e)
 if queries is None:

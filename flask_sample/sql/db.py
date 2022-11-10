@@ -6,7 +6,8 @@ class CRUD(Enum):
     CREATE = 1,
     READ = 2,
     UPDATE = 3,
-    DELETE = 4
+    DELETE = 4, 
+    ALTER = 5
 
 
 class DBResponse:
@@ -14,8 +15,12 @@ class DBResponse:
         self.status = status
         if row is not None:
             self.row = row
+        else:
+            self.row = None # return none
         if rows is not None:
             self.rows = rows
+        else:
+            self.rows = [] # return empty list
     def __str__(self):
         return json.dumps(self.__dict__)
 
@@ -23,15 +28,19 @@ class DB:
     db = None
     def __runQuery(op, isMany, queryString, args = None):
         response = None
+       
         try:
             db = DB.getDB()
             cursor = db.cursor(dictionary=True)
             status = False
-            
-            if not isMany or CRUD.READ:
+            if not isMany or op == CRUD.READ:
                 if args is not None and len(args) > 0:
+                    # convert dict for named placeholder mapping
+                    if type(args[0]) is dict:
+                        args = {k: v for d in args for k, v in d.items()}
                     status = cursor.execute(queryString, args)
                 else:
+                    
                     status = cursor.execute(queryString)
             else:
                 if args is not None and len(args) > 0:
@@ -49,12 +58,16 @@ class DB:
                     status = True if status is None else False
                     response = DBResponse(status, None, result)
             else:
-                db.commit()
                 status = True if status is None else False
                 response = DBResponse(status)
-            if db.is_connected():
+            try:
                 cursor.close()
+            except Exception as ce:
+                print("cursor close error", ce)
+        
         except Error as e:
+            if e.errno == -1:
+                DB.close()
             # converting to a plain exception so other modules don't need to import mysql.connector.Error
             # this will let you more easily swap out DB connectors without needing to refactor your code, just this class
             raise Exception(e)
@@ -73,9 +86,12 @@ class DB:
         if "CREATE TABLE" in queryString.upper():
             return DB.__runQuery(CRUD.CREATE, False, queryString)
         elif queryString.upper().startswith("ALTER"):
-            return DB.__runQuery(CRUD.UPDATE, False, queryString)
+            return DB.__runQuery(CRUD.ALTER, False, queryString)
+        elif queryString.upper().startswith("INSERT"):
+            return DB.insertOne(queryString, )
         else:
-            raise Exception("Please use one of the abstracted methods for this query")
+            return DB.__runQuery(CRUD.ALTER, False, queryString)
+            #raise Exception("Please use one of the abstracted methods for this query")
 
     @staticmethod
     def insertMany(queryString, data):
@@ -97,13 +113,15 @@ class DB:
     
     @staticmethod
     def close():
-        if DB.db and DB.db.is_connected:
+        try:
             DB.db.close()
-            DB.db = None
+        except:
+            pass
+        DB.db = None
 
     @staticmethod
     def getDB():
-        if DB.db is None:
+        if DB.db is None or DB.db.is_connected == False:
             import mysql.connector
             import os
             import re
@@ -116,7 +134,9 @@ class DB:
                 if len(data) >= 5:
                     try:
                         user,password,host,port,database = data
-                        DB.db = mysql.connector.connect(host=host, user=user, password=password, database=database, port=port)
+                        DB.db = mysql.connector.connect(host=host, user=user, password=password, database=database, port=port,
+                        connection_timeout=10)
+                        DB.db.autocommit = True
                     except Error as e:
                         print("Error while connecting to MySQL", e)
                 else:
