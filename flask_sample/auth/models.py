@@ -6,8 +6,6 @@ class User(UserMixin):
         self.id = id
         self.email = email
         self.authenticated = False
-    def is_active(self):
-        return self.is_active()
     def is_anonymous(self):
         return False
     def is_authenticated(self):
