@@ -15,7 +15,7 @@ sys.path.append(CURR_DIR)
 
 # custom error pages
 def page_not_found(e):
-  return render_template('404.html'), 404
+    return render_template('404.html'), 404
 
 def permission_denied(e):
     return render_template("403.html"), 403

@@ -54,10 +54,11 @@ def login():
                         user.roles = [Role(**r) for r in result.rows]
                     print(f"Roles: {user.roles}")
                     success = login_user(user) # login the user via flask_login
-                    # Tell Flask-Principal the identity changed
-                    identity_changed.send(current_app._get_current_object(),
-                                  identity=Identity(user.id))
+                    
                     if success:
+                        # Tell Flask-Principal the identity changed
+                        identity_changed.send(current_app._get_current_object(),
+                                  identity=Identity(user.id))
                         # store user object in session as json
                         session["user"] = user.toJson()
                         flash("Log in successful", "success")

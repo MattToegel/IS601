@@ -85,3 +85,58 @@ def delete():
     else:
         flash("No id present", "warning")
     return redirect(url_for("roles.list", **args))
+
+@roles.route("/assign", methods=["GET", "POST"])
+@admin_permission.require(http_exception=403)
+def assign():
+    users = []
+    roles = []
+
+    email = request.args.get("email")
+    if email:
+        try:
+            result = DB.selectAll("""
+            SELECT id, email, 
+                (SELECT GROUP_CONCAT(name, ' (' , IF(ur.is_active = 1,'active','inactive') , ')') from 
+                IS601_UserRoles ur JOIN IS601_Roles on ur.role_id = IS601_Roles.id WHERE ur.user_id = IS601_Users.id) as roles
+            FROM IS601_Users where email like %s limit 10
+            
+            """, f"%{email}%")
+            if result.status and result.rows:
+                users = result.rows
+        except Exception as e:
+            flash(str(e), "danger")
+    result = DB.selectAll("SELECT id, name FROM IS601_Roles WHERE is_active = 1",)
+    if result.status and result.rows:
+        roles = result.rows
+    return render_template("assign.html", users=users, roles=roles)
+
+@roles.route("/apply", methods=["POST"])
+@admin_permission.require(http_exception=403)
+def apply():
+    # https://stackoverflow.com/a/24808706
+    users = request.form.getlist("users[]")
+    roles = request.form.getlist("roles[]")
+    print(users, roles)
+    args = {**request.args}
+    if users and roles: # we need both for this to work
+        mappings = []
+        for user in users:
+            for role in roles:
+                print(user, role)
+                mappings.append((int(user), int(role)))
+        if len(mappings) > 0:
+            try:
+                result = DB.insertMany("INSERT INTO IS601_UserRoles (user_id, role_id, is_active) VALUES(%s, %s, 1) ON DUPLICATE KEY UPDATE is_active = !is_active", mappings)
+                if result.status:
+                    flash(f"Successfully enabled/disabled roles for the user/role {len(mappings)} mappings", "success")
+            except Exception as e:
+                flash(str(e), "danger")
+        else:
+            flash("No user/role mappings", "danger")
+
+    if "users" in args:
+        del args["users"]
+    if "roles" in args:
+        del args["roles"]
+    return redirect(url_for("roles.assign", **args))
