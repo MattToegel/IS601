@@ -50,4 +50,4 @@ if queries is None:
     queries = []
 print(f"Finished running {len(queries)} files")
 print(f"Used {db_calls} out of 10000 max quota")
-DB.db.close()
+DB.close()

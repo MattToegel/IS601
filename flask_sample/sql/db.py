@@ -67,6 +67,7 @@ class DB:
         
         except Error as e:
             if e.errno == -1:
+                print("closing due to error")
                 DB.close()
             # converting to a plain exception so other modules don't need to import mysql.connector.Error
             # this will let you more easily swap out DB connectors without needing to refactor your code, just this class
@@ -121,7 +122,7 @@ class DB:
 
     @staticmethod
     def getDB():
-        if DB.db is None or DB.db.is_connected == False:
+        if DB.db is None or DB.db.is_connected() == False:
             import mysql.connector
             import os
             import re
