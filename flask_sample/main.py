@@ -25,21 +25,27 @@ def create_app(config_filename=''):
         app.register_blueprint(sample)
         from auth.auth import auth
         app.register_blueprint(auth)
+
+        @login_manager.user_loader
+        def load_user(user_id):
+            from sql.db import DB
+            from auth.models import User
+            try:
+                print("login_manager loading user")
+                result = DB.selectOne("SELECT id, email FROM IS601_Users WHERE id = %s", user_id)
+                if result.status:
+                    return User(**result.row)
+            except Exception as e:
+                print(e)
+            return None
+        # DON'T DELETE, this cleans up the DB connection after each request
+        # this avoids sleeping queries
+        @app.teardown_request 
+        def after_request_cleanup(ctx):
+            from sql.db import DB
+            DB.close()
         return app
 
-
-@login_manager.user_loader
-def load_user(user_id):
-    from sql.db import DB
-    from auth.models import User
-    try:
-        print("login_manager loading user")
-        result = DB.selectOne("SELECT id, email FROM IS601_Users WHERE id = %s", user_id)
-        if result.status:
-            return User(**result.row)
-    except Exception as e:
-        print(e)
-    return None
 
 app = create_app()
 
