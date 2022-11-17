@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - dev
+      - F22-Flask-Sample-Auth
 
 # Your workflows jobs.
 jobs:
