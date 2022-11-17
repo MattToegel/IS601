@@ -14,8 +14,10 @@ from flask_principal import Identity, AnonymousIdentity, \
 auth = Blueprint('auth', __name__, url_prefix='/',template_folder='templates')
 
 def check_duplicate(e):
+    if not e:
+        e = ""
     import re
-    r = re.match("IS601_Users.(\w+)", e)
+    r = re.match("IS601_Users.(\w+)", str(e))
     if r and len(r) > 0:
         flash(f"The chosen {r} is not available", "warning")
     else:
