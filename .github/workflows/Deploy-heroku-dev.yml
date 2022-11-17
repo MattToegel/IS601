@@ -18,7 +18,7 @@ jobs:
       SECRET_KEY: ${{secrets.SECRET_KEY}}
       PORT: 8080
       # change to the project directory you're deploying
-      WORKING_DIRECTORY: flask_sample_005
+      WORKING_DIRECTORY: flask_sample
     defaults:
       run:
           working-directory: ${{env.WORKING_DIRECTORY}}
