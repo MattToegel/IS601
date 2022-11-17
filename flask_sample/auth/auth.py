@@ -15,7 +15,7 @@ auth = Blueprint('auth', __name__, url_prefix='/',template_folder='templates')
 
 def check_duplicate(e):
     import re
-    r = re.match("IS601_Users.(\w+)")
+    r = re.match("IS601_Users.(\w+)", e)
     if r and len(r) > 0:
         flash(f"The chosen {r} is not available", "warning")
     else:
@@ -33,7 +33,7 @@ def register():
         try:
             hash = bcrypt.generate_password_hash(password)
             # save the hash, not the plaintext password
-            result = DB.insertOne("INSERT INTO IS601_Users (email, username, password) VALUES (%s, %s)", email, username, hash)
+            result = DB.insertOne("INSERT INTO IS601_Users (email, username, password) VALUES (%s, %s, %s)", email, username, hash)
             if result.status:
                 flash("Successfully registered","success")
         except Exception as e:
@@ -153,8 +153,8 @@ def profile():
             # switch how user is loaded so we don't lose error validations
             # form = ProfileForm(obj=user)
             print("loading user", user)
-            form.username.value = user.username
-            form.email.value = user.email
+            form.username.data = user.username
+            form.email.data = user.email
             # TODO update session
             current_user.email = user.email
             current_user.username = user.username

@@ -28,7 +28,8 @@ class LoginForm(AuthForm):
     submit = SubmitField("Login")
     def __init__(self, *args, **kwargs):
         super(LoginForm, self).__init__( *args, **kwargs)
-        self.password.validators.pop(1)
+        if len(self.password.validators) >= 2:
+            self.password.validators.pop(1)
         del self.confirm
         del self.username
         
