@@ -16,6 +16,7 @@ jobs:
     env:
       DB_URL: '${{secrets.DB_URL}}'
       SECRET_KEY: '${{secrets.SECRET_KEY}}'
+      TEST: "a test"
       PORT: 8080
       # change to the project directory you're deploying
       WORKING_DIRECTORY: flask_sample
