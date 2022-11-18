@@ -25,7 +25,7 @@ jobs:
     
     steps:
       - name: Test
-        run: env
+        run: echo ${{env.DB_URL}}
       # Check-out your repository.
       - name: Checkout
         uses: actions/checkout@v2
