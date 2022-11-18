@@ -18,14 +18,12 @@ jobs:
       SECRET_KEY: '${{secrets.SECRET_KEY}}'
       PORT: 8080
       # change to the project directory you're deploying
-      WORKING_DIRECTORY: ./flask_sample
+      WORKING_DIRECTORY: flask_sample
     defaults:
       run:
           working-directory: ${{env.WORKING_DIRECTORY}}
     
     steps:
-      - name: Test
-        run: echo ${{env.DB_URL}}
       # Check-out your repository.
       - name: Checkout
         uses: actions/checkout@v2
