@@ -10,8 +10,9 @@ WORKDIR /src
 
 # Install Python Requirements
 RUN pip install -r requirements.txt
-RUN echo $TEST
+RUN echo ${TEST}
 ENV DB_URL=$DB_URL
+RUN echo ${DB_URL}
 
 # Run the web service on container startup. Here we use the gunicorn
 # webserver, with one worker process and 8 threads.
