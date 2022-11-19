@@ -1,0 +1,806 @@
+{% extends "layout.html" %} {% block title %}Game{% endblock %} {% block head %}
+{{ super() }}
+<script>
+  //modified from http://jsfiddle.net/bencentra/q1s8gmqv/?utm_source=website&utm_medium=embed&utm_campaign=q1s8gmqv
+
+  var canvas;
+  var context;
+  var loop;
+  var player;
+  var playerSize = 20;
+  var playerSpeed = 3;
+
+  var enemySize = 15;
+  var enemySpeed = 1.5;
+  var enemiesToSpawn = 10;
+  var enemiesSpawned = 0;
+  var enemiesDefeated = 0;
+  var playerHit = 0;
+  var m = { x: 0, y: 0 }; //mouse coords
+  var drawables = [];
+  var projectiles = [];
+  var enemies = [];
+  var collectibles = [];
+  const collectible = {
+    type: "", //life, exp, etc
+    value: 0,
+  };
+  const enemyBaseLife = 1;
+  var time = 0;
+  // Key Codes
+  var W = 87;
+  var S = 83;
+  var A = 65;
+  var D = 68;
+  var UP = 38;
+  var DOWN = 40;
+  var SPACE = 32;
+  var visibilityPercent = 0.6;
+  var effects = {};
+  var ghost =
+    "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgICB4bWxuczppbmtzY2FwZT0iaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvbmFtZXNwYWNlcy9pbmtzY2FwZSIKICAgIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyIKICAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgIHhtbG5zOmNjPSJodHRwOi8vY3JlYXRpdmVjb21tb25zLm9yZy9ucyMiCiAgICB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIKICAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgIHhtbG5zOnN2Zz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgICB4bWxuczpuczE9Imh0dHA6Ly9zb3ppLmJhaWVyb3VnZS5mciIKICAgIGlkPSJzdmcyIgogICAgc29kaXBvZGk6ZG9jbmFtZT0iZ2hvc3Quc3ZnIgogICAgaW5rc2NhcGU6ZXhwb3J0LWZpbGVuYW1lPSJDOlxVc2Vyc1xqcmpvaG5zM1xQaWN0dXJlc1xJbmtcZ2hvc3QucG5nIgogICAgdmlld0JveD0iMCAwIDQ5NS4zNCA1OTYuMzkiCiAgICBpbmtzY2FwZTpleHBvcnQteGRwaT0iMTU5Ljk2MzQ2IgogICAgdmVyc2lvbj0iMS4xIgogICAgaW5rc2NhcGU6ZXhwb3J0LXlkcGk9IjE1OS45NjM0NiIKICAgIGlua3NjYXBlOnZlcnNpb249IjAuNDguMSAiCiAgPgogIDxkZWZzCiAgICAgIGlkPSJkZWZzNCIKICAgID4KICAgIDxsaW5lYXJHcmFkaWVudAogICAgICAgIGlkPSJsaW5lYXJHcmFkaWVudDI5OTIiCiAgICAgICAgaW5rc2NhcGU6Y29sbGVjdD0iYWx3YXlzIgogICAgICA+CiAgICAgIDxzdG9wCiAgICAgICAgICBpZD0ic3RvcDI5OTQiCiAgICAgICAgICBzdHlsZT0ic3RvcC1jb2xvcjojZmZmZmZmIgogICAgICAgICAgb2Zmc2V0PSIwIgogICAgICAvPgogICAgICA8c3RvcAogICAgICAgICAgaWQ9InN0b3AyOTk2IgogICAgICAgICAgc3R5bGU9InN0b3AtY29sb3I6I2ZmZmZmZjtzdG9wLW9wYWNpdHk6MCIKICAgICAgICAgIG9mZnNldD0iMSIKICAgICAgLz4KICAgIDwvbGluZWFyR3JhZGllbnQKICAgID4KICAgIDxyYWRpYWxHcmFkaWVudAogICAgICAgIGlkPSJyYWRpYWxHcmFkaWVudDI5OTgiCiAgICAgICAgeGxpbms6aHJlZj0iI2xpbmVhckdyYWRpZW50Mjk5MiIKICAgICAgICBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIKICAgICAgICBjeT0iNjc3LjIiCiAgICAgICAgY3g9IjYxNS4xIgogICAgICAgIGdyYWRpZW50VHJhbnNmb3JtPSJtYXRyaXgoLS41OTYyNSAxLjk3NjggLTEuNTIzMSAtLjQ1OTQyIDE3NDMuOSAtNTM4LjE0KSIKICAgICAgICByPSIyNDcuNjciCiAgICAgICAgaW5rc2NhcGU6Y29sbGVjdD0iYWx3YXlzIgogICAgLz4KICA8L2RlZnMKICA+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgICBpZD0iYmFzZSIKICAgICAgYm9yZGVyY29sb3I9IiM2NjY2NjYiCiAgICAgIGlua3NjYXBlOnBhZ2VzaGFkb3c9IjIiCiAgICAgIGlua3NjYXBlOndpbmRvdy15PSItOCIKICAgICAgZml0LW1hcmdpbi1sZWZ0PSIwIgogICAgICBwYWdlY29sb3I9IiNmZmZmZmYiCiAgICAgIGlua3NjYXBlOndpbmRvdy1oZWlnaHQ9Ijg0OCIKICAgICAgaW5rc2NhcGU6d2luZG93LW1heGltaXplZD0iMSIKICAgICAgaW5rc2NhcGU6em9vbT0iMC4zNSIKICAgICAgaW5rc2NhcGU6d2luZG93LXg9Ii04IgogICAgICBzaG93Z3JpZD0iZmFsc2UiCiAgICAgIGJvcmRlcm9wYWNpdHk9IjEuMCIKICAgICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ibGF5ZXIxIgogICAgICBpbmtzY2FwZTpjeD0iMjY2Ljk1NzY3IgogICAgICBpbmtzY2FwZTpjeT0iMzE3Ljc3Nzc4IgogICAgICBmaXQtbWFyZ2luLXRvcD0iMCIKICAgICAgZml0LW1hcmdpbi1yaWdodD0iMCIKICAgICAgZml0LW1hcmdpbi1ib3R0b209IjAiCiAgICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTQ0MCIKICAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICAgaW5rc2NhcGU6ZG9jdW1lbnQtdW5pdHM9InB4IgogIC8+CiAgPGcKICAgICAgaWQ9ImxheWVyMSIKICAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgIGlua3NjYXBlOmdyb3VwbW9kZT0ibGF5ZXIiCiAgICAgIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0xMDguMDQgLTI1My43NSkiCiAgICA+CiAgICA8cGF0aAogICAgICAgIGlkPSJyZWN0Mjk4NyIKICAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9Inp6Y3NhemN6IgogICAgICAgIHN0eWxlPSJvcGFjaXR5Oi43MzU1ODtmaWxsOiNjY2NjY2MiCiAgICAgICAgaW5rc2NhcGU6Y29ubmVjdG9yLWN1cnZhdHVyZT0iMCIKICAgICAgICBkPSJtMTQwIDQ1NS4yMmM3MS45MDUtMjg2LjMgMzU5LjUyLTI1MC4zNCA0MzEuNDMgMCA3MS45MDUgMjUwLjM0IDAgMzc3LjE0IDAgMzc3LjE0cy02OS4wNDggNDAtMTA3Ljg2IDBjLTI1LjAzNS0yNS44MDMtNzEuNTkxIDE0LjI4Ni0xMDcuODYgMTQuMjg2LTM2LjI2NiAwLTIzLjMzMy00OC41NzEtMTA3Ljg2LTE0LjI4Ni04NC41MjQgMzQuMjg2LTEwNy44NiAwLTEwNy44NiAwcy03MS45MDUtOTAuODQxIDAtMzc3LjE0eiIKICAgIC8+CiAgICA8cGF0aAogICAgICAgIGlkPSJwYXRoMjk5MCIKICAgICAgICBkPSJtMTQwIDQ1NS4yMmM3MS45MDUtMjg2LjMgMzU5LjUyLTI1MC4zNCA0MzEuNDMgMCA3MS45MDUgMjUwLjM0IDAgMzc3LjE0IDAgMzc3LjE0cy02OS4wNDggNDAtMTA3Ljg2IDBjLTI1LjAzNS0yNS44MDMtNzEuNTkxIDE0LjI4Ni0xMDcuODYgMTQuMjg2LTM2LjI2NiAwLTIzLjMzMy00OC41NzEtMTA3Ljg2LTE0LjI4Ni04NC41MjQgMzQuMjg2LTEwNy44NiAwLTEwNy44NiAwcy03MS45MDUtOTAuODQxIDAtMzc3LjE0eiIKICAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9Inp6Y3NhemN6IgogICAgICAgIHN0eWxlPSJvcGFjaXR5Oi43MzU1ODtmaWxsOnVybCgjcmFkaWFsR3JhZGllbnQyOTk4KSIKICAgICAgICBpbmtzY2FwZTpjb25uZWN0b3ItY3VydmF0dXJlPSIwIgogICAgLz4KICAgIDxwYXRoCiAgICAgICAgaWQ9InBhdGgzMDcyIgogICAgICAgIHN0eWxlPSJvcGFjaXR5Oi43MzU1ODtmaWxsOnVybCgjcmFkaWFsR3JhZGllbnQyOTk4KSIKICAgICAgICBpbmtzY2FwZTpjb25uZWN0b3ItY3VydmF0dXJlPSIwIgogICAgICAgIGQ9Im0zNDMuODQgMjgzLjc4Yy01NC42OTggMC45MDg1Ni0xMDUuMDUgMzQuODM1LTEzMy41NyA4MC40MDQtMzYuOTk5IDU4LjA3MS00OS4zMjggMTI2LjkzLTYxLjAzMiAxOTMuNjgtMTMuMTk3IDc4LjAyMi0xOC4zMDYgMTU5LjkyIDQuOTE1MSAyMzYuNjEgMy4zMzQzIDkuNzIwNSA5LjIwNDggMjEuMzI3IDIwLjYyNSAyMi41MzEgMjYuODM0IDMuMzkyNCA1MS45NDUtOS45NDI0IDc2Ljc1LTE3Ljk2OSAyNC44NDktOC42NjExIDU0LjE5NS0xNCA3OC41LTEuMTg3NSAxMC4yNTggNC44MDQxIDE3LjIyOCAxNS4zMjEgMjguMzEyIDE4LjIxOSAyMC4xLTEuNjI0IDM3LjU5OS0xNC4yNTMgNTcuMjgxLTE4LjQwNiAyMS44MDItNi40NDkzIDQ4LjQxNy01LjgxMDIgNjUuNTk0IDEwLjc1IDguMjU1NiA3LjMxNDkgMTguNzU3IDEzLjU4NSAzMC4yMTkgMTEuNSAxMi45Ni0wLjE4ODg4IDI1LjYzLTQuMDA1IDM3LjAzMS0xMC4wOTQgMjguMTctNjkuMzkgMjguMjItMTQ2LjYzIDE5Ljg4LTIyMC4xNi04LjAyLTY1LjMtMjIuMjUtMTMwLjgyLTUxLjU3LTE5MC4wNi0yNi4zMS00OS4wMi02OC45NC05MS4wNC0xMjIuNzgtMTA4LjM3LTE2LjEzMS01LjE3NzQtMzMuMTUtNy44MDQ5LTUwLjE1Ni03LjQzNzV6IgogICAgLz4KICAgIDxwYXRoCiAgICAgICAgaWQ9InBhdGgzMTM2IgogICAgICAgIHN0eWxlPSJvcGFjaXR5Oi43MzU1ODtmaWxsOnVybCgjcmFkaWFsR3JhZGllbnQyOTk4KSIKICAgICAgICBpbmtzY2FwZTpjb25uZWN0b3ItY3VydmF0dXJlPSIwIgogICAgICAgIGQ9Im0zNDcuMDMgMjgzLjc1Yy0xLjA2MjgtMC4wMDAzMy0yLjEyNDYgMC4wMDgtMy4xODc1IDAuMDMxMi01NC42OTggMC45MDg1Ni0xMDUuMDQgMzQuODM3LTEzMy41NiA4MC40MDYtMzYuOTk5IDU4LjA3MS00OS4zMjcgMTI2Ljk0LTYxLjAzMSAxOTMuNjktMTMuMTk3IDc4LjAyMi0xOC4zMTUgMTU5LjkgNC45MDYyIDIzNi41OSAzLjMzNDMgOS43MjA1IDkuMjA0OCAyMS4zMjcgMjAuNjI1IDIyLjUzMSAxMS41MjIgMS40NTY3IDIyLjcyLTAuMTg5MjkgMzMuNzE5LTMuMTU2Mi02LjE5NDQtNC4zNTczLTkuOTM0NS0xMi4zNTEtMTIuMzQ0LTE5LjM3NS0yMy4yMy03Ni42OS0xOC4xMi0xNTguNTctNC45Mi0yMzYuNTkgMTEuNzA0LTY2Ljc0MyAyNC4wMzItMTM1LjYyIDYxLjAzMS0xOTMuNjkgMjUuNDA1LTQwLjU4OSA2OC4xMjQtNzEuOTI4IDExNS44MS03OC45MzgtNi45NzExLTAuOTkwNTctMTQuMDEyLTEuNDk3OC0yMS4wNjItMS41em0tOSA1MDYuNDdjLTcuMTg3NCAwLjA2MTktMTQuNDMzIDAuOTYwOTUtMjEuNTYyIDIuNDA2MiA0LjY1MSAxLjIxNjggOS4xODMgMi45MSAxMy41NjIgNS4yMTg4IDEwLjI1OCA0LjgwNDEgMTcuMjI4IDE1LjMyMSAyOC4zMTIgMTguMjE5IDkuNzk1Ny0wLjc5MTQ3IDE4Ljk4LTQuMjA0NiAyOC4wOTQtNy45Njg4LTQuNjA1MS0zLjcxODItOS4wNjI5LTcuNzQ3Ny0xNC40MDYtMTAuMjUtMTAuNjM0LTUuNjA1Ni0yMi4yMzYtNy43MjYzLTM0LTcuNjI1em0xNDUuNDEgMy42MjVjLTcuNTY3Mi0wLjAzNTMtMTUuMTc4IDEuMDM0Ny0yMi4zNzUgMi44NzUgNy40MzY0IDIuMjk4NyAxNC4zMzQgNi4wNzQgMjAuMTU2IDExLjY4OCA4LjI1NTYgNy4zMTQ5IDE4Ljc1NyAxMy41ODUgMzAuMjE5IDExLjUgNy42MzktMC4xMTEzMyAxNS4xNjktMS40ODk0IDIyLjQwNi0zLjg0MzgtMy44MzQ3LTIuMTAzLTcuMzk5My00Ljc5ODEtMTAuNjI1LTcuNjU2Mi0xMC43MzYtMTAuMzUtMjUuMTUyLTE0LjQ5NC0zOS43ODEtMTQuNTYyeiIKICAgIC8+CiAgICA8cGF0aAogICAgICAgIGlkPSJwYXRoMzE0NSIKICAgICAgICBzb2RpcG9kaTpyeD0iMzAiCiAgICAgICAgc29kaXBvZGk6cnk9IjM4LjU3MTQzIgogICAgICAgIHN0eWxlPSJvcGFjaXR5Oi43MzU1ODtmaWxsOiMxYTFhMWEiCiAgICAgICAgc29kaXBvZGk6dHlwZT0iYXJjIgogICAgICAgIGQ9Im0zNDIuODYgNDMwLjkzYzAgMjEuMzAyLTEzLjQzMSAzOC41NzEtMzAgMzguNTcxcy0zMC0xNy4yNjktMzAtMzguNTcxIDEzLjQzMS0zOC41NzEgMzAtMzguNTcxIDMwIDE3LjI2OSAzMCAzOC41NzF6IgogICAgICAgIHNvZGlwb2RpOmN5PSI0MzAuOTMzNjIiCiAgICAgICAgc29kaXBvZGk6Y3g9IjMxMi44NTcxNSIKICAgIC8+CiAgICA8cGF0aAogICAgICAgIGlkPSJwYXRoMzE0NyIKICAgICAgICBzb2RpcG9kaTpyeD0iMzAiCiAgICAgICAgc29kaXBvZGk6cnk9IjM4LjU3MTQzIgogICAgICAgIHN0eWxlPSJvcGFjaXR5Oi43MzU1ODtmaWxsOiMxYTFhMWEiCiAgICAgICAgc29kaXBvZGk6dHlwZT0iYXJjIgogICAgICAgIGQ9Im0zNDIuODYgNDMwLjkzYzAgMjEuMzAyLTEzLjQzMSAzOC41NzEtMzAgMzguNTcxcy0zMC0xNy4yNjktMzAtMzguNTcxIDEzLjQzMS0zOC41NzEgMzAtMzguNTcxIDMwIDE3LjI2OSAzMCAzOC41NzF6IgogICAgICAgIHRyYW5zZm9ybT0idHJhbnNsYXRlKDgyKSIKICAgICAgICBzb2RpcG9kaTpjeT0iNDMwLjkzMzYyIgogICAgICAgIHNvZGlwb2RpOmN4PSIzMTIuODU3MTUiCiAgICAvPgogICAgPHBhdGgKICAgICAgICBpZD0icGF0aDMxNDkiCiAgICAgICAgc29kaXBvZGk6cng9IjMwIgogICAgICAgIHNvZGlwb2RpOnJ5PSIzOC41NzE0MyIKICAgICAgICBzdHlsZT0ib3BhY2l0eTouNzM1NTg7ZmlsbDojMWExYTFhIgogICAgICAgIHNvZGlwb2RpOnR5cGU9ImFyYyIKICAgICAgICBkPSJtMzQyLjg2IDQzMC45M2MwIDIxLjMwMi0xMy40MzEgMzguNTcxLTMwIDM4LjU3MXMtMzAtMTcuMjY5LTMwLTM4LjU3MSAxMy40MzEtMzguNTcxIDMwLTM4LjU3MSAzMCAxNy4yNjkgMzAgMzguNTcxeiIKICAgICAgICB0cmFuc2Zvcm09Im1hdHJpeCgxLjg1NzEgMCAwIDEuMjU5MyAtMjIzLjg4IDE2LjI3NikiCiAgICAgICAgc29kaXBvZGk6Y3k9IjQzMC45MzM2MiIKICAgICAgICBzb2RpcG9kaTpjeD0iMzEyLjg1NzE1IgogICAgLz4KICA8L2cKICA+CiAgPG1ldGFkYXRhCiAgICA+CiAgICA8cmRmOlJERgogICAgICA+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgPgogICAgICAgIDxkYzpmb3JtYXQKICAgICAgICAgID5pbWFnZS9zdmcreG1sPC9kYzpmb3JtYXQKICAgICAgICA+CiAgICAgICAgPGRjOnR5cGUKICAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIKICAgICAgICAvPgogICAgICAgIDxjYzpsaWNlbnNlCiAgICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL2NyZWF0aXZlY29tbW9ucy5vcmcvbGljZW5zZXMvcHVibGljZG9tYWluLyIKICAgICAgICAvPgogICAgICAgIDxkYzpwdWJsaXNoZXIKICAgICAgICAgID4KICAgICAgICAgIDxjYzpBZ2VudAogICAgICAgICAgICAgIHJkZjphYm91dD0iaHR0cDovL29wZW5jbGlwYXJ0Lm9yZy8iCiAgICAgICAgICAgID4KICAgICAgICAgICAgPGRjOnRpdGxlCiAgICAgICAgICAgICAgPk9wZW5jbGlwYXJ0PC9kYzp0aXRsZQogICAgICAgICAgICA+CiAgICAgICAgICA8L2NjOkFnZW50CiAgICAgICAgICA+CiAgICAgICAgPC9kYzpwdWJsaXNoZXIKICAgICAgICA+CiAgICAgICAgPGRjOnRpdGxlCiAgICAgICAgICA+R2hvc3Q8L2RjOnRpdGxlCiAgICAgICAgPgogICAgICAgIDxkYzpkYXRlCiAgICAgICAgICA+MjAxMS0xMC0yMFQxMzowMDoyODwvZGM6ZGF0ZQogICAgICAgID4KICAgICAgICA8ZGM6ZGVzY3JpcHRpb24KICAgICAgICAgID5DdXRlIGxpdHRsZSBHaG9zdCBmb3IgSGFsbG93ZWVuPC9kYzpkZXNjcmlwdGlvbgogICAgICAgID4KICAgICAgICA8ZGM6c291cmNlCiAgICAgICAgICA+aHR0cHM6Ly9vcGVuY2xpcGFydC5vcmcvZGV0YWlsLzE2NDIyMS9naG9zdC1ieS1hcmNkcm9pZDwvZGM6c291cmNlCiAgICAgICAgPgogICAgICAgIDxkYzpjcmVhdG9yCiAgICAgICAgICA+CiAgICAgICAgICA8Y2M6QWdlbnQKICAgICAgICAgICAgPgogICAgICAgICAgICA8ZGM6dGl0bGUKICAgICAgICAgICAgICA+YXJjZHJvaWQ8L2RjOnRpdGxlCiAgICAgICAgICAgID4KICAgICAgICAgIDwvY2M6QWdlbnQKICAgICAgICAgID4KICAgICAgICA8L2RjOmNyZWF0b3IKICAgICAgICA+CiAgICAgICAgPGRjOnN1YmplY3QKICAgICAgICAgID4KICAgICAgICAgIDxyZGY6QmFnCiAgICAgICAgICAgID4KICAgICAgICAgICAgPHJkZjpsaQogICAgICAgICAgICAgID53aGl0ZSBnaG9zdCBoYWxsb3dlZW48L3JkZjpsaQogICAgICAgICAgICA+CiAgICAgICAgICA8L3JkZjpCYWcKICAgICAgICAgID4KICAgICAgICA8L2RjOnN1YmplY3QKICAgICAgICA+CiAgICAgIDwvY2M6V29yawogICAgICA+CiAgICAgIDxjYzpMaWNlbnNlCiAgICAgICAgICByZGY6YWJvdXQ9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL2xpY2Vuc2VzL3B1YmxpY2RvbWFpbi8iCiAgICAgICAgPgogICAgICAgIDxjYzpwZXJtaXRzCiAgICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL2NyZWF0aXZlY29tbW9ucy5vcmcvbnMjUmVwcm9kdWN0aW9uIgogICAgICAgIC8+CiAgICAgICAgPGNjOnBlcm1pdHMKICAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vY3JlYXRpdmVjb21tb25zLm9yZy9ucyNEaXN0cmlidXRpb24iCiAgICAgICAgLz4KICAgICAgICA8Y2M6cGVybWl0cwogICAgICAgICAgICByZGY6cmVzb3VyY2U9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zI0Rlcml2YXRpdmVXb3JrcyIKICAgICAgICAvPgogICAgICA8L2NjOkxpY2Vuc2UKICAgICAgPgogICAgPC9yZGY6UkRGCiAgICA+CiAgPC9tZXRhZGF0YQogID4KPC9zdmcKPgo=";
+  var ghostImg;
+  var buttons;
+  // Keep track of pressed keys
+  var keys = {
+    W: false,
+    S: false,
+    A: false,
+    D: false,
+    UP: false,
+    DOWN: false,
+    SPACE: false,
+  };
+  var _isPaused = false;
+  const lootTable = {
+    cumulativeWeight: function () {
+      //debugger;
+      if (!this.hasOwnProperty("cWeight")) {
+        let c = 0;
+        this.drops.forEach((d) => {
+          c += parseInt(Object.values(d)[0].w);
+        });
+        this.cWeight = c;
+      }
+      return this.cWeight;
+    },
+    drops: [
+      //item: weight
+      { nothing: { w: 100 } },
+      { life: { w: 10, v: 1 } },
+      { exp: { w: 50, v: 1 } },
+    ].sort((a, b) => {
+      a = Object.values(a)[0].w;
+      b = Object.values(b)[0].w;
+      return a > b ? 1 : b > a ? -1 : 0;
+    }),
+    getItem: function () {
+      const target = this.cumulativeWeight() * Math.random();
+      if (!this.cWeight) {
+        console.log("weight not set");
+        return false;
+      }
+
+      console.log("Loot target", target);
+      for (let d of this.drops) {
+        if (Object.values(d)[0].w >= target) {
+          let item = Object.keys(d)[0];
+          d.type = item;
+          return item == "nothing" ? false : d;
+        }
+      }
+      return false;
+    },
+  };
+
+  function isPaused() {
+    if (_isPaused || player.pendingUpgrades > 0) {
+      return true;
+    }
+    return false;
+  }
+  function handleClick(e) {
+    if (player.isDead()) {
+      const penalty = playerHit * 0.25;
+      const points =
+        enemiesDefeated * 0.15 * (enemiesDefeated / enemiesSpawned);
+      const score = points - penalty;
+      document.forms[0].score.value = Math.ceil(score);
+      document.forms[0].submit();
+      return;
+    }
+    if (player.pendingUpgrades <= 0) {
+      return;
+    }
+
+    drawButtons(true);
+  }
+  function drawButtons(clicked = false) {
+    if (!buttons) {
+      buttons = document.querySelectorAll(".game-btn");
+    }
+    let i = 1;
+    for (b of buttons) {
+      drawButton(b, canvas.width * 0.5 - 150 * 0.5, canvas.height * 0.1 * i);
+      if (clicked && context.isPointInPath(m.x, m.y)) {
+        b.focus();
+        console.log("click", b);
+        switch (b.id) {
+          case "life":
+            player.maxLife++;
+            break;
+          case "speed":
+            player.s *= 1.01; //1%
+            break;
+          case "shoot":
+            //TODO
+            player.shootDelay *= 0.95;
+            clearInterval(effects.shoot);
+            effects.shoot = window.setInterval(() => {
+              if (isPaused()) {
+                return;
+              }
+              //console.log(m);
+              let dx = m.x - player.x + player.w * 0.5;
+              let dy = m.y - (player.y + player.w * 0.5);
+              let rads = Math.atan2(dy, dx);
+              let sx = 4 * Math.cos(rads);
+              let sy = 4 * Math.sin(rads);
+
+              let px = player.x + player.w * 0.5 + sx;
+              let py = player.y + player.w * 0.5 + sy;
+              let p = makeRect(px, py, 4, 4, 4, "#000000");
+              p.dx = sx;
+              p.dy = sy;
+              p.target = "e";
+              projectiles.push(p);
+            }, player.shootDelay);
+            break;
+          case "dmg":
+            let nd = Math.ceil(player.damage * 1.1);
+            player.damage = Math.max(1, nd); //10%
+            break;
+          case "pickup":
+            player.pickupRadius += 2;
+            break;
+        }
+        player.pendingUpgrades--;
+      } else {
+        b.blur();
+      }
+      i++;
+    }
+    canvas.focus();
+  }
+  function drawButton(el, x, y) {
+    //https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawFocusIfNeeded
+    const active = document.activeElement === el;
+    const width = 150;
+    const height = 40;
+
+    // Button background
+    context.fillStyle = active ? "pink" : "lightgray";
+    context.fillRect(x, y, width, height);
+
+    // Button text
+    context.font = "15px sans-serif";
+    context.textAlign = "center";
+    let tbl = context.textBaseline;
+    context.textBaseline = "middle";
+    context.fillStyle = active ? "blue" : "black";
+    context.fillText(el.textContent, x + width / 2, y + height / 2);
+
+    // Define clickable area
+    context.beginPath();
+    context.rect(x, y, width, height);
+
+    // Draw focus ring, if appropriate
+    context.drawFocusIfNeeded(el);
+    context.textBaseline = tbl;
+  }
+  function init() {
+    canvas = document.getElementById("board");
+    canvas.top = canvas.height * 0.1;
+    ghostImg = document.getElementById("ghost");
+    ghostImg.src = ghost;
+    if (canvas.getContext) {
+      context = canvas.getContext("2d");
+      let offset = canvas.width * 0.05;
+      player = makePlayer(
+        canvas.width / 2 - playerSize / 2,
+        canvas.height / 2 + playerSize / 2,
+        playerSize,
+        playerSize,
+        playerSpeed,
+        "#00FF00"
+      );
+      for (let i = 0; i < enemiesToSpawn; i++) {
+        spawnEnemy();
+      }
+      drawables.push(player);
+      console.log("drawables", drawables);
+      attachKeyListeners();
+      canvas.addEventListener("click", handleClick, false);
+      loop = window.setInterval(gameLoop, 16); //16ms
+      //shoot effect
+      effects.shoot = window.setInterval(() => {
+        if (isPaused()) {
+          return;
+        }
+        //console.log(m);
+        let dx = m.x - player.x + player.w * 0.5;
+        let dy = m.y - (player.y + player.w * 0.5);
+        let rads = Math.atan2(dy, dx);
+        let sx = 4 * Math.cos(rads);
+        let sy = 4 * Math.sin(rads);
+
+        let px = player.x + player.w * 0.5 + sx;
+        let py = player.y + player.w * 0.5 + sy;
+        let p = makeRect(px, py, 4, 4, 4, "#000000");
+        p.dx = sx;
+        p.dy = sy;
+        p.target = "e";
+        projectiles.push(p);
+      }, player.shootDelay);
+      //spawn effect
+      effects.spawn = setInterval(() => {
+        if (isPaused()) {
+          return;
+        }
+        spawnEnemy();
+      }, 500);
+      //time effect
+      effects.time = setInterval(() => {
+        if (isPaused()) {
+          return;
+        }
+        time++;
+      }, 1000);
+      canvas.focus();
+    }
+  }
+  //spawners
+  function spawnCollectible(x, y, type, value) {
+    let color = "gray";
+    if (type === "life") {
+      color = "red";
+    } else if (type === "exp") {
+      color = "blue";
+    }
+    let c = makeRect(x, y, 5, 5, 0, color);
+    c.data = Object.assign(JSON.parse(JSON.stringify(collectible)), {
+      type: type,
+      value: value,
+    });
+    collectibles.push(c);
+  }
+  function spawnEnemy() {
+    let x =
+      Math.random() > 0.5
+        ? Math.random() * -100.0
+        : Math.random() * 100.0 + canvas.width;
+    let y =
+      Math.random() > 0.5
+        ? Math.random() * -100.0
+        : Math.random() * 100.0 + canvas.height;
+    console.log("enemy x,y", x, y);
+    let e = makeRect(
+      x,
+      y,
+      //Math.random() * canvas.width - enemySize,
+      //Math.random() * canvas.height - enemySize,
+      enemySize,
+      enemySize,
+      enemySpeed,
+      "#FF00AA"
+    );
+    e.type = "ghost";
+    e.life = Math.round(enemyBaseLife + Math.round(time / 60) * enemyBaseLife);
+    console.log("enemy life", e.life);
+    enemies.push(e);
+    enemiesSpawned++;
+  }
+  //end spawners
+  function chanceToSpawnCollectible(x, y) {
+    let item = lootTable.getItem();
+    console.log("spawn item", item);
+    if (item) {
+      spawnCollectible(x, y, item.type, Object.values(item)[0].v);
+    }
+  }
+  function attachKeyListeners() {
+    canvas.addEventListener("mousemove", (e) => {
+      var rect = canvas.getBoundingClientRect();
+      let scaleX = canvas.width / rect.width; // relationship bitmap vs. element for X
+      let scaleY = canvas.height / rect.height; // relationship bitmap vs. element for Y
+      m.x = (e.clientX - rect.left) * scaleX;
+      m.y = (e.clientY - rect.top) * scaleY;
+    });
+    // Listen for key events
+    canvas.addEventListener("keydown", function (e) {
+      //console.log("keydown", e);
+      if (e.keyCode === W) {
+        keys.W = true;
+      }
+      if (e.keyCode === S) {
+        keys.S = true;
+      }
+      if (e.keyCode === A) {
+        keys.A = true;
+      }
+      if (e.keyCode === D) {
+        keys.D = true;
+      }
+      if (e.keyCode === UP) {
+        keys.UP = true;
+      }
+      if (e.keyCode === DOWN) {
+        keys.DOWN = true;
+      }
+      if (e.keyCode === SPACE) {
+        keys.SPACE = true;
+      }
+      //console.log(keys);
+    });
+    canvas.addEventListener("keyup", function (e) {
+      //console.log("keyup", e);
+      if (e.keyCode === W) {
+        keys.W = false;
+      }
+      if (e.keyCode === S) {
+        keys.S = false;
+      }
+      if (e.keyCode === A) {
+        keys.A = false;
+      }
+      if (e.keyCode === D) {
+        keys.D = false;
+      }
+      if (e.keyCode === UP) {
+        keys.UP = false;
+      }
+      if (e.keyCode === DOWN) {
+        keys.DOWN = false;
+      }
+      if (e.keyCode === SPACE) {
+        keys.SPACE = true;
+        //special
+
+        _isPaused = !_isPaused;
+      }
+      //console.log(keys);
+    });
+  }
+  //classes
+  function makePlayer(x, y, width, height, speed, color) {
+    return {
+      x: x,
+      y: y,
+      w: width,
+      h: height,
+      s: speed,
+      c: color,
+      maxLife: 10.0,
+      life: 10,
+      exp: 0,
+      nextLevelExp: 0,
+      level: 0,
+      pendingUpgrades: 0,
+      pickupRadius: 5,
+      damage: 1,
+      shootDelay: 250,
+      changeExp: function (v) {
+        this.exp += v;
+        if (this.exp < 0) {
+          this.exp = 0;
+        } else if (this.exp >= this.nextLevelExp) {
+          let r = parseInt(this.exp - this.nextLevelExp);
+          console.log("remainder", r);
+          //level up
+          this.level++;
+          this.changeLife(this.maxLife); //fully heal
+          this.pendingUpgrades++;
+          this.exp = 0;
+          //xp concept https://blog.jakelee.co.uk/converting-levels-into-xp-vice-versa/
+          const ex = 2; //0.7;
+          const ey = 1.1; //2;
+          this.nextLevelExp = Math.pow(this.level / ex, ey);
+          console.log("New Level!", this.level, this.nextLevelExp);
+          if (r > 0 && this.nextLevelExp > 0) {
+            setTimeout(() => this.changeExp(r), 1);
+          }
+        }
+      },
+      changeLife: function (v) {
+        this.life += v;
+        if (this.life < 0) {
+          this.life = 0;
+        } else if (this.life > this.maxLife) {
+          this.life = this.maxLife;
+        }
+      },
+      isDead: function () {
+        return this.life <= 0;
+      },
+      draw: function () {
+        context.beginPath();
+        context.strokeStyle = "black";
+        let p = this.life / this.maxLife;
+        //console.log("percentage", p);
+        // context.arc(this.x + (this.w * .5), this.y + (this.w * .5), this.w, 0, (2 * Math.PI) * (p));
+        context.rect(this.x, this.y + this.h * 1.1, this.w, this.h * 0.25);
+        context.fillStyle = "red";
+        context.fillRect(
+          this.x,
+          this.y + this.h * 1.1,
+          this.w * p,
+          this.h * 0.25
+        );
+        context.stroke();
+        context.beginPath();
+        context.roundRect(this.x, this.y, this.w, this.w, 5);
+        context.stroke();
+        context.fillText;
+      },
+    };
+  }
+  function makeRect(x, y, width, height, speed, color) {
+    if (!color) color = "#000000";
+    return {
+      x: x,
+      y: y,
+      w: width,
+      h: height,
+      s: speed,
+      c: color,
+      draw: function () {
+        if (!this.type) {
+          context.fillStyle = this.c;
+          context.fillRect(this.x, this.y, this.w, this.h);
+        } else if (this.type == "ghost") {
+          //this is a very expensive call if you plan to have a significant number on the screen
+          //context.drawImage(ghostImg, this.x, this.y, this.w, this.h);
+          //due to that, using a "workaround"
+
+          //body
+          context.beginPath();
+          context.strokeStyle = "black";
+          context.roundRect(this.x, this.y, this.w, this.w, 5);
+          context.stroke();
+
+          //eyes
+          context.beginPath();
+          context.arc(
+            this.x + this.w * 0.3,
+            this.y + this.h * 0.3,
+            this.w * 0.05,
+            0,
+            2 * Math.PI
+          );
+          context.strokeStyle = "black";
+          context.stroke();
+          context.beginPath();
+          context.arc(
+            this.x + this.w * 0.7,
+            this.y + this.h * 0.3,
+            this.w * 0.05,
+            0,
+            2 * Math.PI
+          );
+          context.strokeStyle = "black";
+          context.stroke();
+          //end workaround code
+        }
+      },
+    };
+  }
+  //movement
+  function moveEnemies() {
+    for (let e of enemies) {
+      if (!e) {
+        continue;
+      }
+      //Math:
+      //https://gamecodeschool.com/essentials/calculating-heading-in-2d-games-using-trigonometric-functions-part-1/
+      //https://stackoverflow.com/questions/4403515/heading-from-point-a-to-point-b-in-2d-space
+      let dx = player.x - e.x;
+      let dy = player.y - e.y;
+      let rads = Math.atan2(dy, dx);
+      let sx = e.s * Math.cos(rads);
+      let sy = e.s * Math.sin(rads);
+      e.x += sx;
+      e.y += sy;
+      clampToCanvas(e);
+    }
+  }
+  function movePlayer() {
+    if (player.isDead()) {
+      return;
+    }
+    if (keys.W) {
+      player.y -= player.s;
+    }
+    if (keys.S) {
+      player.y += player.s;
+    }
+    if (keys.A) {
+      player.x -= player.s;
+    }
+    if (keys.D) {
+      player.x += player.s;
+    }
+    clampToCanvas(player);
+  }
+  //collisions
+  function checkCollisionEnemies() {
+    let i = 0;
+    for (let e of enemies) {
+      if (!e) {
+        continue;
+      }
+      if (didHit(player, e, 2)) {
+        enemies[i] = null;
+        console.log("nulled enemy");
+        player.changeLife(-1);
+        playerHit++;
+      }
+      i++;
+    }
+    enemies = enemies.filter((e) => e);
+  }
+  function didHit(a, b, offset = 0) {
+    let ah = a.w * 0.5;
+    let bh = b.w * 0.5;
+    let ax = a.x + ah;
+    let ay = a.y + ah;
+    let bx = b.x + bh;
+    let by = b.y + bh;
+    let abx = ax - bx;
+    let aby = ay - by;
+    let x = abx * abx;
+    let y = aby * aby;
+    let abh = ah + bh + offset;
+    abh *= abh;
+    return x + y < abh;
+  }
+  function checkProjectileCollisions() {
+    for (let i = 0, l = projectiles.length; i < l; i++) {
+      let p = projectiles[i];
+      if (!p) {
+        continue;
+      }
+      if (p.target === "e") {
+        for (let ei = 0, l = enemies.length; ei < l; ei++) {
+          let e = enemies[ei];
+          if (!e) {
+            continue;
+          }
+          if (didHit(p, e)) {
+            e.life -= player.damage || 1;
+            if (e.life <= 0) {
+              chanceToSpawnCollectible(e.x + e.w * 0.5, e.y + e.h * 0.5);
+              enemies[ei] = null;
+              enemiesDefeated++;
+            }
+            if (!p.pierce) {
+              projectiles[i] = null;
+              break;
+            }
+          }
+        }
+        enemies = enemies.filter((e) => e);
+      }
+    }
+
+    projectiles = projectiles.filter((p) => p);
+  }
+  function checkCollectibleCollision() {
+    for (let i = 0, l = collectibles.length; i < l; i++) {
+      let c = collectibles[i];
+      if (!c) {
+        continue;
+      }
+      if (didHit(player, c, player.pickupRadius)) {
+        if (c.data.type === "life") {
+          console.log(c);
+          player.changeLife(c.data.value);
+        } else if (c.data.type === "exp") {
+          // player.exp += c.data.value;
+          player.changeExp(c.data.value);
+        }
+        collectibles[i] = null;
+      }
+    }
+    collectibles = collectibles.filter((c) => c);
+  }
+  function hitEdge(obj) {
+    return (
+      obj.y < canvas.top ||
+      obj.y + obj.h > canvas.height ||
+      obj.x < 0 ||
+      obj.x + obj.w > canvas.width
+    );
+  }
+
+  function cleanupProjectiles() {
+    for (let i = 0, l = projectiles.length; i < l; i++) {
+      let p = projectiles[i];
+      if (!p) {
+        continue;
+      }
+      p.x += p.dx;
+      p.y += p.dy;
+      if (hitEdge(p)) {
+        projectiles[i] = null;
+      }
+    }
+    projectiles = projectiles.filter((p) => p);
+  }
+  function clampToCanvas(obj) {
+    if (obj.y < canvas.top) {
+      obj.y = canvas.top;
+    }
+    if (obj.y + obj.h > canvas.height) {
+      obj.y = canvas.height - obj.h;
+    }
+    if (obj.x < 0) {
+      obj.x = 0;
+    }
+    if (obj.x + obj.w > canvas.width) {
+      obj.x = canvas.width - obj.w;
+    }
+  }
+
+  function erase() {
+    context.fillStyle = "#FFFFFF";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  function gameLoop() {
+    if (_isPaused) {
+      return;
+    }
+    erase();
+    if (player.pendingUpgrades > 0) {
+      drawButtons();
+
+      return;
+    }
+    movePlayer();
+    moveEnemies();
+    checkCollisionEnemies();
+    checkProjectileCollisions();
+    checkCollectibleCollision();
+    cleanupProjectiles();
+    //draw stuff
+    for (let i = 0; i < enemies.length; i++) {
+      enemies[i].draw();
+    }
+    for (let i = 0; i < drawables.length; i++) {
+      drawables[i].draw();
+    }
+    for (let i = 0; i < projectiles.length; i++) {
+      projectiles[i].draw();
+    }
+    for (let i = 0; i < collectibles.length; i++) {
+      collectibles[i].draw();
+    }
+    canvas.top = canvas.height * 0.1;
+    context.fillStyle = "gray";
+    context.fillRect(0, 0, canvas.width, canvas.top);
+    //draw life bar
+    context.strokeStyle = "black";
+    context.rect(
+      canvas.width * 0.05,
+      canvas.top * 0.1,
+      canvas.width * 0.25,
+      canvas.top * 0.8
+    );
+    context.stroke();
+    context.fillStyle = "red";
+    context.fillRect(
+      canvas.width * 0.05,
+      canvas.top * 0.1,
+      canvas.width * 0.25 * (player.life / player.maxLife),
+      canvas.top * 0.8
+    );
+    //draw exp bar
+    context.strokeStyle = "black";
+    context.rect(
+      canvas.width * 0.325,
+      canvas.top * 0.1,
+      canvas.width * 0.25,
+      canvas.top * 0.8
+    );
+    context.stroke();
+    context.fillStyle = "blue";
+    context.fillRect(
+      canvas.width * 0.325,
+      canvas.top * 0.1,
+      canvas.width * 0.25 * (player.exp / player.nextLevelExp),
+      canvas.top * 0.8
+    );
+    context.fillStyle = "black";
+    context.font = "1.5em arial";
+    context.textAlign = "left";
+    context.fillText(
+      `Level ${player.level + 1}`,
+      canvas.width * 0.6,
+      canvas.top * 0.45
+    );
+    context.fillText(
+      `Enemies ${enemiesDefeated}/${enemiesSpawned}`,
+      canvas.width * 0.6,
+      canvas.top * 0.9
+    );
+    if (player.isDead()) {
+      if (effects.hasOwnProperty("shoot")) {
+        clearInterval(effects.shoot);
+
+        delete effects.shoot;
+      }
+      if (effects.hasOwnProperty("spawn")) {
+        clearInterval(effects.spawn);
+        delete effects.spawn;
+      }
+
+      enemies = [];
+      projectiles = [];
+      context.fillStyle = "red";
+      context.font = "2em arial";
+      context.textAlign = "center";
+      context.fillText(
+        `You didn't survive`,
+        canvas.width * 0.525,
+        canvas.height * 0.5
+      );
+      context.font = "1em arial";
+      context.fillText(
+        `(Click to restart)`,
+        canvas.width * 0.525,
+        canvas.height * 0.5
+      );
+    }
+  }
+  window.addEventListener("load", () => {
+    init();
+  });
+</script>
+<style>
+  canvas:focus {
+    border: 3px solid black;
+  }
+
+  canvas:not(:focus) {
+    border: 1px dotted black;
+  }
+</style>
+{% endblock %}
+<!-- content -->
+{% block content %}
+
+<div class="contrainer-fluid text-center">
+  <div>
+    <h1 style="display: inline">Survive</h1>
+  </div>
+  <a href="http://bencentra.com/2017-07-11-basic-html5-canvas-games.html"
+    >Collection of Canvas based games by Ben Centra</a
+  >
+  <main>
+    <canvas tabindex="0" id="board" width="600px" height="600px">
+      <button class="game-btn" id="life">+Life</button>
+      <button class="game-btn" id="speed">+Speed</button>
+      <button class="game-btn" id="dmg">+Dmg</button>
+      <button class="game-btn" id="shoot">+Fire Rate</button>
+      <button class="game-btn" id="pickup">+Pickup Radius</button>
+    </canvas>
+    <img id="ghost" style="display: none" />
+  </main>
+</div>
+<form method="POST" action="{{url_for('game.save')}}">
+  <!-- non-ajax example (still needs JS but uses built in csrf protection)-->
+  {{ form.hidden_tag() }}
+  <!-- since hidden_tag() builds all hidden fields
+we don't need to explicitly mention the score field-->
+</form>
+{% endblock %}
