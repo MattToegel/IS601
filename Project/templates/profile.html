@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+<h1>Profile</h1>
+<form action="" method="post">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+        {{ form.username(placeholder="username",
+        class="form-control") }}
+        {% for error in form.username.errors %}
+        <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+    <div class="mb-3">
+        {{ form.email(placeholder="email",
+        class="form-control") }}
+        {% for error in form.email.errors %}
+        <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+    <div class="mb-3">
+        {{ form.current_password(placeholder="current password",
+        class="form-control") }}
+        {% for error in form.current_password.errors %}
+        <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+    <div class="mb-3">
+        {{ form.password1(placeholder="new password",
+        class="form-control") }}
+        {% for error in form.password1.errors %}
+        <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+    <div class="mb-3">
+        {{ form.password2(placeholder="Confirm new password",
+        class="form-control") }}
+        {% for error in form.password2.errors %}
+        <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+    <div class="mb-3">{{ form.submit(
+        class="btn btn-primary") }}
+    </div>
+</form>
+{% endblock %}
