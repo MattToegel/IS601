@@ -35,6 +35,8 @@
   var UP = 38;
   var DOWN = 40;
   var SPACE = 32;
+  var LEFT = 37;
+  var RIGHT = 39;
   var visibilityPercent = 0.6;
   var effects = {};
   var ghost =
@@ -52,6 +54,26 @@
     SPACE: false,
   };
   var _isPaused = false;
+  const spawnProjectile = function(){
+    if (isPaused()) {
+      return;
+    }
+    //console.log(m);
+    const halfWidth = player.w *.5;
+    let dx = m.x - (player.x + halfWidth);
+    let dy = m.y - (player.y + halfWidth);
+    let rads = Math.atan2(dy, dx);
+    let sx = 4 * Math.cos(rads);
+    let sy = 4 * Math.sin(rads);
+
+    let px = player.x + player.w * 0.5 + sx;
+    let py = player.y + player.w * 0.5 + sy;
+    let p = makeRect(px, py, 4, 4, 4, "#FFFF00");
+    p.dx = sx;
+    p.dy = sy;
+    p.target = "e";
+    projectiles.push(p);
+  }
   const lootTable = {
     cumulativeWeight: function () {
       //debugger;
@@ -105,7 +127,11 @@
       const points =
         enemiesDefeated * 0.15 * (enemiesDefeated / enemiesSpawned);
       const score = points - penalty;
-      document.forms[0].score.value = Math.ceil(score);
+      document.forms[0].score.value = Math.ceil(score);//arcade project just needs this field
+      document.forms[0].hits.value = playerHit;
+      document.forms[0].defeated.value = enemiesDefeated;
+      document.forms[0].spawned.value = enemiesSpawned;
+      document.forms[0].ratio.value = (enemiesDefeated/enemiesSpawned).toFixed(2);
       document.forms[0].submit();
       return;
     }
@@ -120,8 +146,12 @@
       buttons = document.querySelectorAll(".game-btn");
     }
     let i = 1;
+    context.font = "2em system";
+    context.fillStyle = "white";
+    context.textAlign = "center";
+    context.fillText("Level Up!", canvas.width * .5, canvas.height * .25);
     for (b of buttons) {
-      drawButton(b, canvas.width * 0.5 - 150 * 0.5, canvas.height * 0.1 * i);
+      drawButton(b, canvas.width * 0.5 - 150 * 0.5, (canvas.height * 0.1 * i) + (canvas.height*.25));
       if (clicked && context.isPointInPath(m.x, m.y)) {
         b.focus();
         console.log("click", b);
@@ -137,23 +167,7 @@
             player.shootDelay *= 0.95;
             clearInterval(effects.shoot);
             effects.shoot = window.setInterval(() => {
-              if (isPaused()) {
-                return;
-              }
-              //console.log(m);
-              let dx = m.x - player.x + player.w * 0.5;
-              let dy = m.y - (player.y + player.w * 0.5);
-              let rads = Math.atan2(dy, dx);
-              let sx = 4 * Math.cos(rads);
-              let sy = 4 * Math.sin(rads);
-
-              let px = player.x + player.w * 0.5 + sx;
-              let py = player.y + player.w * 0.5 + sy;
-              let p = makeRect(px, py, 4, 4, 4, "#000000");
-              p.dx = sx;
-              p.dy = sy;
-              p.target = "e";
-              projectiles.push(p);
+              spawnProjectile();
             }, player.shootDelay);
             break;
           case "dmg":
@@ -224,35 +238,31 @@
       loop = window.setInterval(gameLoop, 16); //16ms
       //shoot effect
       effects.shoot = window.setInterval(() => {
-        if (isPaused()) {
-          return;
-        }
-        //console.log(m);
-        let dx = m.x - player.x + player.w * 0.5;
-        let dy = m.y - (player.y + player.w * 0.5);
-        let rads = Math.atan2(dy, dx);
-        let sx = 4 * Math.cos(rads);
-        let sy = 4 * Math.sin(rads);
-
-        let px = player.x + player.w * 0.5 + sx;
-        let py = player.y + player.w * 0.5 + sy;
-        let p = makeRect(px, py, 4, 4, 4, "#000000");
-        p.dx = sx;
-        p.dy = sy;
-        p.target = "e";
-        projectiles.push(p);
+        spawnProjectile();
       }, player.shootDelay);
-      //spawn effect
-      effects.spawn = setInterval(() => {
-        if (isPaused()) {
-          return;
-        }
-        spawnEnemy();
-      }, 500);
+      
+      
       //time effect
       effects.time = setInterval(() => {
         if (isPaused()) {
           return;
+        }
+        
+        if(time % 120 === 0){
+          
+          if(!player.isDead()){
+            const enemyDelay = 500 - (Math.floor(time/120)*50);
+            //spawn effect
+            if(effects.hasOwnProperty("spawn")){
+              clearInterval(effects.spawn);
+            }
+            effects.spawn = setInterval(() => {
+              if (isPaused()) {
+                return;
+              }
+              spawnEnemy();
+            }, enemyDelay<= 0?.01:enemyDelay);
+          }
         }
         time++;
       }, 1000);
@@ -283,7 +293,7 @@
       Math.random() > 0.5
         ? Math.random() * -100.0
         : Math.random() * 100.0 + canvas.height;
-    console.log("enemy x,y", x, y);
+    //console.log("enemy x,y", x, y);
     let e = makeRect(
       x,
       y,
@@ -295,8 +305,8 @@
       "#FF00AA"
     );
     e.type = "ghost";
-    e.life = Math.round(enemyBaseLife + Math.round(time / 60) * enemyBaseLife);
-    console.log("enemy life", e.life);
+    e.life = Math.round(enemyBaseLife + (Math.round(time / 30) * enemyBaseLife));
+    //console.log("enemy life", e.life);
     enemies.push(e);
     enemiesSpawned++;
   }
@@ -315,27 +325,23 @@
       let scaleY = canvas.height / rect.height; // relationship bitmap vs. element for Y
       m.x = (e.clientX - rect.left) * scaleX;
       m.y = (e.clientY - rect.top) * scaleY;
+      m.x -= 4;
+      m.y += 4;
     });
     // Listen for key events
     canvas.addEventListener("keydown", function (e) {
       //console.log("keydown", e);
-      if (e.keyCode === W) {
+      if ([W,UP].includes(e.keyCode)) {
         keys.W = true;
       }
-      if (e.keyCode === S) {
+      if ([S,DOWN].includes(e.keyCode)) {
         keys.S = true;
       }
-      if (e.keyCode === A) {
+      if ([A,LEFT].includes(e.keyCode)) {
         keys.A = true;
       }
-      if (e.keyCode === D) {
+      if ([D,RIGHT].includes(e.keyCode)) {
         keys.D = true;
-      }
-      if (e.keyCode === UP) {
-        keys.UP = true;
-      }
-      if (e.keyCode === DOWN) {
-        keys.DOWN = true;
       }
       if (e.keyCode === SPACE) {
         keys.SPACE = true;
@@ -344,23 +350,17 @@
     });
     canvas.addEventListener("keyup", function (e) {
       //console.log("keyup", e);
-      if (e.keyCode === W) {
+      if ([W,UP].includes(e.keyCode)) {
         keys.W = false;
       }
-      if (e.keyCode === S) {
+      if ([S,DOWN].includes(e.keyCode)) {
         keys.S = false;
       }
-      if (e.keyCode === A) {
+      if ([A,LEFT].includes(e.keyCode)) {
         keys.A = false;
       }
-      if (e.keyCode === D) {
+      if ([D,RIGHT].includes(e.keyCode)) {
         keys.D = false;
-      }
-      if (e.keyCode === UP) {
-        keys.UP = false;
-      }
-      if (e.keyCode === DOWN) {
-        keys.DOWN = false;
       }
       if (e.keyCode === SPACE) {
         keys.SPACE = true;
@@ -438,9 +438,11 @@
         );
         context.stroke();
         context.beginPath();
+        context.fillStyle = "white"
         context.roundRect(this.x, this.y, this.w, this.w, 5);
         context.stroke();
-        context.fillText;
+        context.fill();
+        //context.fillText;
       },
     };
   }
@@ -467,6 +469,10 @@
           context.strokeStyle = "black";
           context.roundRect(this.x, this.y, this.w, this.w, 5);
           context.stroke();
+          context.beginPath();
+          context.fillStyle = "white";
+          context.roundRect(this.x, this.y, this.w, this.w, 5);
+          context.fill();
 
           //eyes
           context.beginPath();
@@ -510,7 +516,7 @@
       let sy = e.s * Math.sin(rads);
       e.x += sx;
       e.y += sy;
-      clampToCanvas(e);
+      //clampToCanvas(e);
     }
   }
   function movePlayer() {
@@ -652,7 +658,7 @@
   }
 
   function erase() {
-    context.fillStyle = "#FFFFFF";
+    context.fillStyle = "#000000";
     context.fillRect(0, 0, canvas.width, canvas.height);
   }
 
@@ -660,12 +666,23 @@
     if (_isPaused) {
       return;
     }
+    
+    if(canvas.parentElement.clientWidth > canvas.parentElement.clientHeight){
+      canvas.height = canvas.parentElement.clientHeight*.95;
+      canvas.width = canvas.height;
+    }
+    else{
+      canvas.width = canvas.parentElement.clientWidth*.75;
+      canvas.height = canvas.width;
+    }
     erase();
+    //draw cursor
+    
     if (player.pendingUpgrades > 0) {
       drawButtons();
 
-      return;
     }
+    if(player.pendingUpgrades === 0){
     movePlayer();
     moveEnemies();
     checkCollisionEnemies();
@@ -685,6 +702,7 @@
     for (let i = 0; i < collectibles.length; i++) {
       collectibles[i].draw();
     }
+  }
     canvas.top = canvas.height * 0.1;
     context.fillStyle = "gray";
     context.fillRect(0, 0, canvas.width, canvas.top);
@@ -720,6 +738,7 @@
       canvas.width * 0.25 * (player.exp / player.nextLevelExp),
       canvas.top * 0.8
     );
+    //draw stats
     context.fillStyle = "black";
     context.font = "1.5em arial";
     context.textAlign = "left";
@@ -733,6 +752,7 @@
       canvas.width * 0.6,
       canvas.top * 0.9
     );
+    
     if (player.isDead()) {
       if (effects.hasOwnProperty("shoot")) {
         clearInterval(effects.shoot);
@@ -758,9 +778,13 @@
       context.fillText(
         `(Click to restart)`,
         canvas.width * 0.525,
-        canvas.height * 0.5
+        canvas.height * 0.55
       );
     }
+    //draw mouse
+    context.font = "1em wingdings"
+    context.fillStyle = "yellow";
+    context.fillText("l", m.x, m.y);
   }
   window.addEventListener("load", () => {
     init();
@@ -774,6 +798,17 @@
   canvas:not(:focus) {
     border: 1px dotted black;
   }
+  canvas{ 
+    aspect-ratio: 1 !important;
+    cursor:none;
+  }
+  main{
+    height: 70vh;
+    overflow:hidden;
+  }
+  #content{
+    overflow:hidden !important;
+  }
 </style>
 {% endblock %}
 <!-- content -->
@@ -781,13 +816,13 @@
 
 <div class="contrainer-fluid text-center">
   <div>
-    <h1 style="display: inline">Survive</h1>
+    <h1 style="display: inline">Survive The Night</h1>
   </div>
   <a href="http://bencentra.com/2017-07-11-basic-html5-canvas-games.html"
     >Collection of Canvas based games by Ben Centra</a
   >
-  <main>
-    <canvas tabindex="0" id="board" width="600px" height="600px">
+  <main class="">
+    <canvas class="" tabindex="0" id="board" width="600px" height="600px">
       <button class="game-btn" id="life">+Life</button>
       <button class="game-btn" id="speed">+Speed</button>
       <button class="game-btn" id="dmg">+Dmg</button>

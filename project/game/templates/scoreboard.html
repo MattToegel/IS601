@@ -1,0 +1,12 @@
+{% extends "layout.html" %} 
+{% block title %}Scores{% endblock %} 
+
+<!-- content -->
+{% block content %}
+{% from "_table_helper.html" import render_table %}
+{{render_table("All Time Scores", all_rows, ["user_id"])}}
+{{render_table("Today's Scores", day_rows, ["user_id"])}}
+{{render_table("This Week's Scores", week_rows, ["user_id"])}}
+{{render_table("This Month's Scores", month_rows, ["user_id"])}}
+{% endblock %}
+
