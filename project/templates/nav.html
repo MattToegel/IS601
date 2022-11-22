@@ -1,7 +1,7 @@
 {% from "_dropdown_nav.html" import dropdown_nav %}
 <nav class="navbar navbar-expand-lg bg-light">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">Sample</a>
+        <a class="navbar-brand" href="{{url_for('game.index')}}">STN</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
             data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
             aria-expanded="false" aria-label="Toggle navigation">
@@ -19,6 +19,9 @@
                 {% else %}
                 <li class="nav-item">
                     <a class="nav-link" href="{{url_for('auth.landing_page')}}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{url_for('game.play')}}">Play</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{url_for('auth.profile')}}">Profile</a>
@@ -44,6 +47,11 @@
                 {% endif %}
 
             </ul>
+            <span class="navbar-text">
+                {% if current_user.is_authenticated %}
+                Balance: {{current_user.get_balance()}}
+                {% endif %}
+              </span>
         </div>
     </div>
 </nav>

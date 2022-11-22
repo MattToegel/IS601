@@ -1,9 +1,11 @@
 from flask import Blueprint, render_template, flash, redirect, url_for,current_app, session
 from auth.forms import LoginForm, ProfileForm, RegisterForm
+from accounts.accounts import get_or_create_account
 from sql.db import DB
 
 from flask_login import login_user, login_required, logout_user, current_user
 from auth.models import User
+from accounts.models import Account
 from flask_bcrypt import Bcrypt
 
 bcrypt = Bcrypt()
@@ -65,6 +67,11 @@ def login():
                             print("role rows", result.rows)
                             user.roles = [Role(**r) for r in result.rows]
                         print(f"Roles: {user.roles}")
+                        # getting or creating account here so we can lazy populate
+                        # existing users (prior to this feature implementation)
+                        account = get_or_create_account(user.id)
+                        user.account = Account(**account)
+
                         success = login_user(user) # login the user via flask_login
                         
                         if success:
