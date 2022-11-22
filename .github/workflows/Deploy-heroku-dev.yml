@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - dev
+      - F22-Project-MS2-Points
 
 # Your workflows jobs.
 jobs:
