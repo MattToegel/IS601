@@ -1,0 +1,32 @@
+{% extends "layout.html" %} 
+{% block title %}Home{% endblock %} 
+<!-- content -->
+{% block content %}
+<div class="container-fluid">
+    <div class="card mt-5 w-50 mx-auto bg-dark text-light border">
+        <div class="card-body">
+            <h5 class="card-title">Welcome to Survive The Night</h5>
+            <div class="card-text">
+                See how long you can survive!
+                <ul>
+                <li>Collect health and experience as you defeat enemies.</li>
+                <li>Experience grants access to increased abilities.</li>
+                <li>Use WASD or arrow keys to avoid obstactles or collect items.</li>
+                <li>Aim with your mouse/cursor.</li>
+                <li>More features coming soon!</li>
+                </ul>
+            </div>
+            <div class="card-subtitle lead text-center">
+                (must be logged in to play)
+            </div>
+        </div>
+        <div class="card-footer text-center">
+            {% if current_user.is_authenticated %}
+            <a class="btn btn-danger btn-lg" href="{{url_for('game.play')}}">I'm Ready!</a>
+            {% else %}
+            <p class="text-danger">You need to be logged in to play</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

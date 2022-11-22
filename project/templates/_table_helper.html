@@ -1,0 +1,29 @@
+{% macro render_table(title,data, ignored = []) %}
+<div class="container-fluid">
+    <div class="h1">{{title}}</div>
+<table class="table bg-dark text-light">
+    <thead>
+        {% if data and data|length > 0 %}
+        <tr class="text-capitalize">
+            {% for r in data[0] %}
+                {% if r not in ignored %}
+                <th>{{r}}</th>
+                {% endif %}
+            {% endfor %}
+        </tr>
+        {%endif%}
+    </thead>
+    <tbody>
+        {% for r in data %}
+        <tr>
+            {% for k,v in r.items() %}
+            {% if k not in ignored %}
+            <td>{{v}}</td>
+            {% endif %}
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endmacro %}
