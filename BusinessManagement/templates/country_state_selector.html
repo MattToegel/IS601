@@ -3,14 +3,14 @@
 {# version for filter forms #}
 <div class="col-12">
     <label class="visually-hidden" for="country">Country</label>
-    <select name="country" id="country" class="form-select" value="{{request.args.get('country', country || '')}}"
+    <select name="country" id="country" class="form-select" value="{{request.args.get('country', country or '')}}"
         onchange="fetchStates(this.value)">
         <option value="">Select Country...</option>
     </select>
 </div>
 <div class="col-12">
     <label class="visually-hidden" for="state">State</label>
-    <select name="state" id="state" class="form-select" value="{{request.args.get('state', state || '')}}">
+    <select name="state" id="state" class="form-select" value="{{request.args.get('state', state or '')}}">
         <option value="">Select State...</option>
     </select>
 </div>
