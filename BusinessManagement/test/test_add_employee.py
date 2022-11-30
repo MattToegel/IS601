@@ -45,8 +45,8 @@ def runner(app):
 def test_add_employee(client):
     from ..sql.db import DB
     resp = client.post("/employee/add", data={
-        "first name": "delme",
-        "last name": "delme",
+        "first_name": "delme",
+        "last_name": "delme",
         "email": "delme@delme.com"
     }, follow_redirects=True )
     assert resp.status_code == 200
