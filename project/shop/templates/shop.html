@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+{% block title %}Shop{% endblock %}
+
+<!-- content -->
+{% block content %}
+<div class="container-fluid">
+    <div class="h4">Shop</div>
+    <div class="row">
+        {% for row in rows %}
+        <div class="col">
+            <div class="card text-light bg-dark border" style="width: 20em">
+                <div class="card-header">
+                    Stock: {{row["stock"]}}
+                </div>
+                <div class="card-body">
+                    <div class="card-title">
+                        {{row["name"]}}
+                    </div>
+                    {% if row["image"] %}
+                    <img src="{{row['image']}}" style="aspect-ratio: 1; width:100%">
+                    {% endif %}
+                    <div class="card-text lead">
+                        {{row["description"]}}
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <form action="{{url_for('shop.cart')}}" method="POST">
+                        <input type="hidden" name="id" value="{{row['id']}}" />
+                        <input type="number" class="form-control" name="q" value="1" />
+                        <div class="d-grid mt-1">
+                            <input type="submit" value="+Add" class="btn btn-light" />
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

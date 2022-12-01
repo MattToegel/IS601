@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+{% block title %}Cart{% endblock %}
+
+<!-- content -->
+{% block content %}
+<div class="container-fluid">
+    <div class="h4">Cart</div>
+    <table class="table text-light bg-dark">
+        <thread>
+            <tr>
+                <th>Item</th>
+                <th>Quantity</th>
+                <th>Subtotal</th>
+                <th>Actions</th>
+            </tr>
+        </thread>
+        <tbody>
+            {% set ns = namespace(total=0) %}
+            {% for row in rows %}
+            <tr>
+                <td>{{row["name"]}}</td>
+                <td style="width:10em">
+                    <form method="POST">
+                        <div class="row">
+                            <input type="hidden" name="item_id" value="{{row['item_id']}}" />
+                            <div class="col">
+                                <input type="number" class="form-control" name="quantity"
+                                    value="{{row['quantity']}}" />
+                            </div>
+                            <div class="col d-grid">
+                                <input type="submit" value="Update"
+                                    class="btn btn-secondary btn-sm" />
+                            </div>
+                        </div>
+                    </form>
+                </td>
+                <td>{{row['subtotal']}}</td>
+                <td>
+                    <!-- lazy delete using quantity < 0 logic -->
+                    <form method="POST">
+                        <input type="hidden" name="item_id" value="{{row['item_id']}}" />
+                        <input type="hidden" name="quantity" value="-1" />
+                        <input type="submit" value="x" class="btn btn-danger btn-sm" />
+                    </form>
+                </td>
+                {# https://stackoverflow.com/a/51880609 #}
+                {% set ns.total = ns.total + row['subtotal'] %}
+            </tr>
+            {% endfor %}
+            <tr>
+                <td class="text-end" colspan="100%">
+                    Total: {{ns.total or 0}}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}
