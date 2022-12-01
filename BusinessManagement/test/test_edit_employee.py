@@ -36,7 +36,7 @@ def runner(app):
 @pytest.mark.order("second_to_last")
 def test_edit_employee(client):
     resp = client.post("/employee/edit?id=-1", data={
-        "last name": "_test2",
+        "last_name": "_test2",
         "company": -1
     }, follow_redirects=True )
     assert resp.status_code == 200
