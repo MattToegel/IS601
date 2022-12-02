@@ -1,16 +1,18 @@
 {# TODO DO NOT EDIT #}
+{% set c = request.args.get("country", request.form.get("country", country or '')) %}
+{% set s = request.args.get("state", request.form.get("state", state or '')) %}
 {% if layout and layout == 'horizontal' %}
 {# version for filter forms #}
 <div class="col-12">
     <label class="visually-hidden" for="country">Country</label>
-    <select name="country" id="country" class="form-select" value="{{request.args.get('country', country or '')}}"
+    <select name="country" id="country" class="form-select" value="{{c}}"
         onchange="fetchStates(this.value)">
         <option value="">Select Country...</option>
     </select>
 </div>
 <div class="col-12">
     <label class="visually-hidden" for="state">State</label>
-    <select name="state" id="state" class="form-select" value="{{request.args.get('state', state or '')}}">
+    <select name="state" id="state" class="form-select" value="{{s}}">
         <option value="">Select State...</option>
     </select>
 </div>
@@ -18,14 +20,14 @@
 {# version for add/edit forms #}
 <div class="form-group mb-3">
     <label class="form-label" for="country">Country</label>
-    <select name="country" id="country" class="form-select" value="{{request.args.get('country', '')}}"
+    <select name="country" id="country" class="form-select" value="{{c}}"
         onchange="fetchStates(this.value)">
         <option value="">Select Country...</option>
     </select>
 </div>
 <div class="form-group mb-3">
     <label class="form-label" for="state">State</label>
-    <select name="state" id="state" class="form-select" value="{{request.args.get('state', '')}}">
+    <select name="state" id="state" class="form-select" value="{{s}}">
         <option value="">Select State...</option>
     </select>
 </div>
@@ -35,7 +37,7 @@
     const fetchStates = (country) => {
         //use jinja to return a string in the html template
         //this string will be as if we did let state = "whatever"
-        let state = "{{request.args.get('state', '')}}";
+        let state = "{{s}}";
         console.log("fetching", country);
         fetch(`{{url_for('geo.states')}}?country_code=${country}`)
             .then(resp => resp.json())
@@ -61,7 +63,7 @@
     window.addEventListener("load", () => {
         //use jinja to return a string in the html template
         //this string will be as if we did let country = "whatever"
-        let country = "{{request.args.get('country', 'US')}}";
+        let country = "{{c}}";
         //get the country list from the endpoint
         fetch(`{{url_for('geo.countries')}}`)
             .then(resp => resp.json())
