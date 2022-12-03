@@ -56,7 +56,7 @@ def delete():
             print("Error deleting item",e)
             flash("Error deleting item", "danger")
     return redirect(url_for("shop.items"))
-    
+
 @shop.route("/admin/items", methods=["GET","POST"])
 @admin_permission.require(http_exception=403)
 def items():
@@ -91,7 +91,7 @@ def cart():
     quantity = request.form.get("quantity", 1, type=int)
     user_id = current_user.get_id()
     if id and user_id:
-        if quantity > -1:
+        if quantity > 0:
             try:
                 result = DB.selectOne("SELECT cost,name from IS601_S_Items WHERE id = %s", id)
                 print("result", result)
