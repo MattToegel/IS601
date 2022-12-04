@@ -25,6 +25,9 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{url_for('shop.shop_list')}}">Shop</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{url_for('shop.cart')}}">Cart</a>
                     </li>
                     <li class="nav-item">
                     <a class="nav-link" href="{{url_for('auth.profile')}}">Profile</a>
@@ -62,7 +65,7 @@
                 {% if current_user.is_authenticated %}
                 Balance: {{current_user.get_balance()}}
                 {% endif %}
-              </span>
+            </span>
         </div>
     </div>
 </nav>

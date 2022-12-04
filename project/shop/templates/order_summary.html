@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+{% block title %}Order Confirmation{% endblock %}
+
+<!-- content -->
+{% block content %}
+<div class="container-fluid">
+    <div class="h4">Order Confirmation</div>
+    <div class="h5">Thank you for your investment, may it help you survive the night</div>
+    <table class="table text-light bg-dark">
+        <thead>
+            <th>Order ID</th>
+            <th>Total Spent</th>
+            <th>Total Items</th>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{order.order_id}}</td>
+                <td>{{order.total}}</td>
+                <td>{{order.quantity}}</td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table text-light bg-dark">
+        <thread>
+            <tr>
+                <th>Item</th>
+                <th>Quantity</th>
+                <th>Subtotal</th>
+            </tr>
+        </thread>
+        <tbody>
+            {% set ns = namespace(total=0) %}
+            {% for row in rows %}
+            <tr>
+                <td>{{row["name"]}}</td>
+                <td style="width:10em">
+                    {{row["quantity"]}}
+                </td>
+                <td>{{row['subtotal']}}</td>
+                {# https://stackoverflow.com/a/51880609 #}
+                {% set ns.total = ns.total + row['subtotal'] %}
+            </tr>
+            {% endfor %}
+            <tr>
+                <td class="text-end" colspan="100%">
+                    Total: {{ns.total or 0}}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}

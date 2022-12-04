@@ -156,13 +156,15 @@ def cart():
 @shop.route("/purchase", methods=["GET","POST"])
 @login_required
 def purchase():
+    cart = []
+    total = 0
+    quantity = 0
+    order = {}
     try:
         DB.getDB().autocommit = False # make a transaction
 
         # get cart to verify
-        cart = []
-        total = 0
-        quantity = 0
+        
         result = DB.selectAll("""SELECT c.id, item_id, name, c.quantity, i.stock, c.cost as cart_cost, i.cost as item_cost, (c.quantity * c.cost) as subtotal 
         FROM IS601_S_Cart c JOIN IS601_S_Items i on c.item_id = i.id
         WHERE c.user_id = %s
@@ -190,18 +192,21 @@ def purchase():
         order_id = -1
         if not has_error:
             result = DB.insertOne("""INSERT INTO IS601_S_Orders (total_spent, number_of_items, user_id)
-            VALUES(%s, %s, %s,)""", total, quantity, current_user.get_id())
+            VALUES (%s, %s, %s)""", total, quantity, current_user.get_id())
             if not result.status:
                 flash("Error generating order", "danger")
                 DB.getDB().rollback()
                 has_error = True
             else:
                 order_id = int(DB.db.fetch_eof_status()["insert_id"])
+                order["order_id"] = order_id
+                order["total"] = total
+                order["quantity"] = quantity
         # record order history
         if order_id > -1 and not has_error:
             # Note: Not really an insert 1, it'll copy data from Table B into Table A
             result = DB.insertOne("""INSERT INTO IS601_S_OrderItems (quantity, cost, order_id, item_id, user_id)
-            SELECT quanttiy, cost, %s, item_id, user_id FROM IS601_S_Cart c WHERE c.user_id = %s""",
+            SELECT quantity, cost, %s, item_id, user_id FROM IS601_S_Cart c WHERE c.user_id = %s""",
             order_id, current_user.get_id())
             if not result.status:
                 flash("Error recording order history", "danger")
@@ -213,26 +218,34 @@ def purchase():
             attrs = [("life", -1), ("speed", -2), ("fire_rate", -3), ("damage", -4), ("radius", -5)]
             for attr, target_id in attrs:
                 try:
-                    result = DB.insertOne(f"""
+                    query = f"""
                     INSERT INTO IS601_S_Attributes (name, value, user_id)
-                    VALUES ({attr}, 0, %(uid)s)
+                    VALUES (%(attr)s,
+                    (SELECT IFNULL(SUM(quantity), 0) FROM IS601_S_OrderItems WHERE item_id = %(target_id)s and user_id = %(uid)s)
+                     , %(uid)s)
                     ON DUPLICATE KEY UPDATE 
-                    life = (SELECT IFNULL(SUM(quantity), 0) FROM IS601_S_OrderItems WHERE item_id = {target_id} and user_id = %(uid)s""",
-                    {"uid": current_user.get_id()})
+                    value = (SELECT IFNULL(SUM(quantity), 0) FROM IS601_S_OrderItems WHERE item_id = %(target_id)s and user_id = %(uid)s)
+                    """
+                    print(f"{attr} query", query)
+                    result = DB.insertOne(query,
+                    {"uid": current_user.get_id(),
+                    "attr": attr,
+                    "target_id": int(target_id)})
                 except Exception as e:
                     print(f"Error updating attribute {attr}", e)
         # empty the cart
         if not has_error:
-            result = DB.query("DELETE FROM IS601_S_Cart WHERE user_id = %s", current_user.get_id())
-        
-
+            result = DB.delete("DELETE FROM IS601_S_Cart WHERE user_id = %s", current_user.get_id())
     
         if not has_error:
-            details = f"Sent {total} on {quantity} upgrades" # TBD
+            details = f"Spent {total} on {quantity} upgrades" # TBD
             current_user.account.remove_points(-total, reason="purchase", details=details)
             DB.getDB().commit()
+            flash("Purchase successful!", "success")
     except Exception as e:
         print("Transaction exception", e)
         flash("Something went wrong", "danger")
+        traceback.print_exc()
     # TODO route to thank you / summary page
     # TODO add link from cart page to this route
+    return render_template("order_summary.html", rows=cart, order=order)
