@@ -233,4 +233,6 @@ def purchase():
             DB.getDB().commit()
     except Exception as e:
         print("Transaction exception", e)
-        flash("Something went wrong", "danger")    
+        flash("Something went wrong", "danger")
+    # TODO route to thank you / summary page
+    # TODO add link from cart page to this route
