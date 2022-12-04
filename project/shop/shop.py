@@ -84,6 +84,7 @@ def shop_list():
     return render_template("shop.html", rows=rows)
 
 @shop.route("/cart", methods=["GET","POST"])
+@login_required
 def cart():
     item_id = request.form.get("item_id")
     id = request.form.get("id", item_id)
@@ -151,3 +152,85 @@ def cart():
         print("Error getting cart", e)
         flash("Error fetching cart", "danger")
     return render_template("cart.html", rows=rows)
+
+@shop.route("/purchase", methods=["GET","POST"])
+@login_required
+def purchase():
+    try:
+        DB.getDB().autocommit = False # make a transaction
+
+        # get cart to verify
+        cart = []
+        total = 0
+        quantity = 0
+        result = DB.selectAll("""SELECT c.id, item_id, name, c.quantity, i.stock, c.cost as cart_cost, i.cost as item_cost, (c.quantity * c.cost) as subtotal 
+        FROM IS601_S_Cart c JOIN IS601_S_Items i on c.item_id = i.id
+        WHERE c.user_id = %s
+        """, current_user.get_id())
+        if result.status and result.rows:
+            cart = result.rows
+        # verify cart
+        has_error = False
+        for item in cart:
+            if item["quantity"] > item["stock"]:
+                flash(f"Item {item['name']} doesn't have enough stock left", "warning")
+                has_error = True
+            if item["cart_cost"] != item["item_cost"]:
+                flash(f"Item {item['name']}'s price has changed, please refresh cart", "warning")
+                has_error = True
+            total += int(item["subtotal"] or 0)
+            quantity += int(item["quantity"])
+        # check can afford
+        if not has_error:
+            balance = int(current_user.get_balance())
+            if total > balance:
+                flash("You can't afford to make this purchase", "danger")
+                has_error = True
+        # create order data
+        order_id = -1
+        if not has_error:
+            result = DB.insertOne("""INSERT INTO IS601_S_Orders (total_spent, number_of_items, user_id)
+            VALUES(%s, %s, %s,)""", total, quantity, current_user.get_id())
+            if not result.status:
+                flash("Error generating order", "danger")
+                DB.getDB().rollback()
+                has_error = True
+            else:
+                order_id = int(DB.db.fetch_eof_status()["insert_id"])
+        # record order history
+        if order_id > -1 and not has_error:
+            # Note: Not really an insert 1, it'll copy data from Table B into Table A
+            result = DB.insertOne("""INSERT INTO IS601_S_OrderItems (quantity, cost, order_id, item_id, user_id)
+            SELECT quanttiy, cost, %s, item_id, user_id FROM IS601_S_Cart c WHERE c.user_id = %s""",
+            order_id, current_user.get_id())
+            if not result.status:
+                flash("Error recording order history", "danger")
+                has_error = True
+                DB.getDB().rollback()
+        # apply purchase (specific to my project)
+        if not has_error:
+            # here I'm using a known item_id to update my player's stats
+            attrs = [("life", -1), ("speed", -2), ("fire_rate", -3), ("damage", -4), ("radius", -5)]
+            for attr, target_id in attrs:
+                try:
+                    result = DB.insertOne(f"""
+                    INSERT INTO IS601_S_Attributes (name, value, user_id)
+                    VALUES ({attr}, 0, %(uid)s)
+                    ON DUPLICATE KEY UPDATE 
+                    life = (SELECT IFNULL(SUM(quantity), 0) FROM IS601_S_OrderItems WHERE item_id = {target_id} and user_id = %(uid)s""",
+                    {"uid": current_user.get_id()})
+                except Exception as e:
+                    print(f"Error updating attribute {attr}", e)
+        # empty the cart
+        if not has_error:
+            result = DB.query("DELETE FROM IS601_S_Cart WHERE user_id = %s", current_user.get_id())
+        
+
+    
+        if not has_error:
+            details = f"Sent {total} on {quantity} upgrades" # TBD
+            current_user.account.remove_points(-total, reason="purchase", details=details)
+            DB.getDB().commit()
+    except Exception as e:
+        print("Transaction exception", e)
+        flash("Something went wrong", "danger")    
