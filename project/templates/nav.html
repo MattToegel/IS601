@@ -24,6 +24,9 @@
                     <a class="nav-link" href="{{url_for('game.play')}}">Play</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="{{url_for('shop.shop_list')}}">Shop</a>
+                    </li>
+                    <li class="nav-item">
                     <a class="nav-link" href="{{url_for('auth.profile')}}">Profile</a>
                 </li>
                 <!-- samples nav -->
@@ -40,6 +43,14 @@
                 ("roles.assign", "Assign")
                 ] %}
                 {{dropdown_nav("Roles", roles)}}
+                {% endif %}
+                <!-- items nav (requires admin )-->
+                {% if current_user.has_role("Admin") %}
+                {% set roles = [
+                ("shop.item", "Add"),
+                ("shop.items", "List")
+                ] %}
+                {{dropdown_nav("Items", roles)}}
                 {% endif %}
                 <li class="nav-item">
                     <a class="nav-link" href="{{url_for('auth.logout')}}">Logout</a>
