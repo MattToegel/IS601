@@ -24,6 +24,9 @@
                     </div>
                 </div>
                 <div class="card-footer">
+                    <div class="card-text lead">
+                        Cost: {{row["cost"]}}
+                    </div>
                     <form action="{{url_for('shop.cart')}}" method="POST">
                         <input type="hidden" name="id" value="{{row['id']}}" />
                         <input type="number" class="form-control" name="q" value="1" />
