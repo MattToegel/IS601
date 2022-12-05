@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% block title %}Orders{% endblock %}
+
+<!-- content -->
+{% block content %}
+{% from "_table_helper.html" import render_table %}
+{% set view = "shop.order" %}
+{{render_table("Orders", rows, ["user_id"], view)}}
+{% endblock %}

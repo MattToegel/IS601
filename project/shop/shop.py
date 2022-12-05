@@ -1,3 +1,4 @@
+import traceback
 from flask import Blueprint, request, flash, render_template, redirect, url_for
 from werkzeug.datastructures import MultiDict
 from shop.forms import ItemForm
@@ -212,6 +213,18 @@ def purchase():
                 flash("Error recording order history", "danger")
                 has_error = True
                 DB.getDB().rollback()
+        # update stock based on cart data
+        if not has_error:
+            result = DB.update("""
+            UPDATE IS601_S_Items 
+                set stock = stock - (select IFNULL(quantity, 0) FROM IS601_S_Cart WHERE item_id = IS601_S_Items.id and user_id = %(uid)s) 
+                WHERE id in (SELECT item_id from IS601_S_Cart where user_id = %(uid)s)
+            """, {"uid":current_user.get_id()} )
+            if not result.status:
+                flash("Error updating stock", "danger")
+                has_error = True
+                DB.getDB().rollback()
+
         # apply purchase (specific to my project)
         if not has_error:
             # here I'm using a known item_id to update my player's stats
@@ -242,6 +255,8 @@ def purchase():
             current_user.account.remove_points(-total, reason="purchase", details=details)
             DB.getDB().commit()
             flash("Purchase successful!", "success")
+        else:
+            return redirect(url_for("shop.cart"))
     except Exception as e:
         print("Transaction exception", e)
         flash("Something went wrong", "danger")
@@ -249,3 +264,40 @@ def purchase():
     # TODO route to thank you / summary page
     # TODO add link from cart page to this route
     return render_template("order_summary.html", rows=cart, order=order)
+
+@shop.route("/orders", methods=["GET"])
+@login_required
+def orders():
+    rows = []
+    try:
+        result = DB.selectAll("""
+        SELECT id, total_spent, number_of_items, created FROM IS601_S_Orders WHERE user_id = %s
+        """, current_user.get_id())
+        if result.status and result.rows:
+            rows = result.rows
+    except Exception as e:
+        print("Error getting orders", e)
+        flash("Error fetching orders", "danger")
+    return render_template("orders.html", rows=rows)
+
+@shop.route("/order", methods=["GET"])
+@login_required
+def order():
+    rows = []
+    total = 0
+    id = request.args.get("id")
+    if not id:
+        flash("Invalid order", "danger")
+        return redirect(url_for("shop.orders"))
+    try:
+        # locking query to order_id and user_id so the user can see only their orders
+        result = DB.selectAll("""
+        SELECT name, oi.cost, oi.quantity, (oi.cost*oi.quantity) as subtotal FROM IS601_S_OrderItems oi JOIN IS601_S_Items i on oi.item_id = i.id WHERE order_id = %s ANd user_id = %s
+        """, id, current_user.get_id())
+        if result.status and result.rows:
+            rows = result.rows
+            total = sum(int(row["subtotal"]) for row in rows)
+    except Exception as e:
+        print("Error getting order", e)
+        flash("Error fetching order", "danger")
+    return render_template("order.html", rows=rows, total=total)
