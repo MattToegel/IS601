@@ -80,6 +80,12 @@ def create_app(config_filename=''):
             if hasattr(current_user, 'roles'):
                 for role in current_user.roles:
                     identity.provides.add(RoleNeed(role.name))
+        # DON'T DELETE, this cleans up the DB connection after each request
+        # this avoids sleeping queries
+        @app.teardown_request 
+        def after_request_cleanup(ctx):
+            from sql.db import DB
+            DB.close()
         return app
 
 
