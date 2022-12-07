@@ -10,6 +10,7 @@ class Account(JsonSerializable):
         return self.__change_points(self.id, to_acct, change, reason, details)
     def __change_points(self, src, dest, change, reason, details):
         from sql.db import DB
+        DB.getDB().autocommit = False
         if change > 0:
             # first of the pair should be negative
             change *= -1
@@ -25,11 +26,13 @@ class Account(JsonSerializable):
             result = DB.insertMany(query, pairs)
             if result.status:
                 print("Recored transations pairs", src, src, change, reason, details)
-                self.__update_balance()
-                return True
+                if self.__update_balance():
+                    DB.getDB().commit()
+                    return True
         except Exception as e:
             print("Error recording point history", e)
-            return False
+            DB.getDB().rollback()
+        return False
     def __update_balance(self):
         from sql.db import DB
         try:
@@ -45,5 +48,8 @@ class Account(JsonSerializable):
                     from flask import session
                     from flask_login import current_user
                     session["user"] = current_user.toJson()
+                    return True
         except Exception as e:
             print("Error updating balance", e)
+            DB.getDB().rollback()
+        return False
