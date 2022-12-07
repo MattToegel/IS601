@@ -4,6 +4,7 @@
 {% from "_formhelpers.html" import render_field %}
 <div class="container-fluid">
     <div class="h3">{{type}} Competition</div>
+    
     <form method="POST">
         {{ form.hidden_tag() }}
         {{render_field(form.title)}}
@@ -17,6 +18,7 @@
         {{render_field(form.duration)}}
         {{render_field(form.min_score)}}
         {{form.submit(class="btn btn-primary")}}
+        <small>Cost = join fee + starting reward + 1</small>
     </form>
 </div>
 {% endblock %}

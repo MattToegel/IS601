@@ -2,9 +2,9 @@ from flask import Blueprint, render_template, flash, request, url_for, redirect
 from accounts.models import Account
 from competitions.forms import CompForm
 from flask_login import login_required, current_user
-comp = Blueprint('comp', __name__, url_prefix='/comp',template_folder='templates')
+comps = Blueprint('comp', __name__, url_prefix='/comp',template_folder='templates')
 from sql.db import DB
-@comp.route("/create", methods=["GET","POST"])
+@comps.route("/create", methods=["GET","POST"])
 @login_required
 def create():
     form = CompForm()
@@ -41,7 +41,7 @@ def create():
                 flash("Error creating competition", "danger")
     return render_template("competition.html", form=form)
 
-@comp.route("/list", methods=["GET","POST"])
+@comps.route("/list", methods=["GET","POST"])
 @login_required
 def list():
     rows = []
@@ -59,7 +59,7 @@ def list():
         flash("Error fetching cometitions", "danger")
     return render_template("competitions.html", rows=rows)
 
-@comp.route("/join", methods=["GET"])
+@comps.route("/join", methods=["GET"])
 @login_required
 def join():
     id = request.args.get("id")
@@ -122,7 +122,7 @@ def get_comp_scores(id, limit = 10):
         flash("Error getting competition scores", "danger")
     return scores
 
-@comp.route("/scores", methods=["GET"])
+@comps.route("/scores", methods=["GET"])
 @login_required
 def scores():
     id = request.args.get("id")

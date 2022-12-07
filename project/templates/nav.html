@@ -28,11 +28,12 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{url_for('shop.cart')}}">Cart</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{url_for('shop.orders')}}">Orders</a>
-                        </li>
-                        <li class="nav-item">
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{{url_for('shop.orders')}}">Orders</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="{{url_for('auth.profile')}}">Profile</a>
                 </li>
                 <!-- samples nav -->
@@ -41,6 +42,12 @@
                 ("sample.list", "List"),
                 ] %}
                 {{dropdown_nav("Samples", samples)}}
+                <!-- competitions -->
+                {% set samples = [
+                ("comp.create", "Add"),
+                ("comp.list", "List"),
+                ] %}
+                {{dropdown_nav("Competitions", samples)}}
                 <!-- roles nav (requires admin )-->
                 {% if current_user.has_role("Admin") %}
                 {% set roles = [

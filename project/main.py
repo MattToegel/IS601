@@ -48,8 +48,8 @@ def create_app(config_filename=''):
         app.register_blueprint(game)
         from shop.shop import shop
         app.register_blueprint(shop)
-        from competitions.comps import comp
-        app.register_blueprint(comp)
+        from competitions.comps import comps
+        app.register_blueprint(comps)
         # load the extension
         principals = Principal(app) # must be defined/initialized for identity to work (flask_principal)
         @login_manager.user_loader
