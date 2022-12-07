@@ -1,0 +1,8 @@
+{% extends "layout.html" %}
+{% block title %}Competition Scores{% endblock %}
+
+<!-- content -->
+{% block content %}
+{% from "_table_helper.html" import render_table %}
+{{render_table("Competition Scores (Top 10)", rows, ["user_id", "account_id"])}}
+{% endblock %}

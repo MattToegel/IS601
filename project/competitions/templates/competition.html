@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+{% block title %}{{type}} Competition{% endblock %}
+{% block content %}
+{% from "_formhelpers.html" import render_field %}
+<div class="container-fluid">
+    <div class="h3">{{type}} Competition</div>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        {{render_field(form.title)}}
+        {{render_field(form.min_participants)}}
+        {{render_field(form.join_cost)}}
+        {{render_field(form.fp)}}
+        {{render_field(form.sp)}}
+        {{render_field(form.tp)}}
+        {{render_field(form.payout_options)}}
+        {{render_field(form.starting_reward)}}
+        {{render_field(form.duration)}}
+        {{render_field(form.min_score)}}
+        {{form.submit(class="btn btn-primary")}}
+    </form>
+</div>
+{% endblock %}

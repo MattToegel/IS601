@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+{% block title %}Competitions{% endblock %}
+
+<!-- content -->
+{% block content %}
+<div class="container-fluid">
+    <div class="h4">Competitions</div>
+    <table class="table bg-dark text-light">
+        <thread>
+            <th>Title</th>
+            <th>Participants</th>
+            <th>Reward/Payout</th>
+            <th>Requirements</th>
+            <th>Expires</th>
+            <th>Actions</th>
+        </thread>
+        <tbody>
+            {% for row in rows %}
+            <tr>
+                <td>{{row["title"]}}</td>
+                <td>{{row["current_participants"]}}/{{row["min_participants"]}}</td>
+                <td>
+                    <p>Reward: {{row["current_reward"]}}</p>
+                    <p>Payouts: {{row["payout_options"]}}</p>
+                </td>
+                <td>Score >= {{row["min_score"]}}</td>
+                <td>{{row["expires"]}}</td>
+                <td>
+                    {% if row["joined"] > 0 %}
+                    Already Joined
+                    {% else %}
+                    <a href="{{url_for('comp.join', id=row['id'])}}" class="btn btn-primary">Join
+                        (cost: {{row["join_cost"]}})</a>
+                    {% endif %}
+                    <a href="{{url_for('comp.scores', id=row['id'])}}"
+                        class="btn btn-secondary">Scores</a>
+                </td>
+            </tr>
+            {% endfor %}
+            {% if not rows or rows|length == 0 %}
+            <tr>
+                <td colspan="100%">No active competitions</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

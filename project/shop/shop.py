@@ -252,7 +252,7 @@ def purchase():
     
         if not has_error:
             details = f"Spent {total} on {quantity} upgrades" # TBD
-            current_user.account.remove_points(-total, reason="purchase", details=details)
+            current_user.account.remove_points(change=-total, reason="purchase", details=details)
             DB.getDB().commit()
             flash("Purchase successful!", "success")
         else:

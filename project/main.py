@@ -14,6 +14,7 @@ CURR_DIR = os.path.dirname(os.path.abspath(__file__))
 print(CURR_DIR)
 sys.path.append(CURR_DIR)
 
+cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
 # custom error pages
 def page_not_found(e):
     return render_template('404.html'), 404
@@ -29,7 +30,9 @@ def create_app(config_filename=''):
     app.register_error_handler(404, page_not_found)
     app.register_error_handler(403, permission_denied)
     app.secret_key = os.environ.get("SECRET_KEY", "missing_secret")
-    app.cache = Cache(app,config={'CACHE_TYPE': 'SimpleCache'})
+    # app.cache = Cache(app,config={'CACHE_TYPE': 'SimpleCache'})
+    cache.init_app(app)
+    app.cache = cache
     login_manager.init_app(app)
     # app.config.from_pyfile(config_filename)
     with app.app_context():
@@ -45,6 +48,8 @@ def create_app(config_filename=''):
         app.register_blueprint(game)
         from shop.shop import shop
         app.register_blueprint(shop)
+        from competitions.comps import comp
+        app.register_blueprint(comp)
         # load the extension
         principals = Principal(app) # must be defined/initialized for identity to work (flask_principal)
         @login_manager.user_loader
@@ -84,6 +89,18 @@ def create_app(config_filename=''):
             if hasattr(current_user, 'roles'):
                 for role in current_user.roles:
                     identity.provides.add(RoleNeed(role.name))
+        # lazy calc winners, normally would be a batch job
+        # will use caching to limit the hits on the DB
+        @cache.cached(timeout=30) # cache for 30 seconds since this is expensive
+        def call_calc_winners():
+            print("calc winners called")
+            from competitions.comps import calc_winners
+            calc_winners()
+            return "calced" # needs to return something to get cached
+
+        @app.teardown_request 
+        def lazy_calc_winners_trigger(ctx):
+            call_calc_winners()
         # DON'T DELETE, this cleans up the DB connection after each request
         # this avoids sleeping queries
         @app.teardown_request 
