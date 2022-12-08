@@ -4,6 +4,28 @@ from competitions.forms import CompForm
 from flask_login import login_required, current_user
 comps = Blueprint('comp', __name__, url_prefix='/comp',template_folder='templates')
 from sql.db import DB
+
+def join_competition(id, user_id):
+    DB.getDB().autocommit = False
+    result = DB.insertOne("INSERT INTO IS601_S_UserComps (comp_id, user_id) VALUES (%s, %s)", id, user_id)
+    if result.status:
+        result = DB.update("""UPDATE IS601_S_Comps c set current_participants = 
+        (SELECT IFNULL(count(1), 0) FROM IS601_S_UserComps uc WHERE uc.comp_id = c.id),
+        current_reward = starting_reward + CEIL((SELECT IFNULL(count(1), 0) FROM IS601_S_UserComps uc WHERE uc.comp_id = c.id) * 0.5)
+        WHERE id = %s
+        """, id)
+        if result.status:
+            #flash("Successfully joined competition" ,"success")
+            DB.getDB().commit()
+            return True
+        else:
+            flash("Error updating competition stats", "danger")
+            DB.getDB().rollback()
+    else:
+        flash("Problem registering to competition", "danger")
+        DB.getDB().rollback()
+    return False
+
 @comps.route("/create", methods=["GET","POST"])
 @login_required
 def create():
@@ -35,6 +57,9 @@ def create():
                 form.min_score.data,
                 current_user.get_id())
                 if result.status:
+                    # add the creator to the competition
+                    comp_id = int(DB.db.fetch_eof_status()["insert_id"])
+                    join_competition(comp_id, current_user.get_id())
                     flash("Created competition", "success")
             except Exception as e:
                 print("Error creating competition" ,e)
@@ -78,22 +103,8 @@ def join():
                 if(not current_user.account.remove_points(change=-cost, reason="join_comp", details=f"Joined {title} for {cost} credits")):
                     flash("Error performing transaction", "danger")
                 else:
-                    result = DB.insertOne("INSERT INTO IS601_S_UserComps (comp_id, user_id) VALUES (%s, %s)", id, current_user.get_id())
-                    if result.status:
-                        result = DB.update("""UPDATE IS601_S_Comps c set current_participants = 
-                        (SELECT IFNULL(count(1), 0) FROM IS601_S_UserComps uc WHERE uc.comp_id = c.id),
-                        current_reward = starting_reward + CEIL((SELECT IFNULL(count(1), 0) FROM IS601_S_UserComps uc WHERE uc.comp_id = c.id) * 0.5)
-                        WHERE id = %s
-                        """, id)
-                        if result.status:
-                            flash("Successfully joined competition" ,"success")
-                            DB.getDB().commit()
-                        else:
-                            flash("Error updating competition stats", "danger")
-                            DB.getDB().rollback()
-                    else:
-                        flash("Problem registering to competition", "danger")
-                        DB.getDB().rollback()
+                    if join_competition(id, current_user.get_id()):
+                        flash("Successfully joined competition" ,"success")
     except Exception as e:
         print("Error joining competition" ,e)
         DB.getDB().rollback()
@@ -176,6 +187,10 @@ def calc_winners():
                 else:
                     result = DB.update("UPDATE IS601_S_Comps set did_calc=1 WHERE id = %s", row['id'])
                     print(f"Invalid comp; closed comp {row['id']}")
+                # update all expired invalid competitions to did calc
+                result = DB.update("""
+               UPDATE IS601_S_Comps SET did_calc = 1 WHERE expires <= CURRENT_TIMESTAMP() AND did_calc = 0 AND current_participants < min_participants 
+                """,)
                 DB.getDB().commit()
         else:
             print("No competitions to calculate")
