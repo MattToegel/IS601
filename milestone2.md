@@ -61,3 +61,43 @@ including the transaction logic_)
 
 The account number generation is done by using the random library in Python. The account creation process includes the transaction logic. The transaction logic is responsible for the initial deposit of the account.
 (_Sub-Task 5: Add related pull request link(s)_)
+https://github.com/MattToegel/IS601/pull/24
+
+
+(_Sub-Task 6: Add a direct link to heroku prod for this file_).
+https://github.com/zaid-kashif/IS601/blob/main/.github/workflows/Acc%20Heroku%20Deployment.yml
+
+**Deliverable 4: User will be able to list their accounts (pts. 1.5)**
+(_Sub-Task 1: Add a screenshot showing the user's account list view (show 5 accounts)_)
+![FiveRecords.png](FiveRecords.png)
+
+Screenshots URL: /FiveRecords.png
+
+Caption: The screenshot shows the user's account list view (show 5 accounts).
+
+(_Sub-Task 2: Briefly explain how the page is displayed and the data lookup occurs_)
+The page is displayed by using the for loop in the Python code. The data lookup occurs by using the query in the Python code.
+
+(_Sub-Task 3: Add related pull request link(s)_)
+https://github.com/MattToegel/IS601/pull/24
+
+(_Sub-Task 4: Add a direct link to heroku prod for this file_)
+https://github.com/zaid-kashif/IS601/blob/main/.github/workflows/Acc%20Heroku%20Deployment.yml
+
+**Deliverable 5: Account Transaction Details (pts. 1.5)**
+![FiveRecords.png](FiveRecords.png)
+Screenshots URL: /FiveRecords.png
+Caption: The screenshot shows the user's account History view (show 5 transactions).
+
+
+(_Sub-Task 2: Explain how the lookup and display occurs_)
+The lookup and display occurs by using the query in the Python code.
+
+(_Sub-Task 3: Add related pull request link(s)_)
+https://github.com/MattToegel/IS601/pull/24
+
+(_Sub-Task 4: Add a direct link to heroku prod for this file_)
+
+**Deliverable 6: Deposit/Withdraw (pts. 1.5)**
+(_Sub-Task 1: Add a screenshot showing the deposit page_)
+![DepositPage.png](DepositPage.png)
