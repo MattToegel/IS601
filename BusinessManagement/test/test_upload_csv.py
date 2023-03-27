@@ -50,10 +50,10 @@ def test_upload_csv(client):
     employee_count = len(employees)
     from ..sql.db import DB
     format_strings = ','.join(['%s'] * company_count)
-    result = DB.selectOne("SELECT count(1) as c FROM IS601_MP2_Companies WHERE name in (%s)" % format_strings, *tuple(companies))
+    result = DB.selectOne("SELECT count(1) as c FROM IS601_MP3_Companies WHERE name in (%s)" % format_strings, *tuple(companies))
     print(result.row)
     assert result.row["c"] == company_count
     format_strings = ','.join(['%s'] * employee_count)
-    result = DB.selectOne("SELECT count(1) as e FROM IS601_MP2_Employees WHERE CONCAT_WS('',first_name, last_name) in (%s)" % format_strings, *tuple(employees))
+    result = DB.selectOne("SELECT count(1) as e FROM IS601_MP3_Employees WHERE CONCAT_WS('',first_name, last_name) in (%s)" % format_strings, *tuple(employees))
     print(result.row)
     assert result.row["e"] == employee_count

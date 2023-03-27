@@ -1,60 +1,61 @@
 {% extends "layout.html" %}
 {% block title %}Company Directory{% endblock %}
 {% block content %}
+{% from "country_state_selector.html" import country_state_selector %}
+{% from "sort_filter.html" import sort_filter %}
 <div class="container-fluid">
     <div class="h1 text-center">Company Directory</div>
     {# TODO
     build a horizontal filter/sort form with
-    name (company name)
+    name (show as company name but name field should be name)
     country/state (provided)
     sort/order (using allowed_columns and provided partial template)
-    limit
+    limit (default 10)
     ensure all fields prefill with request arg data if provided
     #}
     <form method="GET">
-        {% with layout = "horizontal" %}
-        {% include "country_state_selector.html" %}
-        {% endwith %}
-        {% with cols = [] %}
-        {% include "sort_filter.html" %}
-        {% endwith %}
-        
-        <div class="col-12">
-            <input type="submit" class="btn btn-primary" value="Filter" />
-        </div>
-        <div class="col-12">
-            <a href="?" class="btn btn-secondary">Reset</a>
+        <div class="row">
+            {{country_state_selector(layout="horizontal")}}
+            {{sort_filter(cols=[...])}}
+            <div class="col">
+                <input type="submit" class="btn btn-primary" value="Filter" />
+            </div>
+            <div class="col">
+                <a href="?" class="btn btn-secondary">Reset</a>
+            </div>
         </div>
     </form>
     <div class="table-responsive">
-    <table class="table">
-        {% if rows and rows|length > 0 %}
-        <thead>
-            <tr class="text-capitalize">
-                {# generate th tags for each column to display #}
-                {# IMPORTANT use table column names as the headings, replace _ with space #}
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {# generate tr with td tags for each piece of data #}
-            {# if the td is for website, display it as a link where the text is "website" and the url is the
-            website url #}
-            {# in the last column add the following
-            a view button that passes the company id to employee search (this will be a company employee
-            directory) also pass company_name as an argument
-            an edit button that passes the company id to company edit
-            a delete button that passes the company id and the request args to the company delete route
-            #}
-        </tbody>
-        {% else %}
-        <tbody>
-            <tr>
-                <td colspan="100%">No results to show</td>
-            </tr>
-        </tbody>
-        {% endif %}
-    </table>
+        <table class="table">
+            {% if rows and rows|length > 0 %}
+            <thead>
+                <tr class="text-capitalize">
+                    {# generate th tags for each column to display #}
+                    {# IMPORTANT use table column names as the headings, replace _ with space via filter #}
+
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {# generate tr with td tags for each piece of data #}
+                {# if the td is for website, display it as a link where the text is "website" and the url is the
+                website url #}
+                {# in the last column add the following
+                a view button that passes the company id to employee search (this will be a company employee
+                directory) also pass company_name as an argument
+                an edit button that passes the company id to company edit
+                a delete button that passes the company id and the request args to the company delete route
+                #}
+
+            </tbody>
+            {% else %}
+            <tbody>
+                <tr>
+                    <td colspan="100%">No results to show</td>
+                </tr>
+            </tbody>
+            {% endif %}
+        </table>
     </div>
 </div>
 {% endblock %}

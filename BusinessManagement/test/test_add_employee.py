@@ -14,7 +14,7 @@ def app():
     yield app
     try:
         DB.getDB().autocommit = True
-        DB.delete("DELETE FROM IS601_MP2_Employees WHERE first_name = %s and last_name=%s", "delme","delme")
+        DB.delete("DELETE FROM IS601_MP3_Employees WHERE first_name = %s and last_name=%s", "delme","delme")
         # reset AUTO_INCREMENT value to max id + 1 so test cases don't cause large id gaps
 
         # this needs to run at the end of the other tests
@@ -23,7 +23,7 @@ def app():
         # kill #;
         # the # will be the process id of the sleeping query
         result = DB.query(""" set session wait_timeout = 1;
-        ALTER TABLE IS601_MP2_Employees AUTO_INCREMENT = 1;
+        ALTER TABLE IS601_MP3_Employees AUTO_INCREMENT = 1;
         """)
         print("result", result.status)
     except Exception as e:
@@ -50,7 +50,7 @@ def test_add_employee(client):
         "email": "delme@delme.com"
     }, follow_redirects=True )
     assert resp.status_code == 200
-    result = DB.selectOne("SELECT id from IS601_MP2_Employees where first_name = %s and last_name = %s LIMIT 1", 'delme', 'delme')
+    result = DB.selectOne("SELECT id from IS601_MP3_Employees where first_name = %s and last_name = %s LIMIT 1", 'delme', 'delme')
     if result and result.row:
         id = int(result.row["id"])
         print("id", id)

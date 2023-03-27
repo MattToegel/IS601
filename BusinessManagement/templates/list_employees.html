@@ -1,34 +1,34 @@
 {% extends "layout.html" %}
 {% block title %}Employee Directory{% endblock %}
 {% block content %}
+{% from "company_dropdown.html" import company_dropdown %}
+{% from "sort_filter.html" import sort_filter %}
 <div class="container-fluid">
     <div class="h1 text-center">{{request.args.get("company_name","")}} Employee Directory</div>
     <form method="GET">
         {# TODO
         build a horizontal filter/sort form with
-        first_name
-        last_name
-        email
-        company (provided)
+        first_name (show as first name, but name should be fn)
+        last_name (show as last name, but name should be ln)
+        email (validate as text, not email, so partial match works)
+        company (provided) (name is company value is the id)
         sort/order (using allowed_columns and provided partial template)
-        limit
+        limit (default 10)
         ensure all fields prefill with request arg data if provided
         #}
-        <div class="col-12">
-            <label class="visually-hidden" for="company">Company</label>
-            {% with val = request.args.get("company", '') %}
-            {% include "company_dropdown.html" %}
-            {% endwith %}
-        </div>
-        {% with cols = [] %}
-        {% include "sort_filter.html" %}
-        {% endwith %}
-        
-        <div class="col-12">
-            <input type="submit" class="btn btn-primary" value="Filter" />
-        </div>
-        <div class="col-12">
-            <a href="?" class="btn btn-secondary">Reset</a>
+
+        <div class="row">
+            <div class="col">
+                <label class="visually-hidden" for="company">Company</label>
+                {{company_dropdown(request.args.get("company"))}}
+            </div>
+            {{sort_filter(cols=[...])}}
+            <div class="col">
+                <input type="submit" class="btn btn-primary" value="Filter" />
+            </div>
+            <div class="col">
+                <a href="?" class="btn btn-secondary">Reset</a>
+            </div>
         </div>
     </form>
     <table class="table">
@@ -36,7 +36,8 @@
         <thead>
             <tr class="text-capitalize">
                 {# generate th tags for each column to display #}
-                {# IMPORTANT use table column names as the headings, replace _ with space #}
+                {# IMPORTANT use table column names as the headings, replace _ with space via filter #}
+
                 <th>Actions</th>
             </tr>
         </thead>
@@ -46,6 +47,7 @@
             an edit button that passes the employee id to employee edit
             a delete button that passes the employee id and the request args to the employee delete route
             #}
+
         </tbody>
         {% else %}
         <tbody>

@@ -20,25 +20,40 @@ def importCSV():
         if file and secure_filename(file.filename):
             companies = []
             employees = []
+            # DON'T EDIT
             company_query = """
-            INSERT INTO IS601_MP2_Companies (name, address, city, country, state, zip, website)
+            INSERT INTO IS601_MP3_Companies (name, address, city, country, state, zip, website)
                         VALUES (%(name)s, %(address)s, %(city)s, %(country)s, %(state)s, %(zip)s, %(website)s)
-                        ON DUPLICATE KEY UPDATE address = %(address)s, city = %(city)s, country=%(country)s, state=%(state)s, zip=%(zip)s, website=%(website)s 
+                        ON DUPLICATE KEY UPDATE 
+                        address=values(address),
+                        city=values(city),
+                        country=values(country),
+                        state=values(state),
+                        zip=values(zip),
+                        website=values(website)
             """
+            # DON'T EDIT
             employee_query = """
-             INSERT INTO IS601_MP2_Employees (first_name, last_name, email, company_id)
-                        VALUES (%(first_name)s, %(last_name)s, %(email)s, (SELECT id FROM IS601_MP2_Companies WHERE name = %(company_name)s LIMIT 1))
-                        ON DUPLICATE KEY UPDATE first_name=%(first_name)s, last_name = %(last_name)s, email = %(email)s, company_id = (SELECT id FROM IS601_MP2_Companies WHERE name = %(company_name)s LIMIT 1)
+             INSERT INTO IS601_MP3_Employees (first_name, last_name, email, company_id)
+                        VALUES (%(first_name)s, %(last_name)s, %(email)s, (SELECT id FROM IS601_MP3_Companies WHERE name = %(company_name)s LIMIT 1))
+                        ON DUPLICATE KEY UPDATE first_name=%(first_name)s, 
+                        last_name = %(last_name)s, email = %(email)s, 
+                        company_id = (SELECT id FROM IS601_MP3_Companies WHERE name=%(company_name)s LIMIT 1)
             """
             # Note: this reads the file as a stream instead of requiring us to save it
             stream = io.TextIOWrapper(file.stream._file, "UTF8", newline=None)
             # TODO importcsv-2 read the csv file stream as a dict
+            
             for row in ...:
+                pass # todo remove
                 # print(row) #example
-                # TODO importcsv-3 extract company data and append to company list as a dict only with company data
-
-                # TODO importcsv-4 extract employee data and append to employee list as a dict only with employee data
-                pass
+                # TODO importcsv-3 extract company data and append to company list 
+                # as a dict only with company data if all is present
+                
+                # TODO importcsv-4 extract employee data and append to employee list 
+                # as a dict only with employee data if all is present
+                
+               
                
             if len(companies) > 0:
                 print(f"Inserting or updating {len(companies)} companies")
@@ -62,4 +77,10 @@ def importCSV():
             else:
                  # TODO importcsv-8 display flash message (info) that no companies were loaded
                 pass
+            try:
+                result = DB.selectOne("SHOW SESSION STATUS LIKE 'questions'")
+                print(f"Result {result}")
+            except Exception as e:
+                    traceback.print_exc()
+                    flash("There was an error counting session queries", "danger")
     return render_template("upload.html")

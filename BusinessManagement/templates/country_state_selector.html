@@ -1,16 +1,16 @@
 {# TODO DO NOT EDIT #}
+{% macro country_state_selector(country="", state="", layout="vertical") %}
 {% set c = request.args.get("country", request.form.get("country", country or '')) %}
 {% set s = request.args.get("state", request.form.get("state", state or '')) %}
 {% if layout and layout == 'horizontal' %}
 {# version for filter forms #}
-<div class="col-12">
+<div class="col">
     <label class="visually-hidden" for="country">Country</label>
-    <select name="country" id="country" class="form-select" value="{{c}}"
-        onchange="fetchStates(this.value)">
+    <select name="country" id="country" class="form-select" value="{{c}}" onchange="fetchStates(this.value)">
         <option value="">Select Country...</option>
     </select>
 </div>
-<div class="col-12">
+<div class="col">
     <label class="visually-hidden" for="state">State</label>
     <select name="state" id="state" class="form-select" value="{{s}}">
         <option value="">Select State...</option>
@@ -20,14 +20,13 @@
 {# version for add/edit forms #}
 <div class="form-group mb-3">
     <label class="form-label" for="country">Country</label>
-    <select name="country" id="country" class="form-select" value="{{c}}"
-        onchange="fetchStates(this.value)">
+    <select name="country" id="country" class="form-select" value="{{c}}" required onchange="fetchStates(this.value)">
         <option value="">Select Country...</option>
     </select>
 </div>
 <div class="form-group mb-3">
     <label class="form-label" for="state">State</label>
-    <select name="state" id="state" class="form-select" value="{{s}}">
+    <select name="state" id="state" class="form-select" value="{{s}}" required>
         <option value="">Select State...</option>
     </select>
 </div>
@@ -86,3 +85,4 @@
             });
     });
 </script>
+{% endmacro %}

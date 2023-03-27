@@ -1,18 +1,21 @@
 {% extends "layout.html" %}
 {% block title %}Add Employee{% endblock %}
 {% block content %}
+{% from "company_dropdown.html" import company_dropdown %}
 <div class="container-fluid">
     <div class="h1">Add Employee</div>
     <div>
         <form method="POST">
             {#
             generate fields with proper types for
-            first_name
-            last_name
-            email
+            first_name (required)
+            last_name (required)
+            email (required)
+            if a validation error occurs, the inserted form data should persist
             #}
+
             {# use the below for company selection #}
-            {% include "company_dropdown.html" %}
+            {{ company_dropdown() }}
             <input type="submit" class="btn btn-primary" value="Save Employee" />
         </form>
     </div>

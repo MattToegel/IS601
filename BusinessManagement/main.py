@@ -44,7 +44,7 @@ def create_app(config_filename=''):
             try:
                 print("get companies")
                 # note this triggers for GET and POST
-                result = DB.selectAll("SELECT id, name FROM IS601_MP2_Companies")
+                result = DB.selectAll("SELECT id, name FROM IS601_MP3_Companies")
                 if result.status:
                     return result.rows or []
             except Exception as e:

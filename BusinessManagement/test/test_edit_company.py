@@ -11,14 +11,14 @@ def app():
     })"""
     DB.getDB().autocommit = True
     # other setup can go here
-    DB.delete("DELETE FROM IS601_MP2_Employees WHERE id = %s", -1)
-    DB.delete("DELETE FROM IS601_MP2_Companies WHERE id = %s", -1)
+    DB.delete("DELETE FROM IS601_MP3_Employees WHERE id = %s", -1)
+    DB.delete("DELETE FROM IS601_MP3_Companies WHERE id = %s", -1)
     
-    DB.insertOne("INSERT INTO IS601_MP2_Companies (id, name) VALUES (-1, '_test-company')")
-    DB.insertOne("INSERT INTO IS601_MP2_Employees (id, first_name, last_name, email, company_id) VALUES (-1,'_test', '_test', '_test@email.com', -1)")
+    DB.insertOne("INSERT INTO IS601_MP3_Companies (id, name) VALUES (-1, '_test-company')")
+    DB.insertOne("INSERT INTO IS601_MP3_Employees (id, first_name, last_name, email, company_id) VALUES (-1,'_test', '_test', '_test@email.com', -1)")
     yield app
-    DB.delete("DELETE FROM IS601_MP2_Employees WHERE id = %s", -1)
-    DB.delete("DELETE FROM IS601_MP2_Companies WHERE id = %s", -1)
+    DB.delete("DELETE FROM IS601_MP3_Employees WHERE id = %s", -1)
+    DB.delete("DELETE FROM IS601_MP3_Companies WHERE id = %s", -1)
     DB.close()
     # clean up / reset resources here
 
@@ -40,7 +40,8 @@ def test_edit_company(client):
         "address" : "123 fun st.",
         "country" : "US",
         "state": "NJ",
-        "city": "Testville"
+        "city": "Testville",
+        "zip":"00000"
     }, follow_redirects=True )
     assert resp.status_code == 200
     resp = client.get("/company/edit?id=-1", follow_redirects=True )

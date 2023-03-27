@@ -1,20 +1,26 @@
 {% extends "layout.html" %}
 {% block title %}Edit Company{% endblock %}
 {% block content %}
+{% from "country_state_selector.html" import country_state_selector %}
+
 <div class="container-fluid">
     <div class="h1">Edit Company</div>
     <div>
         <form method="POST">
             {#
             generate fields with proper types for
-            name
-            address
-            city
-            website
+            name (required)
+            address (required)
+            city (required)
+            state/country (use the country_state_selector)
+            zip (required)
+            website (not required)
             and prefill the fields with loaded company data
             #}
+
             {# use this for country/state selection #}
-            {% include "country_state_selector.html" %}
+            {{country_state_selector(country=company.country, state=company.state)}}
+
             <input type="submit" class="btn btn-primary" value="Save Company" />
         </form>
     </div>

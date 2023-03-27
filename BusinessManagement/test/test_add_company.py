@@ -14,7 +14,7 @@ def app():
     yield app
     try:
         DB.getDB().autocommit = True
-        DB.delete("DELETE FROM IS601_MP2_Companies WHERE name=%s", "_test_comp")
+        DB.delete("DELETE FROM IS601_MP3_Companies WHERE name=%s", "_test_comp")
         # reset AUTO_INCREMENT value to max id + 1 so test cases don't cause large id gaps
 
         # this needs to run at the end of the other tests
@@ -22,8 +22,8 @@ def app():
         # show processlist;
         # kill #;
         # the # will be the process id of the sleeping query
-        result = DB.query(""" set session wait_timeout = 1;
-        ALTER TABLE IS601_MP2_Companies AUTO_INCREMENT = 1;
+        result = DB.query("""
+        ALTER TABLE IS601_MP3_Companies AUTO_INCREMENT = 1
         """)
         print("result", result.status)
     except Exception as e:
@@ -54,17 +54,18 @@ def test_add_compnay(client):
         "state":"NJ"
     }, follow_redirects=True )
     assert resp.status_code == 200
-    result = DB.selectOne("SELECT id from IS601_MP2_Companies where name = %s  LIMIT 1", '_test_comp')
+    result = DB.selectOne("SELECT id from IS601_MP3_Companies where name = %s  LIMIT 1", '_test_comp')
     if result and result.row:
         id = int(result.row["id"])
         print("id", id)
         resp = client.get(f"/company/edit?id={id}", follow_redirects=True )
-        # print(resp.data)
+        #print(resp.data)
         from bs4 import BeautifulSoup
         soup = BeautifulSoup(resp.data, "html.parser")
         form = soup.form
-        ele = form.select("[name='name']")[0]
+        ele = form.select("input[name='name']")[0]
         print(ele)
         assert ele.get("value") == '_test_comp'
-        ele = form.select("[name='zip']")[0]
+        ele = form.select("input[name='zip']")[0]
+        print(ele)
         assert ele.get("value") == '00000'

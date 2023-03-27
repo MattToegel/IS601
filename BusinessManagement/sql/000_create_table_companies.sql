@@ -1,5 +1,5 @@
 CREATE TABLE
-    IS601_MP2_Companies(
+    IS601_MP3_Companies(
         id int auto_increment PRIMARY KEY,
         name VARCHAR(60) unique,
         address VARCHAR(100),

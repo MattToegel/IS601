@@ -1,19 +1,25 @@
 {% extends "layout.html" %}
 {% block title %}Add Company{% endblock %}
 {% block content %}
+{% from "country_state_selector.html" import country_state_selector %}
+
 <div class="container-fluid">
     <div class="h1">Add Company</div>
     <div>
         <form method="POST">
             {#
-            generate fields with proper types for
-            name
-            address
-            city
-            website
+            using regular html generate fields (labels and input) with proper types for
+            name (required)
+            address (required)
+            city (required) (can be a text field, doesn't need to be a valid city)
+            state/country (required) (given)
+            zip (required)
+            website (required)
+            if a validation error occurs, the inserted form data should persist
             #}
+
             {# use this for country/state selection #}
-            {% include "country_state_selector.html" %}
+            {{country_state_selector()}}
             <input type="submit" class="btn btn-primary" value="Save Company" />
         </form>
     </div>
