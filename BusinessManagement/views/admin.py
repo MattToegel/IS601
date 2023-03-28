@@ -75,7 +75,7 @@ def importCSV():
                     traceback.print_exc()
                     flash("There was an error loading in the csv data", "danger")
             else:
-                 # TODO importcsv-8 display flash message (info) that no companies were loaded
+                 # TODO importcsv-8 display flash message (info) that no employees were loaded
                 pass
             try:
                 result = DB.selectOne("SHOW SESSION STATUS LIKE 'questions'")
