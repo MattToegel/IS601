@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - prod
+      - F22-Project-MS3-Competitions
 
 # Your workflows jobs.
 jobs:
