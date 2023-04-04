@@ -26,7 +26,7 @@ def register():
         try:
             hash = bcrypt.generate_password_hash(password)
             # save the hash, not the plaintext password
-            result = DB.insertOne("INSERT INTO IS601_Users (email, username, password) VALUES (%s, %s)", email, username, hash)
+            result = DB.insertOne("INSERT INTO IS601_Users (email, username, password) VALUES (%s, %s, %s)", email, username, hash)
             if result.status:
                 flash("Successfully registered","success")
         except Exception as e:
