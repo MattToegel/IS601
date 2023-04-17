@@ -4,6 +4,7 @@ import sys
 from flask import Flask, session, render_template
 from dotenv import load_dotenv
 load_dotenv()
+from flask_caching import Cache
 import flask_login
 from flask_login import current_user
 from flask_principal import identity_loaded, RoleNeed, UserNeed, Principal
@@ -20,14 +21,17 @@ def page_not_found(e):
 def permission_denied(e):
     return render_template("403.html"), 403
 
-
+cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
 login_manager = flask_login.LoginManager()
 # app = Flask(__name__)
 def create_app(config_filename=''):
     app = Flask(__name__)
     app.register_error_handler(404, page_not_found)
     app.register_error_handler(403, permission_denied)
+    cache.init_app(app)
+    app.cache = cache
     app.secret_key = os.environ.get("SECRET_KEY", "missing_secret")
+    app.api_key = os.environ.get("API_KEY")
     login_manager.init_app(app)
     # app.config.from_pyfile(config_filename)
     with app.app_context():
@@ -39,6 +43,8 @@ def create_app(config_filename=''):
         app.register_blueprint(auth)
         from roles.roles import roles
         app.register_blueprint(roles)
+        from cats.cats import cats
+        app.register_blueprint(cats)
 
         # load the extension
         principals = Principal(app) # must be defined/initialized for identity to work (flask_principal)

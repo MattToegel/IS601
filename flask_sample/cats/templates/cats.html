@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% block title %}Cats{% endblock %}
+
+<!-- content -->
+{% block content %}
+<style>
+    .footer{display:none}
+</style>
+<form>
+    <select class="form-select" name="breed_id" value="{{request.args.get('breed_id')}}">
+        <option value="">Filter by Breed</option>
+        {% for breed in breeds %}
+        <option {{'selected' if request.args.get('breed_id') == breed.id }} value="{{breed.id}}">{{breed.name}}</option>
+        {% endfor %}
+    </select>
+    <input type="submit" value="Search" class="btn btn-primary"/>
+</form>
+<div class="container-fluid">
+    <div class="row">
+        {% for cat in cats %}
+        <div class="col">
+            <div class="card" style="width: 20em; height: 20em">
+                <img src="{{cat.url}}" class="card-img-top" style="aspect-ratio: 1;">
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
