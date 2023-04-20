@@ -11,7 +11,7 @@ def join_competition(id, user_id):
     if result.status:
         result = DB.update("""UPDATE IS601_S_Comps c set current_participants = 
         (SELECT IFNULL(count(1), 0) FROM IS601_S_UserComps uc WHERE uc.comp_id = c.id),
-        current_reward = starting_reward + CEIL((SELECT IFNULL(count(1), 0) FROM IS601_S_UserComps uc WHERE uc.comp_id = c.id) * 0.5)
+        current_reward = starting_reward + CEIL((SELECT IFNULL(count(1), 0) FROM IS601_S_UserComps uc WHERE uc.comp_id = c.id) * join_cost * 0.5)
         WHERE id = %s
         """, id)
         if result.status:
