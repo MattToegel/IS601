@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+{% block title %}{{"Edit" if org.get("id") else "Create"}}
+Organization{% endblock %}
+{% block content %}
+{% from "country_state_selector.html" import country_state_selector %}
+
+<div class="container-fluid">
+    <div class="h1">{{"Edit" if org.get("id") else "Create"}} Organization</div>
+    <div>
+        <form method="POST">
+            {#
+            using regular html generate fields (labels and input; not WTForms) with proper types for
+            name (required)
+            description (optional)
+            address (required)
+            city (required) (can be a text field, doesn't need to be a valid city)
+            state/country (required) (given)
+            zip (required)
+            website (optional)
+            
+            if a validation error occurs, the inserted form data should persist
+            #}
+            <!--name-->
+
+            <!--description-->
+
+            <!--address-->
+
+            <!-- website -->
+
+            <!-- city -->
+
+            {# use this for country/state selection #}
+            <!-- country/state -->
+            {{country_state_selector(country=org.country,state=org.state)}}
+            <!--zip-->
+
+            <input type="submit" class="btn btn-primary"
+                value="Save Organization" />
+        </form>
+    </div>
+</div>
+{% endblock %}

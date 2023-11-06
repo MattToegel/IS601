@@ -1,0 +1,90 @@
+{# TODO DO NOT EDIT #}
+{% macro country_state_selector(country="", state="", layout="vertical") %}
+{% set c = request.args.get("country", request.form.get("country", country or '')) %}
+{% set s = request.args.get("state", request.form.get("state", state or '')) %}
+{% if layout and layout == 'horizontal' %}
+{# version for filter forms #}
+<div class="col">
+    <label class="visually-hidden" for="country">Country</label>
+    <select name="country" id="country" class="form-select" value="{{c}}"
+        onchange="fetchStates(this.value)">
+        <option value="">Select Country...</option>
+    </select>
+</div>
+<div class="col">
+    <label class="visually-hidden" for="state">State</label>
+    <select name="state" id="state" class="form-select" value="{{s}}">
+        <option value="">Select State...</option>
+    </select>
+</div>
+{% else %}
+{# version for add/edit forms #}
+<div class="form-group mb-3">
+    <label class="form-label" for="country">Country</label>
+    <select name="country" id="country" class="form-select" value="{{c}}"
+        required onchange="fetchStates(this.value)">
+        <option value="">Select Country...</option>
+    </select>
+</div>
+<div class="form-group mb-3">
+    <label class="form-label" for="state">State</label>
+    <select name="state" id="state" class="form-select" value="{{s}}" required>
+        <option value="">Select State...</option>
+    </select>
+</div>
+{% endif %}
+<script>
+    //gets called on page load and when the country selection changes
+    const fetchStates = (country) => {
+        //use jinja to return a string in the html template
+        //this string will be as if we did let state = "whatever"
+        let state = "{{s}}";
+        console.log("fetching", country);
+        fetch(`{{url_for('geo.states')}}?country_code=${country}`)
+            .then(resp => resp.json())
+            .then(data => {
+                let ele = document.querySelector("select[name='state']");
+
+                //if we had options, "clear" it to be the default option
+                //so appending works
+                if (ele.children.length > 1) {
+                    ele.innerHTML = `<option value="">Select State...</option>`;
+                }
+                //dynamically create option tags
+                for (let d of data) {
+                    let nele = document.createElement("option");
+                    nele.value = d.code;
+                    nele.innerText = d.name;
+                    ele.appendChild(nele);
+                }
+                //assign the default or args state
+                ele.value = state;
+            });
+    };
+    window.addEventListener("load", () => {
+        //use jinja to return a string in the html template
+        //this string will be as if we did let country = "whatever"
+        let country = "{{c}}";
+        //get the country list from the endpoint
+        fetch(`{{url_for('geo.countries')}}`)
+            .then(resp => resp.json())
+            .then(data => {
+                let ele = document.querySelector("select[name='country']");
+                ele.value = "";//clear the value so "onchange" works
+                //dynamically create option tags
+                for (let d of data) {
+                    let nele = document.createElement("option");
+                    nele.value = d.code;
+                    nele.innerText = d.name;
+                    ele.appendChild(nele);
+                }
+                //assign the default or args country
+                ele.value = country;
+            })
+            .finally(() => {
+                //get the state list from the endpoint
+                fetchStates(country);
+            });
+    });
+</script>
+{% endmacro %}

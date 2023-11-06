@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+{% block title %}{{ "Edit" if donation.get("id") else "Create" }}
+Donation{% endblock %}
+{% block content %}
+{% from "organization_dropdown.html" import organization_dropdown %}
+<div class="container-fluid">
+    <div class="h1">{{ "Edit" if donation.get("id") else "Create" }} Donation
+    </div>
+    <div>
+        <form method="POST">
+            {#
+            generate fields with proper types for the following (keep the name/id attributes the same as the list)
+            donor_firstname (required)
+            donor_lastname (required)
+            donor_email (required)
+            item_name (required)
+            item_description (optional)
+            item_quantity (required) (>0)
+            donation_date (required) (mm/dd/yyyy)
+            comments (optional)
+            organization (provided) (required)
+            if a validation error occurs, the inserted form data should persist
+            #}
+            <!--donor first name-->
+
+            <!--donor last name-->
+
+            <!--donor email-->
+
+            <!--item name-->
+
+            <!--item_description -->
+
+            <!--item_quantity-->
+
+            <!--donation date-->
+
+            <!-- organization selection-->
+            {# use the below for organization selection #}
+            {{ organization_dropdown(val=donation.get("organization_id")) }}
+            <input type="submit" class="btn btn-primary"
+                value="Save Donation" />
+        </form>
+    </div>
+</div>
+{% endblock %}

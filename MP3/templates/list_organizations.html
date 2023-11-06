@@ -1,0 +1,73 @@
+{% extends "layout.html" %}
+{% block title %}Organization Directory{% endblock %}
+{% block content %}
+{% from "country_state_selector.html" import country_state_selector %}
+{% from "sort_filter.html" import sort_filter %}
+<div class="container-fluid">
+    <div class="h1 text-center">Organization Directory</div>
+    <form method="GET">
+        <div class="row">
+            {# TODO
+            build a horizontal filter/sort form with
+            name (show as organization name but name field should be name)
+            country/state (provided)
+            sort/order (using allowed_columns and provided partial template)
+            limit (default 10)
+            ensure all fields prefill with request arg data if provided
+            #}
+            <!--name filter-->
+
+            <!-- country state filter-->
+            {{country_state_selector(layout="horizontal")}}
+            <!-- sort filter -->
+            {# TODO pass/set the columns that can be used for sort/filter (i.e. allowed_columns) #}
+            {{sort_filter(cols=[])}}
+            <!--limit filter-->
+
+            <div class="col">
+                <input type="submit" class="btn btn-primary" value="Filter" />
+            </div>
+            <div class="col">
+                <a href="?" class="btn btn-secondary">Reset</a>
+            </div>
+        </div>
+    </form>
+    <div class="table-responsive">
+        <table class="table">
+            {% if rows and rows|length > 0 %}
+            <thead>
+                <tr class="text-capitalize">
+                    {# generate th tags for each column to display #}
+                    {# don't show any id or organization_id columns #}
+                    {# IMPORTANT use table column names as the headings, replace _ with space via filter #}
+                    <!-- add th elements -->
+
+                    <!-- keep this -->
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {# generate tr with td tags for each piece of data #}
+                {# don't show any id or organization_id columns #}
+                {# if the td is for website, display it as a link where the text is "website" and the url is the
+                website url #}
+                {# in the last column add the following
+                a view button that passes the organization id to donation search (this will be an organization's donation
+                list)
+                an edit button that passes the organization id to organization edit
+                a delete button that passes the organization id and the request args to the organization delete route
+                #}
+                <!-- iterate over rows and generate proper tr and td elements with the data -->
+
+            </tbody>
+            {% else %}
+            <tbody>
+                <tr>
+                    <td colspan="100%">No results to show</td>
+                </tr>
+            </tbody>
+            {% endif %}
+        </table>
+    </div>
+</div>
+{% endblock %}

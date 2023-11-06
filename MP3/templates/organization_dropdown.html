@@ -1,0 +1,14 @@
+{% macro organization_dropdown(val="") %}
+{% set orgs = get_orgs() %}
+{# TODO DO NOT EDIT #}
+<label for="organization_id" class="visually-hidden">Organization</label>
+<select class="form-select mb-3" name="organization_id" id="organization_id"
+    value="{{val or ''}}">
+    <option value="">No Organization</option>
+    {% for o in orgs %}
+    {# example of using external data setting and casting #}
+    <option {{'selected' if val|string==o['id']|string}} value="{{o['id']}}">
+        {{o['name']}}</option>
+    {% endfor %}
+</select>
+{% endmacro %}
