@@ -14,7 +14,7 @@ def search():
      FROM ... LEFT JOIN ... WHERE 1=1"""
     args = {} # <--- add values to replace %s/%(named)s placeholders
     allowed_columns = ["donor_firstname", "donor_lastname", "donor_email", "organization_name" ,"item_name", "item_quantity", "created", "modified"]
-    # TODO search-2 get fn, ln, email, company, column, order, limit from request args
+    # TODO search-2 get fn, ln, email, organization_id, column, order, limit from request args
     # TODO search-3 append like filter for donor_firstname if provided
     # TODO search-4 append like filter for donor_lastname if provided
     # TODO search-5 append like filter for donor_email if provided
