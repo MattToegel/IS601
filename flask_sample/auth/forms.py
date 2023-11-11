@@ -48,10 +48,8 @@ class LoginForm(AuthForm):
                 
 class ProfileForm(AuthForm):
     current_password = PasswordField("current password", validators=[Optional()])
+    password = PasswordField("password", validators=[Optional(), EqualTo('confirm', message='Passwords must match'), Length(8)])
+    confirm = PasswordField("confirm", validators=[Optional(),  EqualTo('password', message='Passwords must match'),Length(8)])
     # https://wtforms.readthedocs.io/en/3.0.x/forms/#form-inheritance
-    def __init__(self, *args, **kwargs):
-        super(ProfileForm, self).__init__( *args, **kwargs)
-        # replace required validator with optional
-        self.password.validators[0]=Optional()
-        self.confirm.validators[0]=Optional()
+    # removed override of password/confirm password due to conflicting behaviour with how WTForms replaced the DataRequired() with Optional
     submit = SubmitField("Update")
