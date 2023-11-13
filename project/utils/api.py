@@ -51,7 +51,10 @@ class API:
 
     @staticmethod
     def _fetch(url, params, API_REF, verb):
+        
         config = API._get_config(API_REF)
+        if config["RATE_HAS_LIMIT"] and not API._is_eligible_to_fetch(API_REF):
+            raise Exception("Rate limit reached or exceeded")
         headers = {}
         if config["HOST"]:
             headers["X-RapidAPI-Host"] = config["HOST"]
@@ -77,8 +80,6 @@ class API:
 
     @staticmethod
     def _update_rate_limit(API_REF, response):
-        if not API._is_eligible_to_fetch(API_REF):
-            raise Exception("Rate limit reached or exceeded")
         config = API._get_config(API_REF)
         rate_limit_header = config["RATE_LIMIT_HEADER"]
         rate_remaining_header = config["RATE_REMAINING_HEADER"]
