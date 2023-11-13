@@ -1,13 +1,15 @@
 from enum import Enum
 import requests
 import os
-import sys
-# Get the parent directory of the current script (api.py)
-CURR_DIR = os.path.dirname(os.path.abspath(__file__))
+# fix for testing just this file
+if __name__ == "__main__":
+    import sys
+    # Get the parent directory of the current script (api.py)
+    CURR_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Add the parent directory to the Python path
-PARENT_DIR = os.path.join(CURR_DIR, "..")  # Go up one level from utils to project folder
-sys.path.append(PARENT_DIR)
+    # Add the parent directory to the Python path
+    PARENT_DIR = os.path.join(CURR_DIR, "..")  # Go up one level from utils to project folder
+    sys.path.append(PARENT_DIR)
 from dotenv import load_dotenv
 from sql.db import DB  # Import the DB class from your db.py module
 from datetime import datetime, timedelta
