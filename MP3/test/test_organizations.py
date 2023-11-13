@@ -172,7 +172,7 @@ def test_organization_list(allowed_column, fake_org_2,client):
     tr = tbody.select_one("tr").select("td")
     
     tr_values = list(map(lambda x: x.text.strip().lower(), tr))
-    result = DB.selectAll(f"SELECT {','.join(cols)},(select count(1) FROM IS601_MP3_Donations where organization_id = id) as donations FROM IS601_MP3_Organizations WHERE 1=1 ORDER BY {ac} asc LIMIT 3")
+    result = DB.selectAll(f"SELECT {','.join(cols)},(select count(1) FROM IS601_MP3_Donations where organization_id = O.id) as donations FROM IS601_MP3_Organizations O WHERE 1=1 ORDER BY {ac} asc LIMIT 3")
     assert result and result.rows and len(result.rows) > 0, "Organization lookup failed"
     vals = result.rows[0].items()
     #print(tbody_values)
