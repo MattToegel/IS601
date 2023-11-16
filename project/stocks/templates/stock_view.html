@@ -6,14 +6,12 @@
     <div class="h3">View Stock</div>
     <div class="card">
         <div class="card-body">
-            {% for field in form %}
-            {% if field.type != 'CSRFTokenField' and field.type != 'SubmitField' %}
-            <div class="mb-3">
-                <strong>{{ field.label }}</strong>
-                <p>{{ field.data }}</p>
-            </div>
-            {% endif %}
-            {% endfor %}
+            <ul class="list-group">
+                {% for k,v in stock.items() %}
+                <li class="list-group-item">{{k}} - {{v}}</li>
+                {% endfor %}
+            </ul>
+
             <a href="{{ url_for('stocks.list') }}"
                 class="btn btn-secondary">Back</a>
         </div>

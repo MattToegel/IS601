@@ -1,8 +1,43 @@
 from flask import Blueprint, flash, render_template, request, redirect, url_for
 from sql.db import DB  # Import your DB class
-from stocks.forms import StockForm  # Import your StockForm class
+from stocks.forms import StockForm, StockSearchForm  # Import your StockForm class
 from roles.permissions import admin_permission
+
 stocks = Blueprint('stocks', __name__, url_prefix='/stocks', template_folder='templates')
+
+@stocks.route("/fetch", methods=["GET", "POST"])
+@admin_permission.require(http_exception=403)
+def fetch():
+    form = StockSearchForm()
+    if form.validate_on_submit():
+        try:
+            from utils.AlphaVantage import AlphaVantage
+            from utils.lazy import DictToObject
+            # Create a new stock record in the database
+            result = AlphaVantage.quote(form.symbol.data)
+            if result:
+                result = DictToObject(result)
+                result.change_percent = result.change_percent.replace("%","")
+                result = DB.insertOne(
+                    """INSERT INTO IS601_Stocks (symbol, open, high, low, price, volume, latest_trading_day, previous_close, `change`, change_percent)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        ON DUPLICATE KEY UPDATE
+                        open = VALUES(open),
+                        high = VALUES(high),
+                        low = VALUES(low),
+                        price = VALUES(price),
+                        volume = VALUES(volume),
+                        latest_trading_day = VALUES(latest_trading_day),
+                        previous_close = VALUES(previous_close),
+                        `change` = VALUES(`change`),
+                        change_percent = VALUES(change_percent)""",
+                    result.symbol.upper(), result.open, result.high, result.low, result.price, result.volume, result.latest_trading_day, result.previous_close, result.change, result.change_percent
+                )
+                if result.status:
+                    flash(f"Loaded stock record for {form.symbol.data}", "success")
+        except Exception as e:
+            flash(f"Error loading stock record: {e}", "danger")
+    return render_template("stock_search.html", form=form)
 
 @stocks.route("/add", methods=["GET", "POST"])
 @admin_permission.require(http_exception=403)

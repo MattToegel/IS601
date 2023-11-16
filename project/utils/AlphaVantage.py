@@ -9,7 +9,7 @@ if __name__ == "__main__":
     # Add the parent directory to the Python path
     PARENT_DIR = os.path.join(CURR_DIR, "..")  # Go up one level from utils to project folder
     sys.path.append(PARENT_DIR)
-from api import API
+from utils.api import API
 class AlphaVantage(API):
     @staticmethod
     def quote(symbol):
