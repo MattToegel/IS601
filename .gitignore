@@ -1,5 +1,9 @@
 .idea
+
 __pycache__
 .vscode
 venv
 .DS_Store
+
+mydb.db
+__pycache__

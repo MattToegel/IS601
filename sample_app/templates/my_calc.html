@@ -1,0 +1,77 @@
+{% extends "layout.html" %}
+{% block title %}The Calculator{% endblock %}
+{% block head %}
+{{ super() }}
+{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <h1>The Calculator</h1>
+    <div class="row g-1">
+        <div class="col-9" style="width:60%; margin-left:auto;margin-right:auto;">
+            <div class="row">
+                <div class="col">
+                    <form method="POST">
+                        <input class="form-control" id="eq" name="eq" readonly value="{{eq}}"/></form>
+                </div>
+                <div class="col">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">=</span>
+                        <input class="form-control" id="result" readonly type="text" value="{{result}}">
+                    </div>
+                </div>
+            </div>
+            <div class="row row-cols-3 calc g-1">
+                {% set buttons = ["0","1","2","3","4","5","6","7","8","9","+","-","x","/", "=", "clear"] %}
+                {% for i in buttons: %}
+                <div class="col p-1">
+                    <div class="d-grid">
+                        <button class="btn btn-secondary">{{i}}</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="col-3" style="min-width:500px; ">
+            <iframe src="history" style="width:100%; height:100%; overflow:hidden;"></iframe>
+        </div>
+    </div>
+<<<<<<< HEAD
+    <!-- used by calc-history.html-->
+=======
+   <!-- used by calc-history.html-->
+>>>>>>> 4dd3f66f1edbaa0ad2d83bb4974fa7eb21c71a96
+    <form method="POST">
+        <input name="loadHistory" type="hidden" value="1"/>
+        <input name="eq" type="hidden"/>
+        <input name="result" type="hidden"/>
+    </form>
+    <!-- used for file upload -->
+    <form action="upload" method="POST" enctype="multipart/form-data">
+        <input type="file" name="file"/>
+        <input type="submit" value="Upload"/>
+    </form>
+<<<<<<< HEAD
+=======
+
+>>>>>>> 4dd3f66f1edbaa0ad2d83bb4974fa7eb21c71a96
+</div>
+<script>
+  let buttons = document.querySelectorAll(".calc button");
+  for(let b of buttons){
+    b.onclick = (event)=>{
+      let eq = document.getElementById("eq");
+      let v = event.srcElement.innerText;
+      if(v === "clear"){
+        eq.value = "";
+      }
+      else if(v === "="){
+        document.forms[0].submit();
+      }
+      else{
+        eq.value += v;
+      }
+    }
+  }
+
+</script>
+{% endblock %}
