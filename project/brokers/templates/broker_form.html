@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+{% block title %}{{ type }} Broker{% endblock %}
+{% block content %}
+{% from "_formhelpers.html" import render_field %}
+<div class="container-fluid">
+    <div class="h3">{{ type }} Broker</div>
+    <form method="POST" id="brokerForm">
+        {% for field in form if field.name != 'csrf_token' and field.name != 'stocks' %}
+        {{ render_field(field) }}
+        {% endfor %}
+        <div id="stockEntries" class="ms-5">
+            <!-- Render existing stock entries -->
+            {% for entry in form.stocks %}
+            <div class="stock-entry">
+                {{entry.hidden_tag()}}
+                {{ render_field(entry.symbol) }}
+                {{ render_field(entry.shares) }}
+            </div>
+            {% endfor %}
+        </div>
+        {{ form.hidden_tag() }}
+        {{ form.submit(class="btn btn-primary mt-3") }}
+        {% if type == 'Edit' %}
+        <a href="{{ url_for('brokers.delete')}}?id={{ broker.id }}"
+            class="btn btn-danger mt-3">Delete Broker</a>
+        {% endif %}
+    </form>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const rarityField = document.querySelector('#rarity');
+        const stockEntriesContainer = document.getElementById('stockEntries');
+
+        function adjustStockEntries() {
+            const rarity = parseInt(rarityField.value) || 0;
+            let currentEntries = stockEntriesContainer.querySelectorAll('.stock-entry').length;
+
+            while (currentEntries < rarity) {
+                const referenceEntry = stockEntriesContainer.querySelector('.stock-entry');
+                const clonedEntry = referenceEntry.cloneNode(true);
+
+                // Update the names of the cloned inputs
+                const symbolInput = clonedEntry.querySelector('[name^="stocks-"][name$="-symbol"]');
+                const quantityInput = clonedEntry.querySelector('[name^="stocks-"][name$="-shares"]');
+                symbolInput.name = `stocks-${currentEntries}-symbol`;
+                quantityInput.name = `stocks-${currentEntries}-shares`;
+                symbol.value = "";
+                quantityInput.value = "";
+                stockEntriesContainer.appendChild(clonedEntry);
+                currentEntries++;
+            }
+
+            while (currentEntries > rarity) {
+                stockEntriesContainer.removeChild(stockEntriesContainer.lastChild);
+                currentEntries--;
+            }
+        }
+
+        rarityField.addEventListener('change', adjustStockEntries);
+    });
+</script>
+{% endblock %}

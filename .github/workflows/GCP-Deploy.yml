@@ -3,11 +3,9 @@ on:
   push:
     branches:
       - Flask-Sample # rename this to your prod branch if the naming differs
-      - Flask-LoginReg
-      - Flask-Calc-History-Continued
-      - Flask-LoginReg-Video
-      - Flask-Calc-History-And-Styles-Video
-      - Flask-Calc-History-Updated-Video
+
+      - Flask-Sample-PyTest
+
 jobs:
 
     deploy:
@@ -21,7 +19,7 @@ jobs:
         steps:
         - name: Checkout repository
           uses: actions/checkout@v2
-        - name: Run tests with pytest
+        - name: Run test with pytest
           run: pip install -r requirements.txt && pytest
         - id: 'auth'
           uses: 'google-github-actions/auth@v0'

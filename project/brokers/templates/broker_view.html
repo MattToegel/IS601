@@ -1,0 +1,64 @@
+{% extends "layout.html" %}
+{% block title %}{{"Random" if save_enabled else "View"}} Broker{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="h3">Broker Details: {{ broker.name }}</div>
+    <div class="card my-2">
+        <div class="card-body">
+            <h5>Stats</h5>
+            <p>Rarity: {{ broker.rarity }}</p>
+            <p>Life: {{ broker.life }} / {{ broker.life_max }}</p>
+            <p>Power: {{ broker.power }}</p>
+            <p>Defense: {{ broker.defense }}</p>
+            <p>Stonks: {{ broker.stonks }}</p>
+        </div>
+    </div>
+    <div class="card my-2">
+        <div class="card-body">
+            <h5>Stocks: ${{broker.total_value()|round}}</h5>
+            {% if broker.stocks %}
+            <ul class="list-group">
+                {% for stock in broker.stocks %}
+                <li class="list-group-item">
+                    Symbol: {{ stock.symbol }},
+                    Shares: {{ stock.shares }},
+                    Price: {{ stock.price }},
+                    Change: {{ stock.change }} ({{ stock.change_percent }}%),
+                    Total: ${{(stock.price * stock.shares)|round}}
+                </li>
+                {% endfor %}
+            </ul>
+            {% if save_enabled %}
+            {% from "_formhelpers.html" import render_field %}
+            <form method="POST" id="brokerForm">
+                {% for field in form if field.name != 'csrf_token' and field.name != 'stocks' %}
+                {{ render_field(field) }}
+                {% endfor %}
+                <div id="stockEntries" class="ms-5">
+                    <!-- Render existing stock entries -->
+                    {% for entry in form.stocks %}
+                    <div class="stock-entry">
+                        {{entry.hidden_tag()}}
+                        {{ render_field(entry.symbol) }}
+                        {{ render_field(entry.shares) }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {{ form.hidden_tag() }}
+                {{ form.submit(class="btn btn-primary mt-3") }}
+
+            </form>
+            {%endif%}
+            {% else %}
+            <p>No stocks associated with this broker.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<style>
+    .form-group {
+        display: none !important;
+    }
+</style>
+{% endblock %}
