@@ -78,3 +78,30 @@ class Broker(JsonSerializable):
 
     def _calculate_stonks(self):
         return (self.power + self.defense + self.life) / 3
+    
+    def battle(broker1, broker2, rounds=500):
+        broker1.life = broker1.life_max
+        broker2.life = broker2.life_max
+        for round in range(1, rounds + 1):
+            print(f"Round {round}")
+            print(f"{broker1.name} - Life: {broker1.life}/{broker1.life_max}, Power: {broker1.power}, Defense: {broker1.defense}")
+            print(f"{broker2.name} - Life: {broker2.life}/{broker2.life_max}, Power: {broker2.power}, Defense: {broker2.defense}")
+
+            damage_to_broker2 = max(1, broker1.power - broker2.defense)
+            broker2.life = max(0, broker2.life - damage_to_broker2)
+            print(f"{broker1.name} deals {damage_to_broker2} damage to {broker2.name}")
+
+            if broker2.life <= 0:
+                print(f"{broker1.name} wins!")
+                return
+
+            damage_to_broker1 = max(1, broker2.power - broker1.defense)
+            broker1.life = max(0, broker1.life - damage_to_broker1)
+            print(f"{broker2.name} deals {damage_to_broker1} damage to {broker1.name}")
+
+            if broker1.life <= 0:
+                print(f"{broker2.name} wins!")
+                return
+
+        if broker1.life > 0 and broker2.life > 0:
+            print("The battle ended in a draw.")
