@@ -171,6 +171,7 @@ def delete():
         flash("Missing ID", "danger")
         return redirect(url_for("brokers.list"))
     try:
+        result = DB.delete("DELETE FROM IS601_BrokerStocks WHERE broker_id = %s", id)
         result = DB.delete("DELETE FROM IS601_Brokers WHERE id = %s", id)
         if result.status:
             flash("Deleted broker record", "success")
