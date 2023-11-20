@@ -28,7 +28,7 @@ class AlphaVantage(API):
             for k,v in gq.items():
                 if "." in k:
                     k = k.split(".")[1].strip()
-                    fixed[k.replace(" ", "_")] = v
+                    fixed[k.replace(" ", "_")] = v.replace("%","") if k == "change percent" else v
         else:
             fixed = resp
         return fixed

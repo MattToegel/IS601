@@ -1,7 +1,7 @@
 {% from "_dropdown_nav.html" import dropdown_nav %}
 <nav class="navbar navbar-expand-lg bg-light">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">Sample</a>
+        <a class="navbar-brand" href="#">BoTS</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
             data-bs-target="#navbarSupportedContent"
             aria-controls="navbarSupportedContent" aria-expanded="false"
@@ -51,6 +51,14 @@
                 ("stocks.list", "List"),
                 ] %}
                 {{dropdown_nav("Stocks", stocks)}}
+                <!-- brokers nav (requires admin )-->
+
+                {% set brokers = [
+                ("brokers.random_broker", "Random"),
+                ("brokers.add", "Add"),
+                ("brokers.list", "List"),
+                ] %}
+                {{dropdown_nav("Brokers", brokers)}}
                 {% endif %}
                 <li class="nav-item">
                     <a class="nav-link"

@@ -15,9 +15,10 @@ def fetch():
             from utils.lazy import DictToObject
             # Create a new stock record in the database
             result = AlphaVantage.quote(form.symbol.data)
-            if result:
+            if result and "symbol" in result.keys():
                 result = DictToObject(result)
-                result.change_percent = result.change_percent.replace("%","")
+                print(f"DictToObj {result.__dict__}")
+                #result.change_percent = result.change_percent.replace("%","")
                 result = DB.insertOne(
                     """INSERT INTO IS601_Stocks (symbol, open, high, low, price, volume, latest_trading_day, previous_close, `change`, change_percent)
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -35,6 +36,8 @@ def fetch():
                 )
                 if result.status:
                     flash(f"Loaded stock record for {form.symbol.data}", "success")
+            else:
+                flash(f"No data found for symbol {form.symbol.data}", "warning")
         except Exception as e:
             flash(f"Error loading stock record: {e}", "danger")
     return render_template("stock_search.html", form=form)
