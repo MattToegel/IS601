@@ -65,7 +65,7 @@ def create_or_update_broker(form, broker_id=None):
     stock_symbols = [{"symbol": entry.symbol.data, "shares": entry.shares.data} for entry in form.stocks]
     manage_broker_stocks(broker_id, stock_symbols)
     broker = fetch_broker_data(broker_id)
-    #populate_form_with_broker(form, broker)
+    
     if broker_id:
         query = "UPDATE IS601_Brokers SET name = %s, rarity = %s, life = %s, power = %s, defense = %s, stonks = %s WHERE id = %s"
         values = (broker.name, broker.rarity, broker.life, broker.power, broker.defense, broker.stonks, broker_id)
@@ -74,14 +74,20 @@ def create_or_update_broker(form, broker_id=None):
         
     return result
 def fetch_broker_data(broker_id):
-    broker = Broker(**DB.selectOne("SELECT * FROM IS601_Brokers WHERE id = %s", broker_id).row)
-    stocks = get_stock_associations(broker.id)
-    for stock in stocks:
-        broker.add_stock(stock)
-    broker.recalculate_stats()
+    broker = None
+    result = DB.selectOne("SELECT * FROM IS601_Brokers WHERE id = %s", broker_id)
+    if result.status and result.row:
+        broker = Broker(**result.row)
+        stocks = get_associated_stocks(broker.id)
+        for stock in stocks:
+            broker.add_stock(stock)
+        broker.recalculate_stats()
+    else:
+        print("Broker not found")
+        flash("Broker not found", "danger")
     return broker
 
-def get_stock_associations(id):
+def get_associated_stocks(broker_id):
     stocks = []
     stock_associations = DB.selectAll(
         """SELECT IS601_Stocks.*, IS601_BrokerStocks.shares FROM IS601_Stocks 
@@ -91,7 +97,7 @@ def get_stock_associations(id):
             SELECT MAX(latest_trading_day) FROM IS601_Stocks AS latest_stock
             WHERE latest_stock.symbol = IS601_Stocks.symbol
         )
-        """, id
+        """, broker_id
     )
         
     if stock_associations.status:
@@ -187,13 +193,8 @@ def view():
         return redirect(url_for("brokers.list"))
     broker = None
     try:
-        result = DB.selectOne(
-            "SELECT id, name, rarity, life, power, defense, stonks FROM IS601_Brokers WHERE id = %s", id
-        )
-        if result.status:
-            broker = fetch_broker_data(id)
-        else:
-            flash("Broker record not found", "danger")
+        broker = fetch_broker_data(id)
+        if not Broker:
             return redirect(url_for('brokers.list'))
     except Exception as e:
         flash(f"Error fetching broker record: {e}", "danger")
