@@ -1,6 +1,6 @@
 from flask import Blueprint, flash, render_template, request, redirect, url_for
 from sql.db import DB  # Import your DB class
-from stocks.forms import StockForm, StockSearchForm  # Import your StockForm class
+from stocks.forms import StockFilterForm, StockForm, StockSearchForm  # Import your StockForm class
 from roles.permissions import admin_permission
 
 stocks = Blueprint('stocks', __name__, url_prefix='/stocks', template_folder='templates')
@@ -92,15 +92,30 @@ def edit():
 @stocks.route("/list", methods=["GET"])
 @admin_permission.require(http_exception=403)
 def list():
+    searchForm = StockFilterForm(request.args)
+    print(searchForm.data)
+    query = "SELECT id, symbol, open, high, low, price, volume, latest_trading_day, previous_close, `change`, change_percent FROM IS601_Stocks WHERE 1=1"
+    args = {}
+    if searchForm.symbol.data:
+        query += " AND symbol like %(symbol)s"
+        args["symbol"] = f"%{searchForm.symbol.data}%"
+
+    query += " LIMIT 100"
+    if searchForm.validate_on_submit():
+        pass
+    else:
+        print(searchForm.errors)
+    print(query)
+    print(args)
     rows = []
     try:
-        result = DB.selectAll("SELECT id, symbol, open, high, low, price, volume, latest_trading_day, previous_close, `change`, change_percent FROM IS601_Stocks LIMIT 100")
+        result = DB.selectAll(query, args)
         if result.status and result.rows:
             rows = result.rows
     except Exception as e:
         print(e)
         flash("Error getting stock records", "danger")
-    return render_template("stocks_list.html", rows=rows)
+    return render_template("stocks_list.html", rows=rows, form=searchForm)
 
 @stocks.route("/delete", methods=["GET"])
 @admin_permission.require(http_exception=403)

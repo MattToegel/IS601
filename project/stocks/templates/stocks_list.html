@@ -3,11 +3,28 @@
 
 <!-- content -->
 {% block content %}
+{% from "_formhelpers.html" import render_field %}
 {% from "_table_helper.html" import render_table %}
+
 {% set view = "stocks.view" %}
 {% set edit = "stocks.edit" %}
 {% set delete = "stocks.delete" %}
 <div class="container-fluid">
+
+    <form method="GET">
+        <div class="row ">
+            {% for field in form %}
+            {% if field.name != 'csrf_token' %}
+            <div class="col">
+                {{ render_field(field) }}
+            </div>
+            {% endif %}
+            {% endfor %}
+            {{ form.hidden_tag() }}
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+
     {{ render_table(rows, "Stocks", [], view, edit, delete) }}
 </div>
 {% endblock %}
