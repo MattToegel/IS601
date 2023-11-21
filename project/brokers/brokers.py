@@ -1,6 +1,6 @@
 from flask import Blueprint, flash, render_template, request, redirect, url_for
-from sql.db import DB  # Import your DB class
-from brokers.forms import BrokerForm  # Import your BrokerForm class
+from sql.db import DB 
+from brokers.forms import BrokerForm  
 from roles.permissions import admin_permission
 from brokerstock_utils.utils import manage_broker_stocks
 from utils.lazy import DictToObject
