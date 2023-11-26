@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import SelectField, StringField, DecimalField, validators, SubmitField
+from wtforms import SelectField, StringField, DecimalField, validators, SubmitField, DateField, IntegerField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional
 
 class StockSearchForm(FlaskForm):
@@ -22,8 +22,9 @@ class StockFilterForm(FlaskForm):
     symbol = StringField("Symbol", [Optional()])
     priceMin = DecimalField("Price Min", [Optional()])
     priceMax = DecimalField("Price Max", [Optional()])
-    tradingDayStart = StringField('Trading Day Start (YYYY-MM-DD)', [Optional(),validators.Regexp(r'^\d{4}-\d{2}-\d{2}$', message="Invalid date format")])
-    tradingDayEnd = StringField('Trading Day End (YYYY-MM-DD)', [Optional(),validators.Regexp(r'^\d{4}-\d{2}-\d{2}$', message="Invalid date format")])
+    tradingDayStart = DateField('Trading Day Start (YYYY-MM-DD)', [Optional(),validators.Regexp(r'^\d{4}-\d{2}-\d{2}$', message="Invalid date format")])
+    tradingDayEnd = DateField('Trading Day End (YYYY-MM-DD)', [Optional(),validators.Regexp(r'^\d{4}-\d{2}-\d{2}$', message="Invalid date format")])
     sort = SelectField("Columns", [Optional()], choices=[])
     order = SelectField("Order", [Optional()], choices=[("asc","+"), ("desc","-")])
+    page = IntegerField("page")
     submit = SubmitField("Search")

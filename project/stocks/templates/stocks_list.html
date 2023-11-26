@@ -5,7 +5,7 @@
 {% block content %}
 {% from "_formhelpers.html" import render_field %}
 {% from "_table_helper.html" import render_table %}
-
+{% from "_pagination.html" import pagination %}
 {% set view = "stocks.view" %}
 {% set edit = "stocks.edit" %}
 {% set delete = "stocks.delete" %}
@@ -26,5 +26,6 @@
     </form>
 
     {{ render_table(rows, "Stocks", [], view, edit, delete) }}
+    {{pagination(total, request.args.page)}}
 </div>
 {% endblock %}
