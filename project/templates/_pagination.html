@@ -1,0 +1,13 @@
+{% macro pagination(count, page) %}
+<nav aria-label="Page navigation example">
+    <ul class="pagination">
+        {% set prev = page | int - 1 %}
+        {% set next = page | int + 1 %}
+        <li class="page-item"><a class="page-link" href="?page={{prev}}">Previous</a></li>
+        {% for i in range(count) %}
+        <li class="page-item"><a class="page-link" href="?page={{i+1}}">{{i+1}}</a></li>
+        {% endfor %}
+      <li class="page-item"><a class="page-link" href="?page={{next}}">Next</a></li>
+    </ul>
+  </nav>
+  {% endmacro %}

@@ -93,14 +93,41 @@ def edit():
 @admin_permission.require(http_exception=403)
 def list():
     searchForm = StockFilterForm(request.args)
+    allowed_columns = ["latest_trading_day", "price", "symbol", "high", "low", "volume", "change", "change_percent"]
+    
     print(searchForm.data)
-    query = "SELECT id, symbol, open, high, low, price, volume, latest_trading_day, previous_close, `change`, change_percent FROM IS601_Stocks WHERE 1=1"
+    base_query = """SELECT id, symbol, open, high, low, price, volume, latest_trading_day, previous_close, `change`, 
+    change_percent FROM IS601_Stocks WHERE 1=1"""
+    query = ""
+    count_query = "SELECT count(1) as total FROM IS601_Stocks WHERE 1=1"
     args = {}
     if searchForm.symbol.data:
         query += " AND symbol like %(symbol)s"
         args["symbol"] = f"%{searchForm.symbol.data}%"
+    if searchForm.priceMin.data:
+        query += " AND price >= %(priceMin)s"
+        args["priceMin"] = searchForm.priceMin.data
+    if searchForm.priceMax.data:
+        query += " AND price <= %(priceMax)s"
+        args["priceMax"] = searchForm.priceMax.data
+    if searchForm.tradingDayStart.data:
+        query += " AND latest_trading_day >= %(tradingDayStart)s"
+        args["tradingDayStart"] = searchForm.tradingDayStart.data
+    if searchForm.tradingDayEnd.data:
+        query += " AND latest_trading_day <= %(tradingDayEnd)s"
+        args["tradingDayEnd"] = searchForm.tradingDayEnd.data
+    if searchForm.sort.data in allowed_columns and searchForm.order.data in ["asc", "desc"]:
+        query += f" ORDER BY {searchForm.sort.data}"
+        #args["sort"] = searchForm.sort.data
+        query += f" {searchForm.order.data}"
+        #args["order"] = searchForm.order.data
 
-    query += " LIMIT 100"
+    page = searchForm.page.data
+    if not page:
+        page = 1
+    num_to_show = 2
+    offset = (page-1) * num_to_show
+    end_query = f" LIMIT {offset}, {num_to_show}"
     if searchForm.validate_on_submit():
         pass
     else:
@@ -108,14 +135,21 @@ def list():
     print(query)
     print(args)
     rows = []
+    total = 0
     try:
-        result = DB.selectAll(query, args)
+        result = DB.selectAll(base_query + query + end_query, args)
         if result.status and result.rows:
             rows = result.rows
+            result = DB.selectOne(count_query + query, args)
+            if result.status and result.row:
+                total = result.row["total"]
+                total = int(int(total)/num_to_show)
     except Exception as e:
         print(e)
         flash("Error getting stock records", "danger")
-    return render_template("stocks_list.html", rows=rows, form=searchForm)
+    allowed_columns = [(k,k.replace("_"," ").title()) for k in allowed_columns]
+    searchForm.sort.choices = allowed_columns
+    return render_template("stocks_list.html", rows=rows, form=searchForm, total=total)
 
 @stocks.route("/delete", methods=["GET"])
 @admin_permission.require(http_exception=403)
