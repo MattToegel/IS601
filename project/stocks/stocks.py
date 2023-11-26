@@ -129,7 +129,10 @@ def delete():
             if result.status:
                 flash("Deleted stock record", "success")
         except Exception as e:
-            flash(f"Error deleting stock record: {e}", "danger")
+            if e.args[0].args[0] == -1:
+                flash(f"You can't delete this stock as it's assigned to at least 1 Broker, consider remapping the Broker first", "warning")
+            else:
+                flash(f"Error deleting stock record: {e}", "danger")
         del args["id"]
     else:
         flash("No ID present", "warning")

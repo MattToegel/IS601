@@ -28,14 +28,19 @@
                 {% endfor %}
                 {% if view or edit or delete %}
                 <td>
+                    {% set args = dict(request.args) %}
+                    {% if "id" in args.keys() %}
+                    {{ args.pop("id")}}
+                    {% endif %}
                     {% if view and r["id"] %}
-                    <a href="{{ url_for(view) }}?id={{ r['id'] }}">View</a>
+                    <a href="{{ url_for(view, id=r['id'], **args) }}">View</a>
                     {% endif %}
                     {% if edit and r["id"] %}
-                    <a href="{{ url_for(edit) }}?id={{ r['id'] }}">Edit</a>
+                    <a href="{{ url_for(edit, id=r['id'], **args) }}">Edit</a>
                     {% endif %}
                     {% if delete and r["id"] %}
-                    <a href="{{ url_for(delete) }}?id={{ r['id'] }}">Delete</a>
+                    <a
+                        href="{{ url_for(delete, id=r['id'], **args) }}">Delete</a>
                     {% endif %}
                 </td>
                 {% endif %}
