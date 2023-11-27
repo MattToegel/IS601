@@ -82,6 +82,24 @@ def create_app(config_filename=''):
             if hasattr(current_user, 'roles'):
                 for role in current_user.roles:
                     identity.provides.add(RoleNeed(role.name))
+                    
+        # https://coderwall.com/p/4zcoxa/urlencode-filter-in-jinja2
+        #Jinja2 lacks a classic urlencode built-in filter (http://jinja.pocoo.org/docs/templates/#builtin-filters). Here is a simple one:
+        @app.template_filter('urlencode')
+        def urlencode_filter(s):
+            import urllib.parse
+            from markupsafe import Markup
+            if type(s) == 'Markup':
+                s = s.unescape()
+            s = s.encode('utf8')
+            s = urllib.parse.quote(s)
+            return Markup(s)
+        
+        # filter to use urlencode since list comprehension isn't supported in jinja 
+        @app.template_filter('query_params')
+        def query_params_filter(args):
+            args = '&'.join([f"{urlencode_filter(k)}={urlencode_filter(v)}" for k,v in args.items()])
+            return args
         return app
 
 

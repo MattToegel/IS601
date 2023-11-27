@@ -26,6 +26,6 @@
     </form>
 
     {{ render_table(rows, "Stocks", [], view, edit, delete) }}
-    {{pagination(total, request.args.page)}}
+    {{pagination(total)}}
 </div>
 {% endblock %}

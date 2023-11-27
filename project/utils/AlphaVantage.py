@@ -10,6 +10,11 @@ if __name__ == "__main__":
     PARENT_DIR = os.path.join(CURR_DIR, "..")  # Go up one level from utils to project folder
     sys.path.append(PARENT_DIR)
 from utils.api import API
+
+class RateLimitExceeded(Exception):
+    """Thrown when the rate limit is throttled (not related to the overall quota)"""
+    pass
+
 class AlphaVantage(API):
     @staticmethod
     def quote(symbol):
@@ -23,7 +28,7 @@ class AlphaVantage(API):
         # this API is "odd" and includes numbers as part of the keys like 01. 02. 03. etc and below removes that and returns just the named keys
         # below also converts the remaining spaces into _ to avoid space problems
         # I think the API is mostly targeted at the csv output option instead of the json option although it supports both
-        if resp and resp["Global Quote"]:
+        if resp and "Global Quote" in resp and resp["Global Quote"]:
             gq = resp["Global Quote"]
             for k,v in gq.items():
                 if "." in k:
@@ -31,6 +36,9 @@ class AlphaVantage(API):
                     fixed[k.replace(" ", "_")] = v.replace("%","") if k == "change percent" else v
         else:
             fixed = resp
+        print(f"fixed resp: {fixed}")
+        if "message" in fixed and "rate limit" in fixed["message"]:
+            raise RateLimitExceeded("Rate Limit Exceeded, please wait a moment to try again")
         return fixed
 
 if __name__ == "__main__":

@@ -95,7 +95,6 @@ def list():
     searchForm = StockFilterForm(request.args)
     allowed_columns = ["latest_trading_day", "price", "symbol", "high", "low", "volume", "change", "change_percent"]
     
-    print(searchForm.data)
     base_query = """SELECT id, symbol, open, high, low, price, volume, latest_trading_day, previous_close, `change`, 
     change_percent FROM IS601_Stocks WHERE 1=1"""
     query = ""
@@ -118,35 +117,38 @@ def list():
         args["tradingDayEnd"] = searchForm.tradingDayEnd.data
     if searchForm.sort.data in allowed_columns and searchForm.order.data in ["asc", "desc"]:
         query += f" ORDER BY {searchForm.sort.data}"
-        #args["sort"] = searchForm.sort.data
         query += f" {searchForm.order.data}"
-        #args["order"] = searchForm.order.data
 
     page = searchForm.page.data
-    if not page:
+    if not page or not f"page".isnumeric():
         page = 1
-    num_to_show = 2
-    offset = (page-1) * num_to_show
-    end_query = f" LIMIT {offset}, {num_to_show}"
-    if searchForm.validate_on_submit():
-        pass
-    else:
-        print(searchForm.errors)
+    # hard coded number of items; could use a value from a form alternatively just make sure to limit it
+    items_per_page = 10
+    # calculate offset by changing page into an index and doing math to get an offset
+    offset = (page-1) * items_per_page
+    end_query = f" LIMIT {offset}, {items_per_page}"
+    
     print(query)
     print(args)
     rows = []
     total = 0
     try:
+        # combine the pieces for the data query
         result = DB.selectAll(base_query + query + end_query, args)
         if result.status and result.rows:
             rows = result.rows
+            # combine the pieces for the count/total query
             result = DB.selectOne(count_query + query, args)
             if result.status and result.row:
                 total = result.row["total"]
-                total = int(int(total)/num_to_show)
+                # again, more path to convert possible total into number of pages
+                total = int(int(total)/items_per_page)
     except Exception as e:
         print(e)
-        flash("Error getting stock records", "danger")
+        if e.args[0].args[0] == -1:
+            flash("Can't delete this Stock, it's assigned to at least one Broker, consider remapping the Broker first","warning")
+        else:
+            flash("Error getting stock records", "danger")
     allowed_columns = [(k,k.replace("_"," ").title()) for k in allowed_columns]
     searchForm.sort.choices = allowed_columns
     return render_template("stocks_list.html", rows=rows, form=searchForm, total=total)
