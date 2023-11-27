@@ -50,7 +50,7 @@ def login():
         password = form.password.data
         if is_valid:
             try:
-                result = DB.selectOne("SELECT id, email, username, password FROM IS601_Users where email= %(email)s or username=%(email)s", {"email":email})
+                result = DB.selectOne("SELECT id, email, username, password, points FROM IS601_Users where email= %(email)s or username=%(email)s", {"email":email})
                 if result.status and result.row:
                     hash = result.row["password"]
                     if bcrypt.check_password_hash(hash, password):

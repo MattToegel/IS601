@@ -43,6 +43,8 @@ def create_app(config_filename=''):
         app.register_blueprint(stocks)
         from brokers.brokers import brokers
         app.register_blueprint(brokers)
+        from points.points import points
+        app.register_blueprint(points)
         # load the extension
         principals = Principal(app) # must be defined/initialized for identity to work (flask_principal)
         @login_manager.user_loader
@@ -82,7 +84,7 @@ def create_app(config_filename=''):
             if hasattr(current_user, 'roles'):
                 for role in current_user.roles:
                     identity.provides.add(RoleNeed(role.name))
-                    
+
         # https://coderwall.com/p/4zcoxa/urlencode-filter-in-jinja2
         #Jinja2 lacks a classic urlencode built-in filter (http://jinja.pocoo.org/docs/templates/#builtin-filters). Here is a simple one:
         @app.template_filter('urlencode')

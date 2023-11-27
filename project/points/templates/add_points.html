@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% block title %}Add Points{% endblock %}
+{% block content %}
+{% from "_formhelpers.html" import render_field %}
+<div class="container-fluid">
+    <div class="h3">Add Points</div>
+    <form method="POST">
+        {% for field in form %}
+        {% if field.name != 'csrf_token' %}
+        {{ render_field(field) }}
+        {% endif %}
+        {% endfor %}
+        {{ form.hidden_tag() }}
+        {{ form.submit(class="btn btn-primary") }}
+    </form>
+
+</div>
+{% endblock %}

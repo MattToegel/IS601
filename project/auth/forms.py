@@ -53,3 +53,7 @@ class ProfileForm(AuthForm):
     # https://wtforms.readthedocs.io/en/3.0.x/forms/#form-inheritance
     # removed override of password/confirm password due to conflicting behaviour with how WTForms replaced the DataRequired() with Optional
     submit = SubmitField("Update")
+
+class UserSearchForm(FlaskForm):
+    username = StringField("Username", validators=[DataRequired(), Length(1, 30)])
+    submit = SubmitField("Search")
