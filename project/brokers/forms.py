@@ -27,3 +27,7 @@ class BrokerForm(FlaskForm):
             self.stocks.append_entry()
         while len(self.stocks) > rarity:
             self.stocks.pop_entry()
+
+
+class PurchaseForm(FlaskForm):
+    submit = SubmitField("Purchase (50 pts)")

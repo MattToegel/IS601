@@ -1,6 +1,6 @@
 from flask import Blueprint, flash, render_template, request, redirect, url_for
 from sql.db import DB 
-from brokers.forms import BrokerForm  
+from brokers.forms import BrokerForm, PurchaseForm
 from roles.permissions import admin_permission
 from brokerstock_utils.utils import manage_broker_stocks
 from utils.lazy import DictToObject
@@ -9,6 +9,8 @@ from stocks.models import Stock
 brokers = Blueprint('brokers', __name__, url_prefix='/brokers', template_folder='templates')
 from faker import Faker
 import random
+from flask_login import current_user
+from points.points import change_points
 
 def populate_form_with_broker(form, broker):
    # form.process(obj=broker)
@@ -103,6 +105,37 @@ def get_associated_stocks(broker_id):
     if stock_associations.status:
         stocks = [Stock(**stock) for stock in stock_associations.rows]
     return stocks
+
+@brokers.route("/purchase", methods=["GET","POST"])
+def purchase():
+    form = PurchaseForm()
+    cost = 50
+    if form.validate_on_submit():
+        if current_user.get_points() >= cost:
+            status = change_points(current_user.id, -cost)
+            if status:
+                query = """ 
+                SELECT id FROM IS601_Brokers b where id 
+                not in (SELECT id FROM IS601_UserBrokers WHERE id = b.id) 
+                ORDER BY rand() LIMIT 1
+                """
+                result = DB.selectOne(query)
+                if result.status and result.row:
+                    broker_id = result.row["id"]
+                    query = """ INSERT INTO IS601_UserBrokers (user_id, broker_id, is_active)
+                    VALUES (%(user_id)s, %(broker_id)s, 1)"""
+                    result = DB.insertOne(query,{
+                        "user_id":current_user.id,
+                        "broker_id":broker_id
+                    })
+                    flash("You got it!", "success")
+                    return redirect(url_for("brokers.view", id=broker_id))
+                else:
+                    flash("No Broker available, here's your cash back", "warning")
+                    change_points(current_user.id, cost)
+        else:
+            flash("You're broke buddy", "danger")
+    return render_template("purchase_broker.html",form=form)
 
 @brokers.route("/random", methods=["GET", "POST"])
 def random_broker():
