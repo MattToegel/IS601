@@ -5,9 +5,15 @@
 {% block content %}
 {% from "_table_helper.html" import render_table %}
 {% set view = "brokers.view" %}
+{% if current_user.has_role("Admin") %}
 {% set edit = "brokers.edit" %}
 {% set delete = "brokers.delete" %}
+{% else %}
+{% set edit = None %}
+{% set delete = None %}
+{% endif %}
 <div class="container-fluid">
+    {% include '_broker_search.html' %}
     {{ render_table(rows, "Brokers", [], view, edit, delete) }}
 </div>
 {% endblock %}

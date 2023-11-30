@@ -13,14 +13,14 @@
 {% if field.type == "BooleanField" %}
 <!-- Handle checkbox/boolean field -->
 <div class="form-check">
-    {{ field(class="form-check-input") }}
+    {{ field(class="form-check-input", **kwargs) }}
     {{ field.label(class="form-check-label") }}
 </div>
 {% elif field.type == "SelectField" %}
 <!-- Handle select field -->
 <div class="form-group">
     {{ field.label(class="form-label") }}
-    {{ field(class="form-select") }}
+    {{ field(class="form-select", **kwargs) }}
     {% if field.errors %}
     <ul class="errors">
         {% for error in field.errors %}
@@ -33,7 +33,7 @@
 <!-- Handle textarea field -->
 <div class="form-group">
     {{ field.label(class="form-label") }}
-    {{ field(class="form-control") }}
+    {{ field(class="form-control", **kwargs) }}
     {% if field.errors %}
     <ul class="errors">
         {% for error in field.errors %}
@@ -49,7 +49,7 @@
     <div>
         {% for choice in field %}
         <div class="form-check">
-            {{ choice(class="form-check-input") }}
+            {{ choice(class="form-check-input", **kwargs) }}
             {{ choice.label(class="form-check-label") }}
         </div>
         {% endfor %}
@@ -66,7 +66,7 @@
 <!-- Handle other fields (text, password, etc.) -->
 <div class="form-group">
     {{ field.label(class="form-label") }}
-    {{ field(class="form-control") }}
+    {{ field(class="form-control", **kwargs) }}
     {% if field.errors %}
     <ul class="errors">
         {% for error in field.errors %}

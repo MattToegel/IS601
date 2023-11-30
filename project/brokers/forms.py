@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField, FieldList, FormField, SubmitField, validators
+from wtforms import StringField, IntegerField, FieldList, FormField, SubmitField, validators, SelectField, HiddenField
 
 class StockEntryForm(FlaskForm):
     symbol = StringField('Stock Symbol', [validators.Length(min=1, max=10)])
@@ -31,3 +31,19 @@ class BrokerForm(FlaskForm):
 
 class PurchaseForm(FlaskForm):
     submit = SubmitField("Purchase (50 pts)")
+
+
+class BrokerSearchForm(FlaskForm):
+    name = StringField("Name")
+    rarityMin = IntegerField("Rarity (Min.)")
+    rarityMax = IntegerField("Rarity (Max.)")
+    sort = SelectField("Columns", [validators.Optional()], choices=[])
+    order = SelectField("Order", [validators.Optional()], choices=[("asc","+"), ("desc","-")])
+    page = IntegerField("page")
+    submit = SubmitField("Filter")
+
+class BrokerUpgradeForm(FlaskForm):
+    symbol = HiddenField('Symbol', [validators.Length(min=1, max=10)])
+    shares = IntegerField('Shares', [validators.NumberRange(min=1)])
+    broker_id = HiddenField("broker_id")
+    submit = SubmitField("Purchase Shares")

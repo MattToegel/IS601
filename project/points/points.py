@@ -1,17 +1,12 @@
-from flask import Blueprint, flash, render_template, request, redirect, session, url_for
+from flask import Blueprint, flash, render_template,session
 from flask_login import current_user
-from auth.forms import UserSearchForm
+
 from points.forms import ChangePointsForm
 from sql.db import DB 
-from brokers.forms import BrokerForm  
 from roles.permissions import admin_permission
-from brokerstock_utils.utils import manage_broker_stocks
-from utils.lazy import DictToObject
-from brokers.models import Broker
-from stocks.models import Stock
+
 points = Blueprint('points', __name__, url_prefix='/points', template_folder='templates')
-from faker import Faker
-import random
+
 
 def change_points(user_id, amount):
     # The COALESCE function is used to handle the case where there are no existing records for the user, ensuring that it defaults to 0 rather than NULL.

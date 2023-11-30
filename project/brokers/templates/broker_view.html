@@ -1,9 +1,11 @@
 {% extends "layout.html" %}
 {% block title %}{{"Random" if save_enabled else "View"}} Broker{% endblock %}
-
+{% from "_formhelpers.html" import render_field %}
 {% block content %}
 <div class="container-fluid">
-    <div class="h3">Broker Details: {{ broker.name }}</div>
+    <div class="h3">Broker Details: {{ broker.name }} -
+        {{'Owned by you' if broker.user_id == current_user.id else broker.status}}
+    </div>
     <div class="card my-2">
         <div class="card-body">
             <h5>Stats</h5>
@@ -26,11 +28,26 @@
                     Price: {{ stock.price }},
                     Change: {{ stock.change }} ({{ stock.change_percent }}%),
                     Total: ${{(stock.price * stock.shares)|round}}
+                    {% if current_user.is_authenticated and current_user.id == broker.user_id %}
+                    <form method="POST" action="{{url_for('brokers.upgrade')}}">
+                        {{stockForm.broker_id(value=broker.id)}}
+                        {{stockForm.symbol(value=stock.symbol)}}
+                        {{stockForm.csrf_token}}
+                        <div class="row">
+                            <div class="col">
+                                {{render_field(stockForm.shares, value=1)}}
+                            </div>
+                            <div class="col align-self-end">
+                                {{stockForm.submit(class="btn btn-primary mt-3")}}
+                            </div>
+                        </div>
+                    </form>
+                    {% endif %}
                 </li>
                 {% endfor %}
             </ul>
             {% if save_enabled %}
-            {% from "_formhelpers.html" import render_field %}
+
             <form method="POST" id="brokerForm">
                 {% for field in form if field.name != 'csrf_token' and field.name != 'stocks' %}
                 {{ render_field(field) }}
@@ -57,7 +74,7 @@
     </div>
 </div>
 <style>
-    .form-group {
+    #brokerForm .form-group {
         display: none !important;
     }
 </style>

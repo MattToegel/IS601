@@ -31,8 +31,8 @@ def create_app(config_filename=''):
     login_manager.init_app(app)
     # app.config.from_pyfile(config_filename)
     with app.app_context():
-        #from views.hello import hello
-        #app.register_blueprint(hello)
+        from views.hello import hello
+        app.register_blueprint(hello)
         from views.sample import sample
         app.register_blueprint(sample)
         from auth.auth import auth
@@ -54,7 +54,7 @@ def create_app(config_filename=''):
             print("login_manager loading user") # happens each request
             from auth.models import User
             if session["_user_id"] == user_id and "user" in session.keys():
-                print("loading user from session")
+                print("loading user from session", session["user"])
                 # load user from session (convert json to User)
                 # see User object for convering json of roles to [Roles]
                 import jsons
@@ -63,7 +63,7 @@ def create_app(config_filename=''):
             from sql.db import DB
             print("loading user from DB") # note: we'd lose roles here since it makes a new user object without a roles query
             try:
-                result = DB.selectOne("SELECT id, email FROM IS601_Users WHERE id = %s", user_id)
+                result = DB.selectOne("SELECT id, email, username, points FROM IS601_Users WHERE id = %s", user_id)
                 if result.status:
                     return User(**result.row)
             except Exception as e:

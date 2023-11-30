@@ -120,7 +120,7 @@ def list():
         query += f" {searchForm.order.data}"
 
     page = searchForm.page.data
-    if not page or not f"page".isnumeric():
+    if not page or not f"{page}".isnumeric():
         page = 1
     # hard coded number of items; could use a value from a form alternatively just make sure to limit it
     items_per_page = 10

@@ -1,110 +1,86 @@
 from flask import Blueprint, flash, render_template, request, redirect, url_for
 from sql.db import DB 
-from brokers.forms import BrokerForm, PurchaseForm
+from brokers.forms import BrokerForm, PurchaseForm, BrokerSearchForm,BrokerUpgradeForm
 from roles.permissions import admin_permission
 from brokerstock_utils.utils import manage_broker_stocks
 from utils.lazy import DictToObject
 from brokers.models import Broker
 from stocks.models import Stock
 brokers = Blueprint('brokers', __name__, url_prefix='/brokers', template_folder='templates')
-from faker import Faker
-import random
-from flask_login import current_user
+
+from flask_login import current_user, login_required
 from points.points import change_points
+from brokerstock_utils.utils import *
 
-def populate_form_with_broker(form, broker):
-   # form.process(obj=broker)
-    
-    form.name.data = broker.name
-    form.rarity.data = broker.rarity
-    form.life.data = broker.life
-    form.power.data = broker.power
-    form.defense.data = broker.defense
-    form.stonks.data = broker.stonks
-    # Clear existing stock entries in the form
-    while len(form.stocks.entries) > 0:
-        form.stocks.pop_entry()
-    for stock in broker.stocks:
-        form.stocks.append_entry(stock)
-    
-    for k,v in form.data.items():
-        print(f"{k} - {v}")
 
-def generate_random_broker():
-    fake = Faker()
-    name = fake.name()
-    rarity = random.choices(range(1, 11), weights=[10, 9, 8, 7, 6, 5, 4, 3, 2, 1], k=1)[0]
-    broker = Broker(id=None, name=name, rarity=rarity, life=0, power=0, defense=0, stonks=0)
-    result = DB.selectAll("SELECT DISTINCT symbol FROM IS601_Stocks")
-    stocks = []
-    if result.status:
-        available_symbols = [row['symbol'] for row in result.rows]
-        selected_symbols = random.sample(available_symbols, min(len(available_symbols), rarity))
-        placeholders = ",".join(["%s" for x in selected_symbols])
-        query = f"""
-        SELECT *, 1 as shares FROM IS601_Stocks 
-        WHERE symbol in ({placeholders})
-        AND IS601_Stocks.latest_trading_day = (
-            SELECT MAX(latest_trading_day) FROM IS601_Stocks AS latest_stock
-            WHERE latest_stock.symbol = IS601_Stocks.symbol
-        )"""
-        result = DB.selectAll(query, *selected_symbols)
-        if result.status and result.rows:
-            print(f"rows: {result.rows}")
-            for row in result.rows:
-                broker.add_stock(Stock(**row))
-    
-    broker.recalculate_stats()
-    return broker
-def create_or_update_broker(form, broker_id=None):
-    if not broker_id:
-        query = "INSERT INTO IS601_Brokers (Name, Rarity, Life, Power, Defense, Stonks) VALUES (%s, %s, %s, %s, %s, %s)"
-        values = (form.name.data, form.rarity.data, form.life.data, form.power.data, form.defense.data, form.stonks.data)
-
-        result = DB.insertOne(query, *values)
-        broker_id = result.insert_id
-    
-    stock_symbols = [{"symbol": entry.symbol.data, "shares": entry.shares.data} for entry in form.stocks]
-    manage_broker_stocks(broker_id, stock_symbols)
-    broker = fetch_broker_data(broker_id)
-    
-    if broker_id:
-        query = "UPDATE IS601_Brokers SET name = %s, rarity = %s, life = %s, power = %s, defense = %s, stonks = %s WHERE id = %s"
-        values = (broker.name, broker.rarity, broker.life, broker.power, broker.defense, broker.stonks, broker_id)
-        result = DB.update(query, *values)
-
-        
-    return result
-def fetch_broker_data(broker_id):
-    broker = None
-    result = DB.selectOne("SELECT * FROM IS601_Brokers WHERE id = %s", broker_id)
-    if result.status and result.row:
-        broker = Broker(**result.row)
-        stocks = get_associated_stocks(broker.id)
-        for stock in stocks:
-            broker.add_stock(stock)
-        broker.recalculate_stats()
+@brokers.route("/upgrade", methods=["POST"])
+@login_required
+def upgrade():
+    form = BrokerUpgradeForm()
+    broker_id = -1
+    print(form.data)
+    if form.validate_on_submit():
+        broker_id = form.broker_id.data
+        user_id = current_user.id
+        # check ownership
+        result = DB.selectOne("SELECT id FROM IS601_UserBrokers WHERE broker_id = %(broker_id)s and user_id = %(user_id)s",{
+            "broker_id":broker_id,
+            "user_id": user_id
+        })
+        if result.status and result.row:
+            symbol = form.symbol.data
+            # get price
+            result = DB.selectOne("SELECT price FROM IS601_Stocks WHERE symbol = %(symbol)s ORDER BY modified desc LIMIT 1",{
+                "symbol":symbol
+            })
+            if result.status and result.row:
+                # check afforability
+                price = int(result.row["price"])
+                shares = int(form.shares.data)
+                total = price * shares
+                if total <= current_user.points:
+                    if change_points(current_user.id, -total):
+                        # increase the shares, includes extra sub query to double check it's only an owned Broker
+                        result = DB.update("""UPDATE IS601_BrokerStocks set shares = shares + %(shares)s 
+                                WHERE broker_id = (SELECT broker_id FROM
+                                IS601_UserBrokers WHERE broker_id = %(broker_id)s AND user_id = %(user_id)s)""",{
+                                "broker_id":broker_id,
+                                "user_id": user_id,
+                                "shares":shares
+                            })
+                        if result.status: # success
+                           flash(f"Added {shares} more {'shares' if shares > 1 else 'share'} of {symbol}","success")
+                        else: # update failed, refund
+                            change_points(current_user.id, total)
+                            flash("There was a problem upgrading; refunding the cost", "warning")
+                    else: # payment failed, likely can't afford, but we already check prior
+                        flash("An unhandled error happened", "danger")
+                else:
+                    flash(f"You can't afford to spend {total} points on {shares} of {symbol}","warning")
+        else:
+            flash("You can't buy shares for a Broker you don't own", "danger")
     else:
-        print("Broker not found")
-        flash("Broker not found", "danger")
-    return broker
+        flash(form.errors)
+    if int(broker_id) < 1:
+        return redirect(url_for("brokers.team"))
+    return redirect(url_for("brokers.view", id=broker_id))
 
-def get_associated_stocks(broker_id):
-    stocks = []
-    stock_associations = DB.selectAll(
-        """SELECT IS601_Stocks.*, IS601_BrokerStocks.shares FROM IS601_Stocks 
-        JOIN IS601_BrokerStocks ON IS601_Stocks.symbol = IS601_BrokerStocks.symbol 
-        WHERE IS601_BrokerStocks.broker_id = %s
-        AND IS601_Stocks.latest_trading_day = (
-            SELECT MAX(latest_trading_day) FROM IS601_Stocks AS latest_stock
-            WHERE latest_stock.symbol = IS601_Stocks.symbol
-        )
-        """, broker_id
-    )
-        
-    if stock_associations.status:
-        stocks = [Stock(**stock) for stock in stock_associations.rows]
-    return stocks
+@brokers.route("/team", methods=["GET"])
+@login_required
+def team():
+    form = BrokerSearchForm()
+    allowed_columns = ["name", "rarity", "life", "power", "defense", "stonks"]
+    form.sort.choices = [(k,k) for k in allowed_columns]
+    query = """SELECT b.id, name, rarity, life, power, defense, stonks FROM IS601_Brokers b 
+    JOIN IS601_UserBrokers ub on ub.broker_id = b.id WHERE ub.user_id = %(user_id)s"""
+    brokers = []
+    try:
+        result = DB.selectAll(query, {"user_id":current_user.id})
+        if result.status:
+            brokers = result.rows
+    except Exception as e:
+        flash(f"Error getting broker records: {e}", "danger")
+    return render_template("brokers_list.html", rows=brokers, form=form)
 
 @brokers.route("/purchase", methods=["GET","POST"])
 def purchase():
@@ -138,6 +114,7 @@ def purchase():
     return render_template("purchase_broker.html",form=form)
 
 @brokers.route("/random", methods=["GET", "POST"])
+@admin_permission.require(http_exception=403)
 def random_broker():
     
     form = BrokerForm()
@@ -193,14 +170,15 @@ def edit():
 @brokers.route("/list", methods=["GET"])
 @admin_permission.require(http_exception=403)
 def list():
+    form = BrokerSearchForm()
     brokers = []
     try:
-        result = DB.selectAll("SELECT id, Name, Rarity, Life, Power, Defense, Stonks FROM IS601_Brokers")
+        result = DB.selectAll("SELECT id, name, rarity, life, power, defense, stonks FROM IS601_Brokers")
         if result.status:
             brokers = result.rows
     except Exception as e:
         flash(f"Error getting broker records: {e}", "danger")
-    return render_template("brokers_list.html", rows=brokers)
+    return render_template("brokers_list.html", rows=brokers, form=form)
 
 @brokers.route("/delete", methods=["GET"])
 @admin_permission.require(http_exception=403)
@@ -221,6 +199,7 @@ def delete():
 @brokers.route("/view", methods=["GET"])
 def view():
     id = request.args.get("id")
+    stockForm = BrokerUpgradeForm()
     if id is None:
         flash("Missing ID", "danger")
         return redirect(url_for("brokers.list"))
@@ -232,4 +211,4 @@ def view():
     except Exception as e:
         flash(f"Error fetching broker record: {e}", "danger")
         return redirect(url_for('brokers.list'))
-    return render_template("broker_view.html", broker=broker)
+    return render_template("broker_view.html", broker=broker, stockForm=stockForm)

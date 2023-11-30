@@ -44,7 +44,7 @@
                 const quantityInput = clonedEntry.querySelector('[name^="stocks-"][name$="-shares"]');
                 symbolInput.name = `stocks-${currentEntries}-symbol`;
                 quantityInput.name = `stocks-${currentEntries}-shares`;
-                symbol.value = "";
+                symbolInput.value = "";
                 quantityInput.value = "";
                 stockEntriesContainer.appendChild(clonedEntry);
                 currentEntries++;

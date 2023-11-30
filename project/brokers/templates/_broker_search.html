@@ -1,0 +1,14 @@
+{% from "_formhelpers.html" import render_field %}
+<form method="GET">
+    <div class="row mb-3">
+        {% for field in form %}
+        {% if field.name != 'csrf_token' %}
+        <div class="col align-self-end">
+            {{ render_field(field) }}
+        </div>
+        {% endif %}
+        {% endfor %}
+        {{ form.hidden_tag() }}
+        {{ form.submit(class="btn btn-primary mt-3") }}
+    </div>
+</form>

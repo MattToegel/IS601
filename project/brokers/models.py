@@ -6,7 +6,7 @@ from decimal import Decimal
 
 class Broker(JsonSerializable):
     def __init__(self,id:int, name: str, rarity: int, life: int, power: int, 
-                 defense: int, stonks: int, created: datetime = None, 
+                 defense: int, stonks: int, status: str = None, user_id: int = None, created: datetime = None, 
                  modified: datetime = None, stocks: List[Stock] = None):
         self.id = id
         self.name = name
@@ -19,6 +19,8 @@ class Broker(JsonSerializable):
         self.created = created
         self.modified = modified
         self.stocks = stocks if stocks is not None else []
+        self.status = status
+        self.user_id = user_id or None
     def total_value(self):
         return sum(stock.price*stock.shares for stock in self.stocks)
     def add_stock(self, stock: Stock):
