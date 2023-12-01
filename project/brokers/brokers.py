@@ -92,7 +92,7 @@ def purchase():
             if status:
                 query = """ 
                 SELECT id FROM IS601_Brokers b where id 
-                not in (SELECT id FROM IS601_UserBrokers WHERE id = b.id) 
+                not in (SELECT id FROM IS601_UserBrokers WHERE broker_id = b.id) 
                 ORDER BY rand() LIMIT 1
                 """
                 result = DB.selectOne(query)
