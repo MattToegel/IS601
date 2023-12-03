@@ -65,7 +65,7 @@ def upgrade():
                                 "broker_id":broker_id,
                                 "user_id": user_id,
                                 "shares":shares,
-                                "symbol", symbol
+                                "symbol": symbol
                             })
                         if result.status: # success
                            flash(f"Added {shares} more {'shares' if shares > 1 else 'share'} of {symbol}","success")
@@ -88,6 +88,7 @@ def upgrade():
 @login_required
 def team():
     form = BrokerSearchForm(request.args)
+    user_id = request.args.get("id", current_user.id)
     allowed_columns = ["name", "rarity", "life", "power", "defense", "stonks"]
     form.sort.choices = [(k,k) for k in allowed_columns]
     query = """SELECT b.id, name, rarity, life, power, defense, stonks FROM IS601_Brokers b 
@@ -107,7 +108,7 @@ def team():
     where += " LIMIT %(offset)s, %(limit)s"
     args["offset"] = offset
     args["limit"] = per_page
-    args["user_id"] = current_user.id
+    args["user_id"] = user_id
     brokers = []
     try:
         result = DB.selectAll(query+where, args)
