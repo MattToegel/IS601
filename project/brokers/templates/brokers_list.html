@@ -14,6 +14,6 @@
 {% endif %}
 <div class="container-fluid">
     {% include '_broker_search.html' %}
-    {{ render_table(rows, "Brokers", [], view, edit, delete) }}
+    {{ render_table(rows, "Brokers", ["id"], view, edit, delete) }}
 </div>
 {% endblock %}

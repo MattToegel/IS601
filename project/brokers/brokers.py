@@ -12,6 +12,23 @@ from flask_login import current_user, login_required
 from points.points import change_points
 from brokerstock_utils.utils import *
 
+def filter_search(form, allowed_columns):
+    where = ""
+    args = {}
+    if form.name.data:
+        where += " AND name LIKE %(name)s"
+        args["name"] = f"%{form.name.data}%"
+    if form.rarityMin.data:
+        where += " AND rarity >= %(rmin)s"
+        args["rmin"] = form.rarityMin.data
+    if form.rarityMax.data:
+        where += " AND rarity <= %(rmax)s"
+        args["rmax"] = form.rarityMax.data
+    if form.sort.data in allowed_columns and form.order.data in ["asc","desc"]:
+        where += f" ORDER BY {form.sort.data} {form.order.data}"
+    else:
+        where += " ORDER BY name asc"
+    return (where, args)
 
 @brokers.route("/upgrade", methods=["POST"])
 @login_required
@@ -43,10 +60,12 @@ def upgrade():
                         # increase the shares, includes extra sub query to double check it's only an owned Broker
                         result = DB.update("""UPDATE IS601_BrokerStocks set shares = shares + %(shares)s 
                                 WHERE broker_id = (SELECT broker_id FROM
-                                IS601_UserBrokers WHERE broker_id = %(broker_id)s AND user_id = %(user_id)s)""",{
+                                IS601_UserBrokers WHERE broker_id = %(broker_id)s AND user_id = %(user_id)s)
+                                AND symbol = %{symbol}""",{
                                 "broker_id":broker_id,
                                 "user_id": user_id,
-                                "shares":shares
+                                "shares":shares,
+                                "symbol", symbol
                             })
                         if result.status: # success
                            flash(f"Added {shares} more {'shares' if shares > 1 else 'share'} of {symbol}","success")
@@ -68,14 +87,30 @@ def upgrade():
 @brokers.route("/team", methods=["GET"])
 @login_required
 def team():
-    form = BrokerSearchForm()
+    form = BrokerSearchForm(request.args)
     allowed_columns = ["name", "rarity", "life", "power", "defense", "stonks"]
     form.sort.choices = [(k,k) for k in allowed_columns]
     query = """SELECT b.id, name, rarity, life, power, defense, stonks FROM IS601_Brokers b 
     JOIN IS601_UserBrokers ub on ub.broker_id = b.id WHERE ub.user_id = %(user_id)s"""
+    where = filter_search(form, allowed_columns)
+    args = where[1]
+    where = where[0]
+    page = request.args.get("page") or 1
+    try:
+        page = int(page)
+        if page < 1:
+            page = 1
+    except:
+        page = 1
+    per_page = 10
+    offset = (page-1)*per_page
+    where += " LIMIT %(offset)s, %(limit)s"
+    args["offset"] = offset
+    args["limit"] = per_page
+    args["user_id"] = current_user.id
     brokers = []
     try:
-        result = DB.selectAll(query, {"user_id":current_user.id})
+        result = DB.selectAll(query+where, args)
         if result.status:
             brokers = result.rows
     except Exception as e:
@@ -173,7 +208,26 @@ def list():
     form = BrokerSearchForm()
     brokers = []
     try:
-        result = DB.selectAll("SELECT id, name, rarity, life, power, defense, stonks FROM IS601_Brokers")
+        allowed_columns = ["name", "rarity", "life", "power", "defense", "stonks"]
+        form.sort.choices = [(k,k) for k in allowed_columns]
+        query = """SELECT b.id, name, rarity, life, power, defense, stonks, if(ub.user_id > 0, 'unavailable','available') as status FROM IS601_Brokers b 
+        LEFT JOIN IS601_UserBrokers ub on ub.broker_id = b.id WHERE 1=1"""
+        where = filter_search(form, allowed_columns)
+        args = where[1]
+        where = where[0]
+        page = request.args.get("page") or 1
+        try:
+            page = int(page)
+            if page < 1:
+                page = 1
+        except:
+            page = 1
+        per_page = 10
+        offset = (page-1)*per_page
+        where += " LIMIT %(offset)s, %(limit)s"
+        args["offset"] = offset
+        args["limit"] = per_page
+        result = DB.selectAll(query + where, args)
         if result.status:
             brokers = result.rows
     except Exception as e:
