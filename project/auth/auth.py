@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, flash, redirect, url_for,current_app, session
+from flask import Blueprint, render_template, flash, redirect, url_for,current_app, session, request
 from auth.forms import LoginForm, ProfileForm, RegisterForm
 from sql.db import DB
 
@@ -110,42 +110,47 @@ def logout():
 @auth.route("/profile", methods=["GET", "POST"])
 @login_required
 def profile():
-    user_id = current_user.get_id()
+    user_id = request.args.get("id")
+    logged_in_user_id = current_user.get_id()
+    is_my_profile = user_id == logged_in_user_id
     form = ProfileForm()
     if form.validate_on_submit():
-        is_valid = True
-        email = form.email.data
-        username = form.username.data
-        current_password = form.current_password.data
-        password = form.password.data
-        confirm = form.confirm.data
-        # handle password change only if all 3 are provided
-        if current_password and password and confirm:
-            try:
-                result = DB.selectOne("SELECT password FROM IS601_Users where id = %s", user_id)
-                if result.status and result.row:
-                    # verify current password
-                    if bcrypt.check_password_hash(result.row["password"], current_password):
-                        # update new password
-                        hash = bcrypt.generate_password_hash(password)
-                        try:
-                            result = DB.update("UPDATE IS601_Users SET password = %s WHERE id = %s", hash, user_id)
-                            if result.status:
-                                flash("Updated password", "success")
-                        except Exception as ue:
-                            flash(ue, "danger")
-                    else:
-                        flash("Invalid password","danger")
-            except Exception as se:
-                flash(se, "danger")
-        
-        if is_valid:
-            try: # update email, username (this will trigger if nothing changed but it's fine)
-                result = DB.update("UPDATE IS601_Users SET email = %s, username = %s WHERE id = %s", email, username, user_id)
-                if result.status:
-                    flash("Saved profile", "success")
-            except Exception as e:
-                check_duplicate(e)
+        if is_my_profile:
+            is_valid = True
+            email = form.email.data
+            username = form.username.data
+            current_password = form.current_password.data
+            password = form.password.data
+            confirm = form.confirm.data
+            # handle password change only if all 3 are provided
+            if current_password and password and confirm:
+                try:
+                    result = DB.selectOne("SELECT password FROM IS601_Users where id = %s", user_id)
+                    if result.status and result.row:
+                        # verify current password
+                        if bcrypt.check_password_hash(result.row["password"], current_password):
+                            # update new password
+                            hash = bcrypt.generate_password_hash(password)
+                            try:
+                                result = DB.update("UPDATE IS601_Users SET password = %s WHERE id = %s", hash, user_id)
+                                if result.status:
+                                    flash("Updated password", "success")
+                            except Exception as ue:
+                                flash(ue, "danger")
+                        else:
+                            flash("Invalid password","danger")
+                except Exception as se:
+                    flash(se, "danger")
+            
+            if is_valid:
+                try: # update email, username (this will trigger if nothing changed but it's fine)
+                    result = DB.update("UPDATE IS601_Users SET email = %s, username = %s WHERE id = %s", email, username, user_id)
+                    if result.status:
+                        flash("Saved profile", "success")
+                except Exception as e:
+                    check_duplicate(e)
+        else:
+            flash("You can't edit someone else's profile", "danger")
     try:
         # get latest info if anything changed
         result = DB.selectOne("SELECT id, email, username FROM IS601_Users where id = %s", user_id)
@@ -155,11 +160,12 @@ def profile():
             # form = ProfileForm(obj=user)
             print("loading user", user)
             form.username.data = user.username
-            form.email.data = user.email
-            # TODO update session
-            current_user.email = user.email
-            current_user.username = user.username
-            session["user"] = current_user.toJson()
+            if is_my_profile:
+                form.email.data = user.email
+                # TODO update session
+                current_user.email = user.email
+                current_user.username = user.username
+                session["user"] = current_user.toJson()
     except Exception as e:
         flash(e, "danger")
-    return render_template("profile.html", form=form)
+    return render_template("profile.html", form=form,is_my_profile=is_my_profile)

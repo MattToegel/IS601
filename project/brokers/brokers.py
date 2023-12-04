@@ -1,6 +1,6 @@
 from flask import Blueprint, flash, render_template, request, redirect, url_for
 from sql.db import DB 
-from brokers.forms import BrokerForm, PurchaseForm, BrokerSearchForm,BrokerUpgradeForm
+from brokers.forms import BrokerForm, PurchaseForm, BrokerSearchForm,BrokerUpgradeForm,AssociationSearchForm
 from roles.permissions import admin_permission
 from brokerstock_utils.utils import manage_broker_stocks
 from utils.lazy import DictToObject
@@ -29,6 +29,103 @@ def filter_search(form, allowed_columns):
     else:
         where += " ORDER BY name asc"
     return (where, args)
+@brokers.route("/available", methods=["GET"])
+def available():
+    form = BrokerSearchForm(request.args)
+    brokers = []
+    try:
+        allowed_columns = ["name", "rarity", "life", "power", "defense", "stonks"]
+        form.sort.choices = [(k,k) for k in allowed_columns]
+        query = """SELECT b.id, name, rarity, life, power, defense, stonks FROM IS601_Brokers b 
+        LEFT JOIN IS601_UserBrokers ub on ub.broker_id = b.id WHERE ub.user_id is null"""
+        where = filter_search(form, allowed_columns)
+        args = where[1]
+        where = where[0]
+        page = request.args.get("page") or 1
+        try:
+            page = int(page)
+            if page < 1:
+                page = 1
+        except:
+            page = 1
+        per_page = 10
+
+        total = 0
+        try:
+            count_query = """SELECT count(1) as total FROM IS601_Brokers b 
+        LEFT JOIN IS601_UserBrokers ub on ub.broker_id = b.id WHERE ub.user_id is null"""
+            result = DB.selectOne(count_query,args)
+            if result.status and result.row:
+                total = int(result.row["total"] or 0)
+
+        except Exception as e:
+            flash(f"Error fetching broker associations count: {e}", "danger")
+        offset = (page-1)*per_page
+        where += " LIMIT %(offset)s, %(limit)s"
+        args["offset"] = offset
+        args["limit"] = per_page
+        result = DB.selectAll(query + where, args)
+        if result.status:
+            brokers = result.rows
+    except Exception as e:
+        flash(f"Error getting broker records: {e}", "danger")
+    return render_template("brokers_list.html", rows=brokers, form=form, total_brokers=total)
+
+@brokers.route("/associations", methods=["GET"])
+@admin_permission.require(http_exception=403)
+def assocations():
+    form = AssociationSearchForm(request.args)
+    query = """SELECT b.id, u.id as user_id, username, CONCAT(name, '#', b.id) as broker_name, (SELECT count(1) FROM IS601_UserBrokers ub2 WHERE ub2.broker_id = b.id) as num_assoc
+    FROM IS601_UserBrokers ub 
+    JOIN IS601_Users u ON u.id = ub.user_id 
+    JOIN IS601_Brokers b on b.id = ub.broker_id WHERE 1=1"""
+    count_query = """SELECT count(1) as total
+    FROM IS601_UserBrokers ub 
+    JOIN IS601_Users u ON u.id = ub.user_id 
+    JOIN IS601_Brokers b on b.id = ub.broker_id WHERE 1=1"""
+    where = ""
+    args = {}
+    allowed_columns = ["username","broker_name"]
+    if form.username.data:
+        where += " AND username like %(username)s"
+        args["username"] = f"%{form.username.data}%"
+    if form.broker_name.data:
+        where += " AND name like %(broker_name)s"
+        args["broker_name"] = f"%{form.broker_name.data}%"
+    if form.sort.data and form.order.data and form.sort.data in allowed_columns and form.order.data in ["asc","desc"]:
+        where += f" ORDER BY {form.sort.data} {form.order.data}"
+    where += " LIMIT 25"
+    rows = []
+    total = 0
+    try:
+        result = DB.selectOne(count_query)
+        if result.status and result.row:
+            total = int(result.row["total"] or 0)
+
+    except Exception as e:
+        flash(f"Error fetching broker associations count: {e}", "danger")
+    try:
+        
+        result=  DB.selectAll(query+where, args)
+        if result.status and result.rows:
+            rows = result.rows
+    except Exception as e:
+        flash(f"Error fetching broker associations: {e}", "danger")
+    
+    return render_template("broker_associations.html", rows=rows, form=form, total=total)
+
+@brokers.route("/debroker", methods=["POST"])
+@admin_permission.require(http_exception=403)
+def debroker():
+    id = request.form.get("user_id")
+    if id:
+        result = DB.delete("DELETE FROM IS601_UserBrokers WHERE user_id = %s", id)
+        if result.status:
+            flash("Removed all brokers from target user", "success")
+            return redirect(url_for("brokers.team", id=id))
+    else:
+        flash("Missing User Id", "danger")
+        return redirect(url_for("brokers.list"))
 
 @brokers.route("/upgrade", methods=["POST"])
 @login_required
@@ -93,9 +190,13 @@ def team():
     form.sort.choices = [(k,k) for k in allowed_columns]
     query = """SELECT b.id, name, rarity, life, power, defense, stonks FROM IS601_Brokers b 
     JOIN IS601_UserBrokers ub on ub.broker_id = b.id WHERE ub.user_id = %(user_id)s"""
+    # note, different than pagination count
+    count_query = """SELECT count(1) as total FROM IS601_Brokers b 
+    JOIN IS601_UserBrokers ub on ub.broker_id = b.id WHERE ub.user_id = %(user_id)s"""
     where = filter_search(form, allowed_columns)
     args = where[1]
     where = where[0]
+    args["user_id"] = user_id
     page = request.args.get("page") or 1
     try:
         page = int(page)
@@ -104,11 +205,22 @@ def team():
     except:
         page = 1
     per_page = 10
+    
+    
+    # do count stuff first
+    total_brokers = 0
+    try:
+        result = DB.selectOne(count_query,args)
+        if result.status and result.row:
+            total_brokers = int(result.row["total"])
+    except Exception as e:
+        flash(f"Error counting broker records: {e}", "danger")
+
     offset = (page-1)*per_page
     where += " LIMIT %(offset)s, %(limit)s"
     args["offset"] = offset
     args["limit"] = per_page
-    args["user_id"] = user_id
+    
     brokers = []
     try:
         result = DB.selectAll(query+where, args)
@@ -116,9 +228,10 @@ def team():
             brokers = result.rows
     except Exception as e:
         flash(f"Error getting broker records: {e}", "danger")
-    return render_template("brokers_list.html", rows=brokers, form=form)
+    return render_template("brokers_list.html", rows=brokers, form=form, total_brokers=total_brokers)
 
 @brokers.route("/purchase", methods=["GET","POST"])
+@login_required
 def purchase():
     form = PurchaseForm()
     cost = 50

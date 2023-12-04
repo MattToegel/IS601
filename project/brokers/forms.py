@@ -47,3 +47,11 @@ class BrokerUpgradeForm(FlaskForm):
     shares = IntegerField('Shares', [validators.NumberRange(min=1)])
     broker_id = HiddenField("broker_id")
     submit = SubmitField("Purchase Shares")
+
+class AssociationSearchForm(FlaskForm):
+    username = StringField("Username")
+    broker_name = StringField("Broker Name")
+    sort = SelectField("Columns", [validators.Optional()], choices=[("username", "username"), ("broker_name","broker name")])
+    order = SelectField("Order", [validators.Optional()], choices=[("asc","+"), ("desc","-")])
+    # page = IntegerField("page", default=1)
+    submit = SubmitField("Filter")

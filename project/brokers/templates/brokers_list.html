@@ -14,6 +14,19 @@
 {% endif %}
 <div class="container-fluid">
     {% include '_broker_search.html' %}
+    {% if current_user.is_authenticated and current_user.has_role("Admin") and request.args.get('id')%}
+    <form method="POST" action="{{url_for('brokers.debroker')}}"
+        onsubmit="return confirm('Are you sure?')">
+        <input type="hidden" name="user_id"
+            value="{{request.args.get('id')}}" />
+        <input type="submit" class="btn btn-danger" value="Remove all" />
+    </form>
+    {% endif %}
+    <div class="row">
+        <div class="col-auto">
+            Showing {{rows|length}}/{{total_brokers or 0}}
+        </div>
+    </div>
     {{ render_table(rows, "Brokers", ["id"], view, edit, delete) }}
 </div>
 {% endblock %}

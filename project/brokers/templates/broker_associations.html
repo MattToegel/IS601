@@ -1,0 +1,76 @@
+{% extends "layout.html" %}
+{% block title %}Broker Associations{% endblock %}
+
+<!-- content -->
+{% block content %}
+{% from "_table_helper.html" import render_table %}
+{% from "_formhelpers.html" import render_field %}
+<div class="container-fluid">
+    <div class="h1">Broker Associations</div>
+    <form method="GET">
+        <div class="row mb-3">
+            {% for field in form %}
+            {% if field.name != 'csrf_token' %}
+            <div class="col align-self-end">
+                {{ render_field(field) }}
+            </div>
+            {% endif %}
+            {% endfor %}
+            {{ form.hidden_tag() }}
+            <div class="row mt-3">
+                <div class="col-auto">
+                    {{ form.submit(class="btn btn-primary ") }}
+                </div>
+                <div class="col-auto">
+                    <a href="?" class="btn btn-secondary">Reset</a>
+                </div>
+            </div>
+        </div>
+    </form>
+    <div class="row">
+        <div class="col-auto">
+            Showing {{rows|length}}/{{total or 0}}
+        </div>
+    </div>
+    <table class="table">
+        <thead>
+            <tr>
+                <td>Username</td>
+                <td>Broker Name</td>
+                <td>Num. Users Associated</td>
+                <td>Actions</td>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            <tr>
+                <td><a
+                        href="{{url_for('auth.profile', id=row['user_id'])}}">{{row["username"]}}</a>
+                </td>
+                <td>{{row["broker_name"]}}</td>
+                <td>{{row["num_assoc"]}}</td>
+                <td>
+                    {% set args = dict(request.args) %}
+                    {% if "id" in args.keys() %}
+                    {{ args.pop("id")}}
+                    {% endif %}
+                    <a
+                        href="{{ url_for('brokers.view', id=row['id'], **args)}}">View</a>
+                    <a
+                        href="{{ url_for('brokers.edit', id=row['id'], **args) }}">Edit</a>
+
+                    <a
+                        href="{{ url_for('brokers.delete', id=row['id'], **args) }}">Delete</a>
+
+                </td>
+            </tr>
+            {% endfor %}
+            {% if rows | length == 0 %}
+            <tr>
+                <td colspan="100%">No records to show</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
