@@ -110,8 +110,8 @@ def logout():
 @auth.route("/profile", methods=["GET", "POST"])
 @login_required
 def profile():
-    user_id = request.args.get("id")
-    logged_in_user_id = current_user.get_id()
+    user_id = request.args.get("id", current_user.id)
+    logged_in_user_id = current_user.id
     is_my_profile = user_id == logged_in_user_id
     form = ProfileForm()
     if form.validate_on_submit():
