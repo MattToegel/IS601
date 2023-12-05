@@ -23,8 +23,9 @@ def change_points(user_id, amount):
         DB.update("UPDATE IS601_Users set points = (SELECT SUM(IFNULL(points_change, 0)) FROM IS601_Point_History WHERE user_id = %(user_id)s) where id = %(user_id)s", {
             "user_id": user_id
         })
-        current_user.change_points(amount)
-        session["user"] = current_user.toJson()
+        if current_user.id == user_id:
+            current_user.change_points(amount)
+            session["user"] = current_user.toJson()
         return True
     return False
 @points.route("/add", methods=["GET", "POST"])
