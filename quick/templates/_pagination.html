@@ -1,0 +1,29 @@
+{% macro pagination(num_of_pages) %}
+<nav aria-label="Page navigation example">
+  <ul class="pagination">
+    {% set page = request.args.get('page', 1) | int %}
+    {% set prev = page - 1 %}
+    {% set next = page + 1 %}
+    {% set args = dict(request.args) %}
+
+    {# remove page from args if it exists since it is appended differentl in the html #}
+    {% if "page" in args.keys() %}
+
+    {# set it to an unused variable so it doesn't get printed using double curly braces #}
+    {% set ignored = args.pop("page")%}
+
+    {% endif %}
+    {% set args = args | query_params %}
+    <li class="page-item {{'disabled' if prev <= 0}}"><a class="page-link"
+        href="?{{args}}&page={{prev}}">Previous</a></li>
+    {% for i in range(num_of_pages) %}
+    <li class="page-item {{'active' if (i+1) == page}}"><a class="page-link"
+        href="?{{args}}&page={{i+1}}">{{i+1}}</a>
+    </li>
+    {% endfor %}
+    <li class="page-item {{'disabled' if next > num_of_pages}}"><a
+        class="page-link" href="?{{args}}&page={{next}}">Next</a>
+    </li>
+  </ul>
+</nav>
+{% endmacro %}
