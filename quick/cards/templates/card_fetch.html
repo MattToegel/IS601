@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block title %}Fetch Cards{% endblock %}
+{% block content %}
+{% from "_formhelpers.html" import render_field %}
+<div class="container-fluid">
+    <div class="h3">Fetch Cards</div>
+    <form method="POST">
+        {% for field in form %}
+        {% if field.name != 'csrf_token' %}
+        {{ render_field(field) }}
+        {% endif %}
+        {% endfor %}
+        {{ form.hidden_tag() }}
+        {{ form.submit(class="btn btn-primary mt-3") }}
+    </form>
+</div>
+{% endblock %}

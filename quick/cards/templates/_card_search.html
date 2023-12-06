@@ -1,0 +1,20 @@
+{% from "_formhelpers.html" import render_field %}
+<form method="GET">
+    <div class="row mb-3">
+        {% for field in form %}
+        {% if field.name != 'csrf_token' %}
+        <div class="col align-self-end">
+            {{ render_field(field) }}
+        </div>
+        {% endif %}
+        {% endfor %}
+        {{ form.hidden_tag() }}
+        <div class="row mt-3">
+            <div class="col-auto">{{ form.submit(class="btn btn-primary ") }}
+            </div>
+            <div class="col-auto">
+                <a href="?" class="btn btn-secondary">Reset</a>
+            </div>
+        </div>
+    </div>
+</form>
