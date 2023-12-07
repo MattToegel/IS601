@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+{% block title %}Cards{% endblock %}
+
+<!-- content -->
+{% block content %}
+{% from "_table_helper.html" import render_table %}
+{% from "_formhelpers.html" import render_field %}
+<div class="container-fluid">
+    {% include '_card_search.html' %}
+
+    <form id="apply" action="{{url_for('cards.manage_assoc')}}" method="POST">
+        <input type="submit" value="Map it" class="btn btn-warning" />
+    </form>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Users</th>
+                <th>Cards</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    {% for user in users %}
+                    {{user.username}}
+                    <input form="apply" type="checkbox" class="form-check"
+                        name="users[]" value="{{user.get('id')}}" />
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for card in cards %}
+                    {{card.name}}
+                    <input form="apply" type="checkbox" class="form-check"
+                        name="cards[]" value="{{card.get('id')}}" />
+                    {% endfor %}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}

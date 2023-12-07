@@ -35,3 +35,14 @@ class CardSearchForm(FlaskForm):
     sort = SelectField("Sort")
     order = SelectField("Order", choices=[("asc","+"), ("desc","-")])
     submit = SubmitField("Filter")
+
+class AdminCardSearchForm(CardSearchForm):
+    username = StringField("Username")
+
+class AssocForm(FlaskForm):
+    class Meta:
+        # This overrides the value from the base form.
+        csrf = False
+    username = StringField("Username")
+    card = StringField("Card Name")
+    submit = SubmitField("Filter")

@@ -16,8 +16,8 @@
     </form>
     {% else %}
     <p>You're visiting {{form.username.data}}'s profile.</p>
-    <p>Checkout their team <a
-            href="{{url_for('brokers.team', id=request.args.get('id'))}}"
+    <p>Checkout their Watchlist <a
+            href="{{url_for('cards.watchlist', id=request.args.get('id'))}}"
             class="btn btn-primary">here</a></p>
 
     {% endif %}

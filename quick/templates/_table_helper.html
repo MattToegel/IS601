@@ -1,4 +1,5 @@
-{% macro render_table(data, title=None, ignored=[], view=None, edit=None, delete=None, table_class="") %}
+{% macro render_table(data, title=None, ignored=[], view=None, edit=None, delete=None,assoc=None, table_class="") %}
+
 <div class="container-fluid">
     {% if title %}
     <div class="h1">{{ title }}</div>
@@ -9,7 +10,7 @@
             <tr class="text-capitalize">
                 {% for r in data[0] %}
                 {% if r not in ignored %}
-                <th>{{ r }}</th>
+                <th>{{ r | replace("_", " ") }}</th>
                 {% endif %}
                 {% endfor %}
                 {% if view or edit or delete %}
@@ -23,14 +24,29 @@
             <tr>
                 {% for k, v in r.items() %}
                 {% if k not in ignored %}
-                <td>{{ v }}</td>
+                <td>
+                    {% if v or v == 0 %}
+                    {% if k == "username" and "user_id" in r.keys() %}
+                    <a
+                        href="{{url_for('auth.profile', id=r['user_id'])}}">{{v}}</a>
+                    {% else %}
+                    {{v}}
+                    {% endif %}
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
                 {% endif %}
                 {% endfor %}
-                {% if view or edit or delete %}
+                {% if view or edit or delete or assoc%}
                 <td>
                     {% set args = dict(request.args) %}
                     {% if "id" in args.keys() %}
                     {{ args.pop("id")}}
+                    {% endif %}
+                    {% if assoc and r["id"] and "is_assoc" in r.keys() %}
+                    <a
+                        href="{{ url_for(assoc, id=r['id'], **args) }}">{{"Track" if r["is_assoc"] == 0 else "Untrack"}}</a>
                     {% endif %}
                     {% if view and r["id"] %}
                     <a href="{{ url_for(view, id=r['id'], **args) }}">View</a>

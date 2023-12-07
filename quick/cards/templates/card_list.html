@@ -5,6 +5,11 @@
 {% block content %}
 {% from "_table_helper.html" import render_table %}
 {% set view = "cards.view" %}
+{% if current_user.is_authenticated %}
+{% set assoc = "cards.track" %}
+{% else %}
+{% set assoc = None %}
+{% endif %}
 {% if current_user.has_role("Admin") %}
 {% set edit = "cards.edit" %}
 {% set delete = "cards.delete" %}
@@ -15,7 +20,21 @@
 <div class="container-fluid">
     {% include '_card_search.html' %}
 
+    {% if current_user.is_authenticated or current_user.has_role("Admin") %}
 
-    {{ render_table(rows, "Cards", ["id"], view, edit, delete) }}
+    <form
+        action="{{url_for('cards.clear', id=request.args.get('id', current_user.id))}}"
+        onsubmit="return confirm('Are you sure?')">
+        <input type="hidden" name="id"
+            value="{{request.args.get('id', current_user.id)}}" />
+        <input type="submit" class="btn btn-danger" value="Clear Watchlist" />
+    </form>
+    <div class="row">
+        <div class="col">
+            Showing Results {{rows | length}}/{{total_records or 0}}
+        </div>
+    </div>
+    {% endif %}
+    {{ render_table(rows, title if title else "Cards", ["id", "is_assoc", "user_id"], view, edit, delete, assoc) }}
 </div>
 {% endblock %}
