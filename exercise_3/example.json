@@ -1,0 +1,11 @@
+{
+    "username": "terrance",
+    "pw_hash": "$2y$10$T9vnGdMiALoCMFwF5VxUBuGIzSrLnM6Dmv1I0GDSvMeQfzATPocuS",
+    "time_remaining": 60,
+    "shopping_cart": {
+        "milk": 2.50,
+        "sugar": 3.00,
+        "eggs": 3.00,
+        "flour": 2.00
+    }
+}

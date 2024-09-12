@@ -1,0 +1,14 @@
+output
+__pycache__
+venv
+.vscode
+.idea
+.DS_Store
+*.log*
+exercise_1/exercise_1.py
+exercise_2/count_caps.py
+exercise_3/exercise_3.py
+exercise_4/triangle.py
+exercise_5/dates.py
+midterm_project/generate_orders.py
+midterm_project/example_solution.py
