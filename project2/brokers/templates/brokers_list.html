@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block title %}Brokers{% endblock %}
+
+<!-- content -->
+{% block content %}
+{% from "_table_helper.html" import render_table %}
+{% set view = "brokers.view" %}
+{% set edit = "brokers.edit" %}
+{% set delete = "brokers.delete" %}
+<div class="container-fluid">
+    {{ render_table(rows, "Brokers", [], view, edit, delete) }}
+</div>
+{% endblock %}
