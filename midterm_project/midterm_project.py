@@ -3,21 +3,32 @@ import sys
 from collections import defaultdict
 
 def read_json(file_path):
-    # Reads the orders JSON file
-    with open(file_path, 'r') as file:
-        data = json.load(file)
-    return data
+    # Reads the orders JSON file and handles potential file errors
+    try:
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+        return data
+    except FileNotFoundError:
+        print(f"Error: File '{file_path}' not found.")
+        sys.exit(1)
+    except json.JSONDecodeError:
+        print(f"Error: Failed to decode JSON from '{file_path}'.")
+        sys.exit(1)
 
 def create_customers_json(orders):
     # Creates customers.json from orders
     customers = {}
     for order in orders:
-        phone = order['phone']  # Extract phone number
-        name = order['name']  # Extract customer name
+        phone = order['phone']
+        name = order['name']
         customers[phone] = name
     
-    with open('customers.json', 'w') as file:
-        json.dump(customers, file, indent=4)
+    try:
+        with open('customers.json', 'w') as file:
+            json.dump(customers, file, indent=4)
+    except IOError:
+        print("Error: Unable to write to customers.json")
+        sys.exit(1)
 
 def create_items_json(orders):
     # Creates items.json with item names, prices, and the number of times ordered
@@ -30,8 +41,12 @@ def create_items_json(orders):
                 items[item_name]['price'] = item_price
             items[item_name]['orders'] += 1
     
-    with open('items.json', 'w') as file:
-        json.dump(items, file, indent=4)
+    try:
+        with open('items.json', 'w') as file:
+            json.dump(items, file, indent=4)
+    except IOError:
+        print("Error: Unable to write to items.json")
+        sys.exit(1)
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
